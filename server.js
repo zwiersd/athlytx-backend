@@ -241,6 +241,187 @@ app.get('/api/oura/activity', async (req, res) => {
     }
 });
 
+// ================== WHOOP ENDPOINTS ==================
+
+// Whoop OAuth token exchange
+app.post('/api/whoop/token', async (req, res) => {
+    try {
+        const { code } = req.body;
+        
+        console.log('Exchanging Whoop code for token...');
+        
+        if (!process.env.WHOOP_CLIENT_ID || !process.env.WHOOP_CLIENT_SECRET) {
+            return res.status(500).json({ error: 'Whoop OAuth credentials not configured' });
+        }
+        
+        const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token/', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${Buffer.from(`${process.env.WHOOP_CLIENT_ID}:${process.env.WHOOP_CLIENT_SECRET}`).toString('base64')}`
+            },
+            body: new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                redirect_uri: 'https://www.athlytx.com'
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!data.access_token) {
+            console.error('Whoop token exchange failed:', data);
+            return res.status(400).json({ error: 'Failed to get Whoop token', details: data });
+        }
+
+        console.log('Whoop token exchange successful');
+        res.json(data);
+
+    } catch (error) {
+        console.error('Whoop token error:', error);
+        res.status(500).json({ error: 'Whoop token exchange failed', details: error.message });
+    }
+});
+
+// Get Whoop user profile
+app.get('/api/whoop/profile', async (req, res) => {
+    try {
+        const { token } = req.query;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+
+        const response = await fetch('https://api.prod.whoop.com/developer/v1/user/profile/basic', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+        }
+
+        const profile = await response.json();
+        res.json(profile);
+
+    } catch (error) {
+        console.error('Whoop profile error:', error);
+        res.status(500).json({ error: 'Failed to fetch Whoop profile' });
+    }
+});
+
+// Get Whoop recovery data
+app.get('/api/whoop/recovery', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+
+        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+        }
+
+        const recovery = await response.json();
+        res.json(recovery);
+
+    } catch (error) {
+        console.error('Whoop recovery error:', error);
+        res.status(500).json({ error: 'Failed to fetch Whoop recovery data' });
+    }
+});
+
+// Get Whoop sleep data
+app.get('/api/whoop/sleep', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+
+        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+        }
+
+        const sleep = await response.json();
+        res.json(sleep);
+
+    } catch (error) {
+        console.error('Whoop sleep error:', error);
+        res.status(500).json({ error: 'Failed to fetch Whoop sleep data' });
+    }
+});
+
+// Get Whoop workout data
+app.get('/api/whoop/workouts', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+
+        const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+        }
+
+        const workouts = await response.json();
+        res.json(workouts);
+
+    } catch (error) {
+        console.error('Whoop workout error:', error);
+        res.status(500).json({ error: 'Failed to fetch Whoop workout data' });
+    }
+});
+
+// Get Whoop physiological cycles
+app.get('/api/whoop/cycles', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+        
+        if (!token) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+        }
+
+        const cycles = await response.json();
+        res.json(cycles);
+
+    } catch (error) {
+        console.error('Whoop cycles error:', error);
+        res.status(500).json({ error: 'Failed to fetch Whoop cycle data' });
+    }
+});
+
 // ================== SERVER STARTUP ==================
 
 const PORT = process.env.PORT || 3000;
@@ -251,4 +432,5 @@ app.listen(PORT, () => {
     console.log(`🔐 Environment check:`);
     console.log(`  - Strava: ${process.env.STRAVA_CLIENT_ID ? '✅' : '❌'}`);
     console.log(`  - Oura: ${process.env.OURA_CLIENT_ID ? '✅' : '❌'}`);
+    console.log(`  - Whoop: ${process.env.WHOOP_CLIENT_ID ? '✅' : '❌'}`);
 });
