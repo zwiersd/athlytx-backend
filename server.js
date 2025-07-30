@@ -4,38 +4,37 @@ const fetch = require('node-fetch');
 
 const app = express();
 
-// CORS for your website
-app.use(cors({
-    origin: ['https://www.athlytx.com', 'https://athlytx.com'],
-    credentials: true
-}));
-
+app.use(cors());
 app.use(express.json());
 
-// Health check
+// Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ 
+    console.log('🔐 Environment check:');
+    console.log(`  - Strava: ${process.env.STRAVA_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Oura: ${process.env.OURA_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Whoop: ${process.env.WHOOP_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Garmin: ${process.env.GARMIN_CONSUMER_SECRET ? '✅' : '❌'}`);
+    
+    res.json({
         message: 'Athlytx Backend Live! 🚀',
         timestamp: new Date().toISOString(),
         status: 'healthy'
     });
 });
 
-// ================== STRAVA ENDPOINTS ==================
-
-// Strava OAuth exchange
+// ===== STRAVA ENDPOINTS =====
 app.post('/api/strava/token', async (req, res) => {
     try {
         const { code } = req.body;
         
-        console.log('Exchanging Strava code for token...');
-        
         const response = await fetch('https://www.strava.com/oauth/token', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
-                client_id: process.env.STRAVA_CLIENT_ID || '167615',
-                client_secret: process.env.STRAVA_CLIENT_SECRET || '57ffd1f50959cc93ea31c70296e6b70a6b520470',
+                client_id: process.env.STRAVA_CLIENT_ID,
+                client_secret: process.env.STRAVA_CLIENT_SECRET,
                 code: code,
                 grant_type: 'authorization_code'
             })
@@ -43,394 +42,627 @@ app.post('/api/strava/token', async (req, res) => {
 
         const data = await response.json();
         
-        if (!data.access_token) {
-            return res.status(400).json({ error: 'Failed to get Strava token', details: data });
+        if (!response.ok) {
+            throw new Error(`Strava token exchange failed: ${data.message}`);
         }
 
-        console.log('Strava token exchange successful');
         res.json(data);
-
     } catch (error) {
         console.error('Strava token error:', error);
-        res.status(500).json({ error: 'Token exchange failed', details: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch Strava activities
-app.get('/api/strava/activities', async (req, res) => {
-    try {
-        const { token } = req.query;
-        
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const response = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=30', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            return res.status(response.status).json({ error: 'Strava API error' });
-        }
-
-        const activities = await response.json();
-        res.json({ activities });
-
-    } catch (error) {
-        console.error('Strava activities error:', error);
-        res.status(500).json({ error: 'Failed to fetch activities' });
-    }
-});
-
-// Get Strava athlete info
 app.get('/api/strava/athlete', async (req, res) => {
     try {
         const { token } = req.query;
         
         const response = await fetch('https://www.strava.com/api/v3/athlete', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
-        const athlete = await response.json();
-        res.json(athlete);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Strava athlete fetch failed: ${data.message}`);
+        }
 
+        res.json(data);
     } catch (error) {
         console.error('Strava athlete error:', error);
-        res.status(500).json({ error: 'Failed to fetch athlete data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// ================== OURA ENDPOINTS ==================
+app.get('/api/strava/activities', async (req, res) => {
+    try {
+        const { token } = req.query;
+        
+        const response = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=30', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
-// Oura OAuth exchange
+        const activities = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Strava activities fetch failed: ${activities.message}`);
+        }
+
+        res.json({ activities });
+    } catch (error) {
+        console.error('Strava activities error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== OURA ENDPOINTS =====
 app.post('/api/oura/token', async (req, res) => {
     try {
         const { code } = req.body;
         
-        console.log('Exchanging Oura code for token...');
-        
-        if (!process.env.OURA_CLIENT_ID || !process.env.OURA_CLIENT_SECRET) {
-            return res.status(500).json({ error: 'Oura OAuth credentials not configured' });
-        }
-        
         const response = await fetch('https://api.ouraring.com/oauth/token', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
+                redirect_uri: 'https://www.athlytx.com',
                 client_id: process.env.OURA_CLIENT_ID,
-                client_secret: process.env.OURA_CLIENT_SECRET,
-                redirect_uri: 'https://www.athlytx.com'
+                client_secret: process.env.OURA_CLIENT_SECRET
             })
         });
 
         const data = await response.json();
         
-        if (!data.access_token) {
-            console.error('Oura token exchange failed:', data);
-            return res.status(400).json({ error: 'Failed to get Oura token', details: data });
+        if (!response.ok) {
+            throw new Error(`Oura token exchange failed: ${data.error_description || data.error}`);
         }
 
-        console.log('Oura token exchange successful');
         res.json(data);
-
     } catch (error) {
         console.error('Oura token error:', error);
-        res.status(500).json({ error: 'Oura token exchange failed', details: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch Oura personal info
 app.get('/api/oura/personal', async (req, res) => {
     try {
         const { token } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
         const response = await fetch('https://api.ouraring.com/v2/usercollection/personal_info', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Oura API error', details: errorText });
+            throw new Error(`Oura personal info fetch failed: ${data.message}`);
         }
 
-        const data = await response.json();
         res.json(data);
-
     } catch (error) {
-        console.error('Oura personal error:', error);
-        res.status(500).json({ error: 'Failed to fetch Oura personal data' });
+        console.error('Oura personal info error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch Oura sleep data
 app.get('/api/oura/sleep', async (req, res) => {
     try {
         const { token, start_date, end_date } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const response = await fetch(`https://api.ouraring.com/v2/usercollection/daily_sleep?start_date=${start_date}&end_date=${end_date}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`https://api.ouraring.com/v2/usercollection/sleep?start_date=${start_date}&end_date=${end_date}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Oura API error', details: errorText });
+            throw new Error(`Oura sleep fetch failed: ${data.message}`);
         }
 
-        const data = await response.json();
         res.json(data);
-
     } catch (error) {
         console.error('Oura sleep error:', error);
-        res.status(500).json({ error: 'Failed to fetch Oura sleep data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch Oura readiness data
 app.get('/api/oura/readiness', async (req, res) => {
     try {
         const { token, start_date, end_date } = req.query;
         
         const response = await fetch(`https://api.ouraring.com/v2/usercollection/daily_readiness?start_date=${start_date}&end_date=${end_date}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Oura API error', details: errorText });
+            throw new Error(`Oura readiness fetch failed: ${data.message}`);
         }
 
-        const data = await response.json();
         res.json(data);
-
     } catch (error) {
         console.error('Oura readiness error:', error);
-        res.status(500).json({ error: 'Failed to fetch Oura readiness data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch Oura activity data
 app.get('/api/oura/activity', async (req, res) => {
     try {
         const { token, start_date, end_date } = req.query;
         
         const response = await fetch(`https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${start_date}&end_date=${end_date}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Oura API error', details: errorText });
+            throw new Error(`Oura activity fetch failed: ${data.message}`);
         }
 
-        const data = await response.json();
         res.json(data);
-
     } catch (error) {
         console.error('Oura activity error:', error);
-        res.status(500).json({ error: 'Failed to fetch Oura activity data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// ================== WHOOP ENDPOINTS ==================
-
-// Whoop OAuth token exchange
+// ===== WHOOP ENDPOINTS =====
 app.post('/api/whoop/token', async (req, res) => {
     try {
         const { code } = req.body;
         
-        console.log('Exchanging Whoop code for token...');
-        
-        if (!process.env.WHOOP_CLIENT_ID || !process.env.WHOOP_CLIENT_SECRET) {
-            return res.status(500).json({ error: 'Whoop OAuth credentials not configured' });
-        }
-        
-        const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token/', {
+        const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(`${process.env.WHOOP_CLIENT_ID}:${process.env.WHOOP_CLIENT_SECRET}`).toString('base64')}`
             },
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
-                redirect_uri: 'https://www.athlytx.com'
+                redirect_uri: 'https://www.athlytx.com',
+                client_id: process.env.WHOOP_CLIENT_ID,
+                client_secret: process.env.WHOOP_CLIENT_SECRET
             })
         });
 
         const data = await response.json();
         
-        if (!data.access_token) {
-            console.error('Whoop token exchange failed:', data);
-            return res.status(400).json({ error: 'Failed to get Whoop token', details: data });
+        if (!response.ok) {
+            throw new Error(`Whoop token exchange failed: ${data.error_description || data.error}`);
         }
 
-        console.log('Whoop token exchange successful');
         res.json(data);
-
     } catch (error) {
         console.error('Whoop token error:', error);
-        res.status(500).json({ error: 'Whoop token exchange failed', details: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Get Whoop user profile
 app.get('/api/whoop/profile', async (req, res) => {
     try {
         const { token } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
         const response = await fetch('https://api.prod.whoop.com/developer/v1/user/profile/basic', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+            throw new Error(`Whoop profile fetch failed: ${data.message}`);
         }
 
-        const profile = await response.json();
-        res.json(profile);
-
+        res.json(data);
     } catch (error) {
         console.error('Whoop profile error:', error);
-        res.status(500).json({ error: 'Failed to fetch Whoop profile' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Get Whoop recovery data
 app.get('/api/whoop/recovery', async (req, res) => {
     try {
         const { token, start, end } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+            throw new Error(`Whoop recovery fetch failed: ${data.message}`);
         }
 
-        const recovery = await response.json();
-        res.json(recovery);
-
+        res.json(data);
     } catch (error) {
         console.error('Whoop recovery error:', error);
-        res.status(500).json({ error: 'Failed to fetch Whoop recovery data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Get Whoop sleep data
 app.get('/api/whoop/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+            throw new Error(`Whoop sleep fetch failed: ${data.message}`);
         }
 
-        const sleep = await response.json();
-        res.json(sleep);
-
+        res.json(data);
     } catch (error) {
         console.error('Whoop sleep error:', error);
-        res.status(500).json({ error: 'Failed to fetch Whoop sleep data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Get Whoop workout data
 app.get('/api/whoop/workouts', async (req, res) => {
     try {
         const { token, start, end } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`;
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+            throw new Error(`Whoop workouts fetch failed: ${data.message}`);
         }
 
-        const workouts = await response.json();
-        res.json(workouts);
-
+        res.json(data);
     } catch (error) {
-        console.error('Whoop workout error:', error);
-        res.status(500).json({ error: 'Failed to fetch Whoop workout data' });
+        console.error('Whoop workouts error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Get Whoop physiological cycles
 app.get('/api/whoop/cycles', async (req, res) => {
     try {
         const { token, start, end } = req.query;
         
-        if (!token) {
-            return res.status(400).json({ error: 'No access token provided' });
-        }
-
-        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`;
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: 'Whoop API error', details: errorText });
+            throw new Error(`Whoop cycles fetch failed: ${data.message}`);
         }
 
-        const cycles = await response.json();
-        res.json(cycles);
-
+        res.json(data);
     } catch (error) {
         console.error('Whoop cycles error:', error);
-        res.status(500).json({ error: 'Failed to fetch Whoop cycle data' });
+        res.status(500).json({ error: error.message });
     }
 });
 
-// ================== SERVER STARTUP ==================
+// ===== GARMIN ENDPOINTS =====
+const crypto = require('crypto');
 
-const PORT = process.env.PORT || 3000;
+// OAuth 1.0a signature generation for Garmin
+function generateOAuthSignature(method, url, params, consumerSecret, tokenSecret = '') {
+    const paramString = Object.keys(params)
+        .sort()
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+    
+    const baseString = `${method.toUpperCase()}&${encodeURIComponent(url)}&${encodeURIComponent(paramString)}`;
+    const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
+    
+    return crypto.createHmac('sha1', signingKey).update(baseString).digest('base64');
+}
 
+// Step 1: Get request token
+app.post('/api/garmin/request-token', async (req, res) => {
+    try {
+        const requestTokenUrl = 'https://connectapi.garmin.com/oauth-service/oauth/request_token';
+        
+        const oauthParams = {
+            oauth_callback: 'https://www.athlytx.com',
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('POST', requestTokenUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(requestTokenUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin request token failed: ${responseText}`);
+        }
+        
+        const params = new URLSearchParams(responseText);
+        const requestToken = params.get('oauth_token');
+        const requestTokenSecret = params.get('oauth_token_secret');
+        
+        res.json({
+            oauth_token: requestToken,
+            oauth_token_secret: requestTokenSecret,
+            authorize_url: `https://connect.garmin.com/oauthConfirm?oauth_token=${requestToken}`
+        });
+        
+    } catch (error) {
+        console.error('Garmin request token error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Step 2: Exchange for access token
+app.post('/api/garmin/access-token', async (req, res) => {
+    try {
+        const { oauth_token, oauth_verifier, oauth_token_secret } = req.body;
+        
+        const accessTokenUrl = 'https://connectapi.garmin.com/oauth-service/oauth/access_token';
+        
+        const oauthParams = {
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_token: oauth_token,
+            oauth_verifier: oauth_verifier,
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('POST', accessTokenUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET, oauth_token_secret);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(accessTokenUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin access token failed: ${responseText}`);
+        }
+        
+        const params = new URLSearchParams(responseText);
+        
+        res.json({
+            oauth_token: params.get('oauth_token'),
+            oauth_token_secret: params.get('oauth_token_secret')
+        });
+        
+    } catch (error) {
+        console.error('Garmin access token error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Garmin data endpoints
+app.get('/api/garmin/user', async (req, res) => {
+    try {
+        const { oauth_token, oauth_token_secret } = req.query;
+        
+        const userUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/id';
+        
+        const oauthParams = {
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_token: oauth_token,
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('GET', userUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET, oauth_token_secret);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(userUrl, {
+            headers: {
+                'Authorization': authHeader
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin user fetch failed: ${data.message}`);
+        }
+        
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Garmin user error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/activities', async (req, res) => {
+    try {
+        const { oauth_token, oauth_token_secret, start_date, end_date } = req.query;
+        
+        const activitiesUrl = `https://healthapi.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${start_date}&uploadEndTimeInSeconds=${end_date}`;
+        
+        const oauthParams = {
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_token: oauth_token,
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('GET', activitiesUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET, oauth_token_secret);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(activitiesUrl, {
+            headers: {
+                'Authorization': authHeader
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin activities fetch failed: ${data.message}`);
+        }
+        
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Garmin activities error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/dailies', async (req, res) => {
+    try {
+        const { oauth_token, oauth_token_secret, start_date, end_date } = req.query;
+        
+        const dailiesUrl = `https://healthapi.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${start_date}&uploadEndTimeInSeconds=${end_date}`;
+        
+        const oauthParams = {
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_token: oauth_token,
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('GET', dailiesUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET, oauth_token_secret);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(dailiesUrl, {
+            headers: {
+                'Authorization': authHeader
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin dailies fetch failed: ${data.message}`);
+        }
+        
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Garmin dailies error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/sleep', async (req, res) => {
+    try {
+        const { oauth_token, oauth_token_secret, start_date, end_date } = req.query;
+        
+        const sleepUrl = `https://healthapi.garmin.com/wellness-api/rest/sleepData?uploadStartTimeInSeconds=${start_date}&uploadEndTimeInSeconds=${end_date}`;
+        
+        const oauthParams = {
+            oauth_consumer_key: process.env.GARMIN_CONSUMER_KEY,
+            oauth_nonce: crypto.randomBytes(16).toString('hex'),
+            oauth_signature_method: 'HMAC-SHA1',
+            oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+            oauth_token: oauth_token,
+            oauth_version: '1.0'
+        };
+        
+        const signature = generateOAuthSignature('GET', sleepUrl, oauthParams, process.env.GARMIN_CONSUMER_SECRET, oauth_token_secret);
+        oauthParams.oauth_signature = signature;
+        
+        const authHeader = 'OAuth ' + Object.keys(oauthParams)
+            .map(key => `${key}="${encodeURIComponent(oauthParams[key])}"`)
+            .join(', ');
+        
+        const response = await fetch(sleepUrl, {
+            headers: {
+                'Authorization': authHeader
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Garmin sleep fetch failed: ${data.message}`);
+        }
+        
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Garmin sleep error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-    console.log(`🚀 Athlytx Backend running on port ${PORT}`);
-    console.log(`🌐 Available at: https://athlytx-backend-production.up.railway.app`);
-    console.log(`🔐 Environment check:`);
-    console.log(`  - Strava: ${process.env.STRAVA_CLIENT_ID ? '✅' : '❌'}`);
-    console.log(`  - Oura: ${process.env.OURA_CLIENT_ID ? '✅' : '❌'}`);
-    console.log(`  - Whoop: ${process.env.WHOOP_CLIENT_ID ? '✅' : '❌'}`);
+    console.log(`✅ Athlytx Backend running on port ${PORT}`);
+    console.log('🔐 Environment check:');
+    console.log(`  - Strava: ${process.env.STRAVA_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Oura: ${process.env.OURA_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Whoop: ${process.env.WHOOP_CLIENT_SECRET ? '✅' : '❌'}`);
+    console.log(`  - Garmin: ${process.env.GARMIN_CONSUMER_SECRET ? '✅' : '❌'}`);
 });
