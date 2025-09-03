@@ -373,7 +373,63 @@ app.get('/api/whoop/cycles', async (req, res) => {
 // ===== GARMIN ENDPOINTS =====
 const crypto = require('crypto');
 
-// OAuth 1.0a signature generation for Garmin
+// Garmin OAuth 2.0 token exchange
+app.post('/api/garmin/token', async (req, res) => {
+    try {
+        const { code, client_id, redirect_uri, code_verifier } = req.body;
+        
+        console.log('Garmin OAuth 2.0 token exchange:', { code: code?.substring(0, 10) + '...', client_id });
+        
+        const tokenUrl = 'https://apis.garmin.com/oauth2/token';
+        
+        const bodyParams = new URLSearchParams({
+            grant_type: 'authorization_code',
+            code: code,
+            client_id: client_id || process.env.GARMIN_CONSUMER_KEY,
+            client_secret: process.env.GARMIN_CONSUMER_SECRET,
+            redirect_uri: redirect_uri || 'https://www.athlytx.com'
+        });
+        
+        // Add PKCE verifier if provided
+        if (code_verifier) {
+            bodyParams.append('code_verifier', code_verifier);
+        }
+        
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
+            },
+            body: bodyParams.toString()
+        });
+        
+        const responseText = await response.text();
+        console.log('Garmin token response status:', response.status);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Failed to parse Garmin response:', responseText);
+            throw new Error(`Invalid response from Garmin: ${responseText}`);
+        }
+        
+        if (!response.ok) {
+            console.error('Garmin token exchange failed:', data);
+            throw new Error(`Garmin token exchange failed: ${data.error_description || data.error || responseText}`);
+        }
+        
+        console.log('Garmin token exchange successful');
+        res.json(data);
+        
+    } catch (error) {
+        console.error('Garmin OAuth 2.0 token error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// OAuth 1.0a signature generation for Garmin (keeping for backward compatibility)
 function generateOAuthSignature(method, url, params, consumerSecret, tokenSecret = '') {
     const paramString = Object.keys(params)
         .sort()
@@ -488,11 +544,31 @@ app.post('/api/garmin/access-token', async (req, res) => {
     }
 });
 
-// Garmin data endpoints
+// Garmin data endpoints (OAuth 2.0 support)
 app.get('/api/garmin/user', async (req, res) => {
     try {
-        const { oauth_token, oauth_token_secret } = req.query;
+        const { oauth_token, oauth_token_secret, token } = req.query;
         
+        // If OAuth 2.0 token is provided, use it
+        if (token) {
+            const response = await fetch('https://apis.garmin.com/wellness-api/rest/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(`Garmin user fetch failed: ${data.message || JSON.stringify(data)}`);
+            }
+            
+            res.json(data);
+            return;
+        }
+        
+        // Fallback to OAuth 1.0a for backward compatibility
         const userUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/id';
         
         const oauthParams = {
