@@ -376,11 +376,12 @@ const crypto = require('crypto');
 // Garmin OAuth 2.0 token exchange
 app.post('/api/garmin/token', async (req, res) => {
     try {
-        const { code, client_id, redirect_uri, code_verifier } = req.body;
+        const { code, client_id, redirect_uri, code_verifier, token_endpoint } = req.body;
         
         console.log('Garmin OAuth 2.0 token exchange:', { code: code?.substring(0, 10) + '...', client_id });
         
-        const tokenUrl = 'https://apis.garmin.com/oauth2/token';
+        // Use the token endpoint provided by frontend or default to the correct one
+        const tokenUrl = token_endpoint || 'https://apis.garmin.com/oauth2/token';
         
         const bodyParams = new URLSearchParams({
             grant_type: 'authorization_code',
