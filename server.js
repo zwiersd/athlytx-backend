@@ -281,22 +281,31 @@ app.get('/api/whoop/profile', async (req, res) => {
 app.get('/api/whoop/recovery', async (req, res) => {
     try {
         const { token, start, end } = req.query;
-        
-        const response = await fetch(`https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`, {
+
+        console.log('🔄 Whoop recovery request:', { start, end, tokenLength: token?.length });
+
+        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
+        console.log('📡 Calling Whoop API:', url);
+
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
+        console.log('📊 Whoop API response:', response.status, response.statusText);
+
         const data = await response.json();
-        
+
         if (!response.ok) {
-            throw new Error(`Whoop recovery fetch failed: ${data.message}`);
+            console.error('❌ Whoop API error:', data);
+            throw new Error(`Whoop recovery fetch failed: ${data.message || data.error || 'Unknown error'}`);
         }
 
+        console.log('✅ Whoop recovery success, records:', data.records?.length || 0);
         res.json(data);
     } catch (error) {
-        console.error('Whoop recovery error:', error);
+        console.error('❌ Whoop recovery error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
@@ -304,22 +313,31 @@ app.get('/api/whoop/recovery', async (req, res) => {
 app.get('/api/whoop/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
-        
-        const response = await fetch(`https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`, {
+
+        console.log('🔄 Whoop sleep request:', { start, end, tokenLength: token?.length });
+
+        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
+        console.log('📡 Calling Whoop API:', url);
+
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
+        console.log('📊 Whoop API response:', response.status, response.statusText);
+
         const data = await response.json();
-        
+
         if (!response.ok) {
-            throw new Error(`Whoop sleep fetch failed: ${data.message}`);
+            console.error('❌ Whoop API error:', data);
+            throw new Error(`Whoop sleep fetch failed: ${data.message || data.error || 'Unknown error'}`);
         }
 
+        console.log('✅ Whoop sleep success, records:', data.records?.length || 0);
         res.json(data);
     } catch (error) {
-        console.error('Whoop sleep error:', error);
+        console.error('❌ Whoop sleep error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
