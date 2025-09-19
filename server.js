@@ -284,7 +284,11 @@ app.get('/api/whoop/recovery', async (req, res) => {
 
         console.log('🔄 Whoop recovery request:', { start, end, tokenLength: token?.length });
 
-        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
+        // Convert dates to ISO format for Whoop API
+        const startISO = new Date(start + 'T00:00:00.000Z').toISOString();
+        const endISO = new Date(end + 'T23:59:59.999Z').toISOString();
+
+        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${startISO}&end=${endISO}`;
         console.log('📡 Calling Whoop API:', url);
 
         const response = await fetch(url, {
@@ -316,7 +320,11 @@ app.get('/api/whoop/sleep', async (req, res) => {
 
         console.log('🔄 Whoop sleep request:', { start, end, tokenLength: token?.length });
 
-        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
+        // Convert dates to ISO format for Whoop API
+        const startISO = new Date(start + 'T00:00:00.000Z').toISOString();
+        const endISO = new Date(end + 'T23:59:59.999Z').toISOString();
+
+        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${startISO}&end=${endISO}`;
         console.log('📡 Calling Whoop API:', url);
 
         const response = await fetch(url, {
@@ -345,12 +353,23 @@ app.get('/api/whoop/sleep', async (req, res) => {
 app.get('/api/whoop/workouts', async (req, res) => {
     try {
         const { token, start, end } = req.query;
-        
-        const response = await fetch(`https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`, {
+
+        console.log('🔄 Whoop workouts request:', { start, end, tokenLength: token?.length });
+
+        // Convert dates to ISO format for Whoop API
+        const startISO = new Date(start + 'T00:00:00.000Z').toISOString();
+        const endISO = new Date(end + 'T23:59:59.999Z').toISOString();
+
+        const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startISO}&end=${endISO}`;
+        console.log('📡 Calling Whoop API:', url);
+
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+
+        console.log('📊 Whoop API response:', response.status, response.statusText);
 
         const data = await response.json();
         
@@ -368,12 +387,23 @@ app.get('/api/whoop/workouts', async (req, res) => {
 app.get('/api/whoop/cycles', async (req, res) => {
     try {
         const { token, start, end } = req.query;
-        
-        const response = await fetch(`https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`, {
+
+        console.log('🔄 Whoop cycles request:', { start, end, tokenLength: token?.length });
+
+        // Convert dates to ISO format for Whoop API
+        const startISO = new Date(start + 'T00:00:00.000Z').toISOString();
+        const endISO = new Date(end + 'T23:59:59.999Z').toISOString();
+
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${startISO}&end=${endISO}`;
+        console.log('📡 Calling Whoop API:', url);
+
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+
+        console.log('📊 Whoop API response:', response.status, response.statusText);
 
         const data = await response.json();
         
