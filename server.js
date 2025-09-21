@@ -820,6 +820,154 @@ app.get('/api/garmin/sleep', async (req, res) => {
     }
 });
 
+// OAuth 2.0 Garmin API endpoints (Bearer token authentication)
+app.get('/api/garmin/v2/dailies', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Access token required' });
+        }
+
+        // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        let startTimestamp, endTimestamp;
+        if (start && end) {
+            startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+            endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+        } else {
+            // Default to last 14 days
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            startTimestamp = Math.floor(startDate.getTime() / 1000);
+            endTimestamp = Math.floor(endDate.getTime() / 1000);
+        }
+
+        const dailiesUrl = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('📊 Fetching Garmin dailies:', dailiesUrl);
+
+        const response = await fetch(dailiesUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('📊 Garmin dailies response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Garmin dailies error:', errorText);
+            throw new Error(`Garmin API error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Garmin dailies data received:', data ? Object.keys(data) : 'null');
+        res.json(data);
+
+    } catch (error) {
+        console.error('Garmin dailies error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/v2/activities', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Access token required' });
+        }
+
+        // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        let startTimestamp, endTimestamp;
+        if (start && end) {
+            startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+            endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+        } else {
+            // Default to last 14 days
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            startTimestamp = Math.floor(startDate.getTime() / 1000);
+            endTimestamp = Math.floor(endDate.getTime() / 1000);
+        }
+
+        const activitiesUrl = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('🏃 Fetching Garmin activities:', activitiesUrl);
+
+        const response = await fetch(activitiesUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('🏃 Garmin activities response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Garmin activities error:', errorText);
+            throw new Error(`Garmin API error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Garmin activities data received:', data ? Object.keys(data) : 'null');
+        res.json(data);
+
+    } catch (error) {
+        console.error('Garmin activities error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/v2/sleep', async (req, res) => {
+    try {
+        const { token, start, end } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Access token required' });
+        }
+
+        // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        let startTimestamp, endTimestamp;
+        if (start && end) {
+            startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+            endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+        } else {
+            // Default to last 14 days
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            startTimestamp = Math.floor(startDate.getTime() / 1000);
+            endTimestamp = Math.floor(endDate.getTime() / 1000);
+        }
+
+        const sleepUrl = `https://apis.garmin.com/wellness-api/rest/sleepData?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('😴 Fetching Garmin sleep data:', sleepUrl);
+
+        const response = await fetch(sleepUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('😴 Garmin sleep response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Garmin sleep error:', errorText);
+            throw new Error(`Garmin API error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Garmin sleep data received:', data ? Object.keys(data) : 'null');
+        res.json(data);
+
+    } catch (error) {
+        console.error('Garmin sleep error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`✅ Athlytx Backend running on port ${PORT}`);
