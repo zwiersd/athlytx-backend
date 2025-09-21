@@ -830,14 +830,23 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
         }
 
         // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        // Garmin API has a maximum of 86400 seconds (24 hours) per request
         let startTimestamp, endTimestamp;
         if (start && end) {
             startTimestamp = Math.floor(new Date(start).getTime() / 1000);
             endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+
+            // Ensure the range doesn't exceed 24 hours (86400 seconds)
+            const maxRange = 86400; // 24 hours in seconds
+            if (endTimestamp - startTimestamp > maxRange) {
+                // Limit to the last 24 hours from the end date
+                startTimestamp = endTimestamp - maxRange;
+                console.log('⚠️ Date range limited to 24 hours due to Garmin API restriction');
+            }
         } else {
-            // Default to last 14 days
+            // Default to last 24 hours only (not 14 days)
             const endDate = new Date();
-            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
             startTimestamp = Math.floor(startDate.getTime() / 1000);
             endTimestamp = Math.floor(endDate.getTime() / 1000);
         }
@@ -879,14 +888,23 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
         }
 
         // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        // Garmin API has a maximum of 86400 seconds (24 hours) per request
         let startTimestamp, endTimestamp;
         if (start && end) {
             startTimestamp = Math.floor(new Date(start).getTime() / 1000);
             endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+
+            // Ensure the range doesn't exceed 24 hours (86400 seconds)
+            const maxRange = 86400; // 24 hours in seconds
+            if (endTimestamp - startTimestamp > maxRange) {
+                // Limit to the last 24 hours from the end date
+                startTimestamp = endTimestamp - maxRange;
+                console.log('⚠️ Date range limited to 24 hours due to Garmin API restriction');
+            }
         } else {
-            // Default to last 14 days
+            // Default to last 24 hours only (not 14 days)
             const endDate = new Date();
-            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
             startTimestamp = Math.floor(startDate.getTime() / 1000);
             endTimestamp = Math.floor(endDate.getTime() / 1000);
         }
@@ -928,19 +946,28 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
         }
 
         // Convert dates to Unix timestamps if they're in YYYY-MM-DD format
+        // Garmin API has a maximum of 86400 seconds (24 hours) per request
         let startTimestamp, endTimestamp;
         if (start && end) {
             startTimestamp = Math.floor(new Date(start).getTime() / 1000);
             endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+
+            // Ensure the range doesn't exceed 24 hours (86400 seconds)
+            const maxRange = 86400; // 24 hours in seconds
+            if (endTimestamp - startTimestamp > maxRange) {
+                // Limit to the last 24 hours from the end date
+                startTimestamp = endTimestamp - maxRange;
+                console.log('⚠️ Date range limited to 24 hours due to Garmin API restriction');
+            }
         } else {
-            // Default to last 14 days
+            // Default to last 24 hours only (not 14 days)
             const endDate = new Date();
-            const startDate = new Date(endDate.getTime() - 14 * 24 * 60 * 60 * 1000);
+            const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
             startTimestamp = Math.floor(startDate.getTime() / 1000);
             endTimestamp = Math.floor(endDate.getTime() / 1000);
         }
 
-        const sleepUrl = `https://apis.garmin.com/wellness-api/rest/sleepData?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        const sleepUrl = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
         console.log('😴 Fetching Garmin sleep data:', sleepUrl);
 
         const response = await fetch(sleepUrl, {
