@@ -879,6 +879,43 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
     }
 });
 
+// Test endpoint to check token permissions
+app.get('/api/garmin/v2/permissions', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Access token required' });
+        }
+
+        const permissionsUrl = 'https://apis.garmin.com/wellness-api/rest/user/permissions';
+        console.log('🔍 Testing Garmin token permissions:', permissionsUrl);
+
+        const response = await fetch(permissionsUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('🔍 Garmin permissions response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Garmin permissions error:', errorText);
+            throw new Error(`Garmin API error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Garmin permissions data:', data);
+        res.json(data);
+
+    } catch (error) {
+        console.error('Garmin permissions error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/garmin/v2/activities', async (req, res) => {
     try {
         const { token, start, end } = req.query;
