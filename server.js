@@ -425,60 +425,93 @@ const crypto = require('crypto');
 app.post('/api/garmin/token', async (req, res) => {
     try {
         const { code, client_id, redirect_uri, code_verifier } = req.body;
-        
+
+        console.log('🔐 Garmin token exchange request:', {
+            code: code?.substring(0, 10) + '...',
+            client_id,
+            redirect_uri,
+            code_verifier: code_verifier?.substring(0, 10) + '...'
+        });
+
         if (!code || !redirect_uri || !client_id || !code_verifier) {
+            console.error('❌ Missing required fields:', { code: !!code, redirect_uri: !!redirect_uri, client_id: !!client_id, code_verifier: !!code_verifier });
             return res.status(400).json({ error: 'Missing required fields' });
         }
-        
-        // IMPORTANT: Use connect.garmin.com, not apis.garmin.com or apis-secure
-        const tokenUrl = 'https://connect.garmin.com/oauth2/token';
-        console.log('Garmin OAuth 2.0 token exchange URL:', tokenUrl);
-        console.log('Request params:', { code: code?.substring(0, 10) + '...', client_id, redirect_uri });
-        
+
+        // IMPORTANT: Use the official OAuth 2.0 token endpoint per Garmin documentation
+        const tokenUrl = 'https://diauth.garmin.com/di-oauth2-service/oauth/token';
+        console.log('📡 Garmin OAuth 2.0 token exchange URL:', tokenUrl);
+
         const params = new URLSearchParams();
         params.append('grant_type', 'authorization_code');
         params.append('code', code);
         params.append('redirect_uri', redirect_uri);
         params.append('client_id', client_id);
         params.append('code_verifier', code_verifier);
-        
+
         // Try with Basic auth first (for confidential clients)
         const clientSecret = process.env.GARMIN_CONSUMER_SECRET;
         let headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Athlytx/1.0'
         };
-        
+
         if (clientSecret) {
             // Add Basic authentication
             const basic = Buffer.from(`${client_id}:${clientSecret}`).toString('base64');
             headers['Authorization'] = `Basic ${basic}`;
-            console.log('Using Basic authentication for token exchange');
+            console.log('🔐 Using Basic authentication for token exchange');
         } else {
-            // Fallback: include client_secret in form data if no Basic auth
-            if (clientSecret) {
-                params.append('client_secret', clientSecret);
-            }
+            console.log('⚠️ No client secret found, proceeding without Basic auth');
         }
-        
+
+        console.log('📤 Making request to Garmin...');
         const response = await fetch(tokenUrl, {
             method: 'POST',
             headers: headers,
             body: params.toString()
         });
-        
+
         const responseText = await response.text();
-        console.log('Garmin token response status:', response.status);
-        
+        console.log('📊 Garmin token response:', {
+            status: response.status,
+            statusText: response.statusText,
+            contentType: response.headers.get('content-type'),
+            responseLength: responseText.length
+        });
+
         if (!response.ok) {
-            console.error('Garmin token exchange failed:', responseText);
-            return res.status(response.status).send(responseText);
+            console.error('❌ Garmin token exchange failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                response: responseText
+            });
+
+            // Try to parse error as JSON, otherwise send as text
+            try {
+                const errorJson = JSON.parse(responseText);
+                return res.status(response.status).json(errorJson);
+            } catch (e) {
+                return res.status(response.status).json({
+                    error: `Garmin API Error: ${response.status} ${response.statusText}`,
+                    details: responseText
+                });
+            }
         }
-        
-        // Send response as JSON
-        res.type('application/json').send(responseText);
-        
+
+        // Try to parse as JSON first
+        try {
+            const tokenData = JSON.parse(responseText);
+            console.log('✅ Garmin token exchange successful');
+            res.json(tokenData);
+        } catch (e) {
+            // If not JSON, send as text with JSON wrapper
+            console.log('📄 Response is not JSON, wrapping in JSON object');
+            res.json({ rawResponse: responseText });
+        }
+
     } catch (error) {
-        console.error('Garmin OAuth 2.0 token error:', error);
+        console.error('❌ Garmin OAuth 2.0 token error:', error);
         res.status(500).json({ error: `Garmin token exchange failed: ${error.message}` });
     }
 });
