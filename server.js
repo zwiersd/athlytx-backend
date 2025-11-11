@@ -56,7 +56,9 @@ legacyRoutes(app);
 
 // Import new routes
 const syncRoutes = require('./backend/routes/sync');
+const testRoutes = require('./backend/routes/test-garmin');
 app.use('/api/sync', syncRoutes);
+app.use('/api/test', testRoutes);
 
 // Import future routes (will create these next)
 // const authRoutes = require('./backend/routes/auth');
