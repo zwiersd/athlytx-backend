@@ -1,0 +1,175 @@
+const express = require('express');
+const router = express.Router();
+const { syncUserData, syncAllUsers } = require('../services/syncService');
+const { HeartRateZone, TrainingSummary, Activity } = require('../models');
+
+/**
+ * Manually trigger sync for a specific user
+ * POST /api/sync/manual
+ * Body: { userId: "uuid", daysBack: 7 }
+ */
+router.post('/manual', async (req, res) => {
+    try {
+        const { userId, daysBack = 7 } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        console.log(`🔄 Manual sync requested for user ${userId}`);
+
+        const results = await syncUserData(userId, daysBack);
+
+        res.json({
+            success: true,
+            message: `Synced ${daysBack} days of data`,
+            results
+        });
+    } catch (error) {
+        console.error('Sync error:', error);
+        res.status(500).json({
+            error: 'Sync failed',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get sync status for a user
+ * GET /api/sync/status/:userId
+ */
+router.get('/status/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Get last sync info
+        const lastActivity = await Activity.findOne({
+            where: { userId },
+            order: [['createdAt', 'DESC']]
+        });
+
+        const totalActivities = await Activity.count({
+            where: { userId }
+        });
+
+        const totalZoneRecords = await HeartRateZone.count({
+            where: { userId }
+        });
+
+        const weeklySummary = await TrainingSummary.findOne({
+            where: {
+                userId,
+                periodType: 'weekly'
+            },
+            order: [['periodStart', 'DESC']]
+        });
+
+        res.json({
+            userId,
+            lastSync: lastActivity?.createdAt,
+            totalActivities,
+            totalZoneRecords,
+            weeklySummary: weeklySummary ? {
+                periodStart: weeklySummary.periodStart,
+                periodEnd: weeklySummary.periodEnd,
+                totalTrainingMinutes: weeklySummary.totalTrainingMinutes,
+                zone1Percent: weeklySummary.zone1Percent,
+                zone2Percent: weeklySummary.zone2Percent,
+                zone3Percent: weeklySummary.zone3Percent,
+                zone4Percent: weeklySummary.zone4Percent,
+                zone5Percent: weeklySummary.zone5Percent
+            } : null
+        });
+    } catch (error) {
+        console.error('Status check error:', error);
+        res.status(500).json({
+            error: 'Failed to get status',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get HR zone data for a user
+ * GET /api/sync/zones/:userId?days=7
+ */
+router.get('/zones/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const days = parseInt(req.query.days) || 7;
+
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+
+        const zones = await HeartRateZone.findAll({
+            where: {
+                userId,
+                date: {
+                    [require('sequelize').Op.gte]: startDate
+                }
+            },
+            order: [['date', 'DESC']],
+            include: [{
+                model: require('../models').Activity,
+                as: 'activity',
+                attributes: ['activityName', 'activityType', 'startTime']
+            }]
+        });
+
+        res.json({
+            userId,
+            days,
+            zoneRecords: zones.length,
+            data: zones.map(z => ({
+                date: z.date,
+                activityType: z.activityType,
+                durationMinutes: Math.round(z.durationSeconds / 60),
+                zones: {
+                    zone1: Math.round(z.zone1Seconds / 60),
+                    zone2: Math.round(z.zone2Seconds / 60),
+                    zone3: Math.round(z.zone3Seconds / 60),
+                    zone4: Math.round(z.zone4Seconds / 60),
+                    zone5: Math.round(z.zone5Seconds / 60)
+                },
+                hr: {
+                    avg: z.avgHr,
+                    max: z.maxHr
+                }
+            }))
+        });
+    } catch (error) {
+        console.error('Zone fetch error:', error);
+        res.status(500).json({
+            error: 'Failed to get zones',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Sync all users (admin only - for testing)
+ * POST /api/sync/all
+ */
+router.post('/all', async (req, res) => {
+    try {
+        console.log('🔄 Syncing all users...');
+
+        // Run async (don't wait for completion)
+        syncAllUsers().catch(err => {
+            console.error('Background sync error:', err);
+        });
+
+        res.json({
+            success: true,
+            message: 'Sync started for all users'
+        });
+    } catch (error) {
+        console.error('Sync all error:', error);
+        res.status(500).json({
+            error: 'Failed to start sync',
+            message: error.message
+        });
+    }
+});
+
+module.exports = router;

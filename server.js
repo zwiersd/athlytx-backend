@@ -54,13 +54,15 @@ app.get('/health', (req, res) => {
 const legacyRoutes = require('./backend/routes/legacy-routes');
 legacyRoutes(app);
 
-// Import new routes (will create these next)
+// Import new routes
+const syncRoutes = require('./backend/routes/sync');
+app.use('/api/sync', syncRoutes);
+
+// Import future routes (will create these next)
 // const authRoutes = require('./backend/routes/auth');
 // const coachRoutes = require('./backend/routes/coach');
-// const syncRoutes = require('./backend/routes/sync');
 // app.use('/api/auth', authRoutes);
 // app.use('/api/coach', coachRoutes);
-// app.use('/api/sync', syncRoutes);
 
 // ===== CATCH-ALL: Serve index.html for SPA routing =====
 app.get('*', (req, res) => {

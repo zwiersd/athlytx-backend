@@ -5,6 +5,8 @@ const OAuthToken = require('./OAuthToken');
 const CoachAthlete = require('./CoachAthlete');
 const DailyMetric = require('./DailyMetric');
 const Activity = require('./Activity');
+const HeartRateZone = require('./HeartRateZone');
+const TrainingSummary = require('./TrainingSummary');
 
 // Initialize database and sync models
 async function initializeDatabase() {
@@ -31,5 +33,7 @@ module.exports = {
     CoachAthlete,
     DailyMetric,
     Activity,
+    HeartRateZone,
+    TrainingSummary,
     initializeDatabase
 };
