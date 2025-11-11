@@ -403,7 +403,8 @@ app.post('/api/garmin/token', async (req, res) => {
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
-                code_verifier: code_verifier
+                code_verifier: code_verifier,
+                redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com'
             })
         });
 
