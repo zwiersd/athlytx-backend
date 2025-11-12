@@ -4325,10 +4325,15 @@
                 warning: '#f59e0b',
                 info: '#3b82f6'
             };
-            
+
+            // Count existing messages to stack them
+            const existingMessages = document.querySelectorAll('.status-message');
+            const offset = existingMessages.length * 70; // Stack each message 70px below previous
+
+            messageDiv.className = 'status-message';
             messageDiv.style.cssText = `
                 position: fixed;
-                top: 20px;
+                top: ${20 + offset}px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: ${colors[type]};
@@ -4340,10 +4345,11 @@
                 max-width: 90%;
                 text-align: center;
                 font-weight: 500;
+                transition: all 0.3s ease;
             `;
             messageDiv.textContent = message;
             document.body.appendChild(messageDiv);
-            
+
             setTimeout(() => messageDiv.remove(), 5000);
         }
 
