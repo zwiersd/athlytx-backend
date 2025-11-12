@@ -5,6 +5,7 @@ class OAuthHandler {
     constructor() {
         this.garminAuth = null;
         this.whoopAuth = null;
+        this.processing = false; // Prevent duplicate processing
         this.init();
     }
 
@@ -34,6 +35,12 @@ class OAuthHandler {
     }
 
     async handleCallback() {
+        // Prevent duplicate processing
+        if (this.processing) {
+            console.log('Already processing OAuth callback, skipping...');
+            return;
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state');
@@ -46,6 +53,11 @@ class OAuthHandler {
         }
 
         if (code && state && state.includes('garmin')) {
+            this.processing = true; // Mark as processing
+
+            // Clean up URL IMMEDIATELY to prevent re-processing
+            window.history.replaceState({}, document.title, window.location.pathname);
+
             try {
                 console.log('Processing Garmin OAuth 2.0 callback...');
 
@@ -67,9 +79,6 @@ class OAuthHandler {
 
                 this.showMessage('Garmin connected successfully!', 'success');
 
-                // Clean up URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-
                 // If fetchGarminData function exists (from index.html), call it
                 if (typeof fetchGarminData === 'function') {
                     await fetchGarminData(tokens.access_token);
@@ -78,6 +87,8 @@ class OAuthHandler {
             } catch (error) {
                 console.error('Garmin callback error:', error);
                 this.showMessage('Failed to connect Garmin: ' + error.message, 'error');
+            } finally {
+                this.processing = false;
             }
         }
 
