@@ -283,8 +283,8 @@ app.get('/api/whoop/recovery', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
-        console.log('Fetching Whoop recovery:', url);
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`;
+        console.log('Fetching Whoop recovery (via cycle endpoint):', url);
 
         const response = await fetch(url, {
             headers: {
@@ -312,6 +312,7 @@ app.get('/api/whoop/sleep', async (req, res) => {
         const { token, start, end } = req.query;
 
         const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
+        console.log('Fetching Whoop sleep:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -319,12 +320,14 @@ app.get('/api/whoop/sleep', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('Whoop sleep response status:', response.status);
 
         if (!response.ok) {
-            throw new Error(`Whoop sleep fetch failed: ${data.message}`);
+            throw new Error(`Whoop sleep fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
         }
 
+        const data = JSON.parse(responseText);
         res.json(data);
     } catch (error) {
         console.error('Whoop sleep error:', error);
