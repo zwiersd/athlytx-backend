@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { User, MagicLink, CoachAthlete } = require('../models');
-// const { sendMagicLink } = require('../utils/email'); // TODO: Implement email service
+const { sendMagicLink } = require('../utils/email');
 const { Op } = require('sequelize');
 
 /**
@@ -68,18 +68,22 @@ router.post('/magic-link', async (req, res) => {
         });
 
         // Send magic link email
-        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://athlytx.com'}/auth/verify?token=${token}`;
+        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?token=${token}`;
 
-        // For now, log to console (email service to be implemented)
-        console.log(`
-            🔐 Magic Link for ${normalizedEmail}
-            Link: ${magicLinkUrl}
-            Code: ${code}
-            Expires: ${expiresAt}
-        `);
-
-        // In production, send actual email
-        // await sendMagicLink(normalizedEmail, magicLinkUrl, code);
+        // Send email via Resend
+        try {
+            await sendMagicLink(normalizedEmail, magicLinkUrl, code);
+            console.log(`✅ Magic link sent to ${normalizedEmail}`);
+        } catch (emailError) {
+            console.error('❌ Email failed, but continuing (code logged):', emailError.message);
+            // Continue even if email fails - log to console as fallback
+            console.log(`
+                🔐 Magic Link for ${normalizedEmail}
+                Link: ${magicLinkUrl}
+                Code: ${code}
+                Expires: ${expiresAt}
+            `);
+        }
 
         res.json({
             success: true,
