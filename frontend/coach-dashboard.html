@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Dashboard - Athlytx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .header-info {
+            text-align: right;
+            color: #666;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .controls select,
+        .controls input {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .controls select:focus,
+        .controls input:focus {
+            border-color: #667eea;
+        }
+
+        .controls button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: #5568d3;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .zone-bars {
+            margin-top: 20px;
+        }
+
+        .zone-bar {
+            margin-bottom: 15px;
+        }
+
+        .zone-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .zone-progress {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .zone-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .zone1 { background: #4CAF50; }
+        .zone2 { background: #8BC34A; }
+        .zone3 { background: #FFC107; }
+        .zone4 { background: #FF9800; }
+        .zone5 { background: #F44336; }
+
+        .activities-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .activities-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .activities-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .activities-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .activity-type {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .zone-mini {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 3px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Coach Dashboard</h1>
+                <p style="color: #666; margin-top: 5px;">Heart Rate Zone Analysis</p>
+            </div>
+            <div class="header-info">
+                <div id="athleteName" style="font-size: 18px; font-weight: 600; color: #667eea;">Athlete</div>
+                <div id="lastSync" style="font-size: 12px; margin-top: 3px;">Last sync: --</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div>
+                <label for="periodSelect">Period:</label>
+                <select id="periodSelect">
+                    <option value="7">Last 7 days</option>
+                    <option value="14" selected>Last 14 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="60">Last 60 days</option>
+                </select>
+            </div>
+            <button id="refreshBtn">Refresh Data</button>
+            <button id="syncBtn">Sync Now</button>
+        </div>
+
+        <div id="errorContainer"></div>
+        <div id="loadingContainer" class="loading">Loading dashboard...</div>
+
+        <div id="dashboardContent" style="display: none;">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Training Summary</h2>
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <div class="stat-value" id="totalActivities">0</div>
+                            <div class="stat-label">Activities</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="totalMinutes">0</div>
+                            <div class="stat-label">Total Minutes</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="avgHr">0</div>
+                            <div class="stat-label">Avg HR</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="maxHr">0</div>
+                            <div class="stat-label">Max HR</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: span 2;">
+                    <h2>Heart Rate Zone Distribution</h2>
+                    <div class="zone-bars">
+                        <div class="zone-bar">
+                            <div class="zone-label">
+                                <span>Zone 1 - Recovery (0-121 bpm)</span>
+                                <span id="zone1Percent">0%</span>
+                            </div>
+                            <div class="zone-progress">
+                                <div class="zone-fill zone1" id="zone1Bar" style="width: 0%">
+                                    <span id="zone1Minutes">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="zone-bar">
+                            <div class="zone-label">
+                                <span>Zone 2 - Endurance (122-151 bpm)</span>
+                                <span id="zone2Percent">0%</span>
+                            </div>
+                            <div class="zone-progress">
+                                <div class="zone-fill zone2" id="zone2Bar" style="width: 0%">
+                                    <span id="zone2Minutes">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="zone-bar">
+                            <div class="zone-label">
+                                <span>Zone 3 - Tempo (152-166 bpm)</span>
+                                <span id="zone3Percent">0%</span>
+                            </div>
+                            <div class="zone-progress">
+                                <div class="zone-fill zone3" id="zone3Bar" style="width: 0%">
+                                    <span id="zone3Minutes">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="zone-bar">
+                            <div class="zone-label">
+                                <span>Zone 4 - Threshold (167-180 bpm)</span>
+                                <span id="zone4Percent">0%</span>
+                            </div>
+                            <div class="zone-progress">
+                                <div class="zone-fill zone4" id="zone4Bar" style="width: 0%">
+                                    <span id="zone4Minutes">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="zone-bar">
+                            <div class="zone-label">
+                                <span>Zone 5 - Anaerobic (181+ bpm)</span>
+                                <span id="zone5Percent">0%</span>
+                            </div>
+                            <div class="zone-progress">
+                                <div class="zone-fill zone5" id="zone5Bar" style="width: 0%">
+                                    <span id="zone5Minutes">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Recent Activities</h2>
+                <table class="activities-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Activity</th>
+                            <th>Duration</th>
+                            <th>Avg HR</th>
+                            <th>Max HR</th>
+                            <th>Primary Zone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitiesTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #999;">Loading activities...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const USER_ID = '3c37dd1f-25f8-4212-afcf-52a7d37f0903';
+        const API_BASE = '/api';
+
+        let currentPeriod = 14;
+        let zoneData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+
+            document.getElementById('periodSelect').addEventListener('change', (e) => {
+                currentPeriod = parseInt(e.target.value);
+                loadDashboard();
+            });
+
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                loadDashboard();
+            });
+
+            document.getElementById('syncBtn').addEventListener('click', () => {
+                syncData();
+            });
+        });
+
+        async function loadDashboard() {
+            showLoading();
+            hideError();
+
+            try {
+                // Load status and zone data in parallel
+                const [status, zones] = await Promise.all([
+                    fetch(`${API_BASE}/sync/status/${USER_ID}`).then(r => r.json()),
+                    fetch(`${API_BASE}/sync/zones/${USER_ID}?days=${currentPeriod}`).then(r => r.json())
+                ]);
+
+                zoneData = zones;
+
+                // Update header
+                document.getElementById('athleteName').textContent = 'Athlytx Athlete';
+                if (status.lastSync) {
+                    const lastSync = new Date(status.lastSync);
+                    document.getElementById('lastSync').textContent = `Last sync: ${lastSync.toLocaleString()}`;
+                }
+
+                // Calculate summary stats
+                updateSummaryStats(zones.data);
+
+                // Update zone distribution
+                if (status.weeklySummary) {
+                    updateZoneDistribution(status.weeklySummary);
+                }
+
+                // Update activities table
+                updateActivitiesTable(zones.data);
+
+                showDashboard();
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                showError('Failed to load dashboard: ' + error.message);
+            }
+        }
+
+        function updateSummaryStats(activities) {
+            // Remove duplicates by grouping by date+activityType+duration
+            const uniqueActivities = {};
+            activities.forEach(act => {
+                const key = `${act.date}_${act.activityType}_${act.durationMinutes}`;
+                if (!uniqueActivities[key]) {
+                    uniqueActivities[key] = act;
+                }
+            });
+
+            const unique = Object.values(uniqueActivities);
+
+            document.getElementById('totalActivities').textContent = unique.length;
+
+            const totalMinutes = unique.reduce((sum, act) => sum + act.durationMinutes, 0);
+            document.getElementById('totalMinutes').textContent = totalMinutes;
+
+            const avgHr = Math.round(
+                unique.reduce((sum, act) => sum + (act.hr.avg || 0), 0) / unique.length
+            );
+            document.getElementById('avgHr').textContent = avgHr || '--';
+
+            const maxHr = Math.max(...unique.map(act => act.hr.max || 0));
+            document.getElementById('maxHr').textContent = maxHr || '--';
+        }
+
+        function updateZoneDistribution(summary) {
+            const zones = [
+                { num: 1, minutes: summary.totalZone1Minutes, percent: summary.zone1Percent },
+                { num: 2, minutes: summary.totalZone2Minutes, percent: summary.zone2Percent },
+                { num: 3, minutes: summary.totalZone3Minutes, percent: summary.zone3Percent },
+                { num: 4, minutes: summary.totalZone4Minutes, percent: summary.zone4Percent },
+                { num: 5, minutes: summary.totalZone5Minutes, percent: summary.zone5Percent }
+            ];
+
+            zones.forEach(zone => {
+                const percent = parseFloat(zone.percent) || 0;
+                document.getElementById(`zone${zone.num}Percent`).textContent = `${percent}%`;
+                document.getElementById(`zone${zone.num}Bar`).style.width = `${percent}%`;
+                document.getElementById(`zone${zone.num}Minutes`).textContent = `${zone.minutes} min`;
+            });
+        }
+
+        function updateActivitiesTable(activities) {
+            const tbody = document.getElementById('activitiesTableBody');
+
+            // Remove duplicates and take most recent 20
+            const uniqueActivities = {};
+            activities.forEach(act => {
+                const key = `${act.date}_${act.activityType}_${act.durationMinutes}`;
+                if (!uniqueActivities[key]) {
+                    uniqueActivities[key] = act;
+                }
+            });
+
+            const unique = Object.values(uniqueActivities).slice(0, 20);
+
+            if (unique.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No activities found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = unique.map(act => {
+                const primaryZone = getPrimaryZone(act.zones);
+                return `
+                    <tr>
+                        <td>${act.date}</td>
+                        <td class="activity-type">${act.activityType}</td>
+                        <td>${act.durationMinutes} min</td>
+                        <td>${act.hr.avg || '--'} bpm</td>
+                        <td>${act.hr.max || '--'} bpm</td>
+                        <td>
+                            <span class="zone-mini zone${primaryZone}"></span>
+                            Zone ${primaryZone}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getPrimaryZone(zones) {
+            const zoneMinutes = [
+                zones.zone1,
+                zones.zone2,
+                zones.zone3,
+                zones.zone4,
+                zones.zone5
+            ];
+            const maxMinutes = Math.max(...zoneMinutes);
+            return zoneMinutes.indexOf(maxMinutes) + 1;
+        }
+
+        async function syncData() {
+            const btn = document.getElementById('syncBtn');
+            btn.disabled = true;
+            btn.textContent = 'Syncing...';
+
+            try {
+                const response = await fetch(`${API_BASE}/sync/manual`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: USER_ID,
+                        daysBack: currentPeriod
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Sync failed');
+                }
+
+                const result = await response.json();
+                console.log('Sync result:', result);
+
+                // Reload dashboard
+                await loadDashboard();
+            } catch (error) {
+                console.error('Sync error:', error);
+                showError('Failed to sync data: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sync Now';
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function hideError() {
+            document.getElementById('errorContainer').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
