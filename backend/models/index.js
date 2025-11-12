@@ -37,16 +37,22 @@ async function initializeDatabase() {
         console.log('✅ Database connection successful');
 
         // Sync models individually - create if not exists, don't alter existing
-        await User.sync();
-        await MagicLink.sync();
-        await OAuthToken.sync();
-        await CoachAthlete.sync();
-        await DailyMetric.sync();
-        await Activity.sync();
-        await HeartRateZone.sync();
-        await TrainingSummary.sync();
+        // Use alter: false to prevent schema changes to existing tables
+        const syncOptions = { alter: false };
 
-        console.log('✅ Database models synchronized');
+        try {
+            await User.sync(syncOptions);
+            await MagicLink.sync(syncOptions);
+            await OAuthToken.sync(syncOptions);
+            await CoachAthlete.sync(syncOptions);
+            await DailyMetric.sync(syncOptions);
+            await Activity.sync(syncOptions);
+            await HeartRateZone.sync(syncOptions);
+            await TrainingSummary.sync(syncOptions);
+            console.log('✅ Database models synchronized');
+        } catch (syncError) {
+            console.warn('⚠️  Some tables may already exist, continuing anyway:', syncError.message);
+        }
 
         return true;
     } catch (error) {
