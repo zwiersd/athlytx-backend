@@ -41,8 +41,8 @@ async function sendMagicLink(email, magicLinkUrl, code) {
             </p>
 
             <!-- Code Display - Dark Box with Bright Text -->
-            <div style="background: linear-gradient(135deg, #0a0e27 0%, #1e2659 100%); border-radius: 12px; padding: 40px 30px; text-align: center; margin: 0 0 35px 0; border: 2px solid #667eea; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);">
-                <div style="font-size: 48px; font-weight: 900; letter-spacing: 12px; color: #ffffff; font-family: 'Courier New', monospace; text-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);">
+            <div style="background: linear-gradient(135deg, #0a0e27 0%, #1e2659 100%); border-radius: 12px; padding: 35px 30px; text-align: center; margin: 0 0 35px 0; border: 2px solid #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);">
+                <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #ffffff; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
                     ${code}
                 </div>
             </div>
