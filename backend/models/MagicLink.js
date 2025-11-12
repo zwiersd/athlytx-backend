@@ -7,6 +7,14 @@ const MagicLink = sequelize.define('MagicLink', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true
     },
+    userId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
+    },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -19,9 +27,17 @@ const MagicLink = sequelize.define('MagicLink', {
         allowNull: false,
         unique: true
     },
+    code: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     expiresAt: {
         type: DataTypes.DATE,
         allowNull: false
+    },
+    used: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     usedAt: {
         type: DataTypes.DATE,

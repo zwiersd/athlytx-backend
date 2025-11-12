@@ -20,7 +20,7 @@ const User = sequelize.define('User', {
         allowNull: true
     },
     role: {
-        type: DataTypes.ENUM('athlete', 'coach'),
+        type: DataTypes.ENUM('athlete', 'coach', 'admin'),
         defaultValue: 'athlete',
         allowNull: false
     },
@@ -31,6 +31,18 @@ const User = sequelize.define('User', {
     lastLogin: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    sessionToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    sessionExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
     timestamps: true,
