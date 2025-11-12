@@ -1603,7 +1603,8 @@
 
             if (sessionToken && coach) {
                 currentCoach = JSON.parse(coach);
-                console.log('[SESSION] Found stored session, validating...');
+                console.log('[SESSION] Found stored session for:', currentCoach.email);
+                console.log('[SESSION] Session token:', sessionToken.substring(0, 20) + '...');
 
                 // Validate session
                 fetch('/api/auth/session', {
@@ -1613,28 +1614,31 @@
                 })
                 .then(r => {
                     console.log('[SESSION] Response status:', r.status);
+                    if (!r.ok) {
+                        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+                    }
                     return r.json();
                 })
                 .then(result => {
                     console.log('[SESSION] Response:', result);
                     if (result.success) {
-                        console.log('[SESSION] Valid! Loading dashboard...');
+                        console.log('[SESSION] ✅ Valid! Loading dashboard...');
                         currentCoach = result.user;
                         athletes = result.relationships || [];
                         showDashboard();
                     } else {
-                        console.warn('[SESSION] Invalid session, clearing...');
-                        // Session invalid - clear and show auth
+                        console.warn('[SESSION] ❌ Invalid session:', result.error);
+                        console.warn('[SESSION] Clearing localStorage and showing login');
                         localStorage.clear();
                     }
                 })
                 .catch(error => {
-                    // Session validation failed - clear and show auth
-                    console.error('[SESSION] Validation failed:', error);
-                    localStorage.clear();
+                    console.error('[SESSION] ❌ Network error during validation:', error);
+                    console.error('[SESSION] NOT clearing localStorage - will retry next time');
+                    // Don't clear localStorage on network errors - keep trying
                 });
             } else {
-                console.log('[SESSION] No stored session found');
+                console.log('[SESSION] No stored session found, showing login');
             }
 
             // Auth form handler
