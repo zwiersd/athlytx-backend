@@ -24,10 +24,21 @@ async function syncUserData(userId, daysBack = 1) {
         });
 
         const results = {
+            strava: null,
             garmin: null,
             oura: null,
             errors: []
         };
+
+        // Sync Strava
+        const stravaToken = tokens.find(t => t.provider === 'strava');
+        if (stravaToken) {
+            try {
+                results.strava = await syncStravaActivities(userId, stravaToken, daysBack);
+            } catch (error) {
+                results.errors.push(`Strava: ${error.message}`);
+            }
+        }
 
         // Sync Garmin
         const garminToken = tokens.find(t => t.provider === 'garmin');
@@ -58,6 +69,130 @@ async function syncUserData(userId, daysBack = 1) {
         console.error(`❌ Sync failed for user ${userId}:`, error);
         throw error;
     }
+}
+
+/**
+ * Fetch and store Strava activities with HR zone data
+ */
+async function syncStravaActivities(userId, tokenRecord, daysBack) {
+    console.log(`  🏃 Syncing Strava activities...`);
+
+    const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
+
+    // Calculate timestamp for daysBack
+    const after = Math.floor((Date.now() - (daysBack * 24 * 60 * 60 * 1000)) / 1000);
+
+    // Fetch activities from Strava
+    const response = await fetch(
+        `https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=100`,
+        {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Strava API error: ${response.status}`);
+    }
+
+    const activities = await response.json();
+    console.log(`  Found ${activities.length} Strava activities`);
+
+    let stored = 0;
+    for (const stravaActivity of activities) {
+        try {
+            // Only process activities with HR data
+            if (!stravaActivity.has_heartrate) {
+                continue;
+            }
+
+            // Store activity
+            const [activity, created] = await Activity.findOrCreate({
+                where: {
+                    userId,
+                    provider: 'strava',
+                    externalId: String(stravaActivity.id)
+                },
+                defaults: {
+                    userId,
+                    provider: 'strava',
+                    externalId: String(stravaActivity.id),
+                    activityType: stravaActivity.type,
+                    activityName: stravaActivity.name,
+                    startTime: new Date(stravaActivity.start_date),
+                    durationSeconds: stravaActivity.moving_time,
+                    distanceMeters: stravaActivity.distance,
+                    calories: stravaActivity.calories,
+                    avgHr: stravaActivity.average_heartrate,
+                    maxHr: stravaActivity.max_heartrate,
+                    rawData: stravaActivity
+                }
+            });
+
+            // Calculate HR zones from Strava data
+            if (stravaActivity.average_heartrate) {
+                await storeStravaHeartRateZones(
+                    userId,
+                    activity.id,
+                    stravaActivity
+                );
+            }
+
+            if (created) stored++;
+        } catch (error) {
+            console.error(`  ❌ Failed to store Strava activity:`, error.message);
+        }
+    }
+
+    console.log(`  ✅ Stored ${stored} new Strava activities`);
+    return { activitiesFetched: activities.length, activitiesStored: stored };
+}
+
+/**
+ * Store HR zones for Strava activities
+ * Strava doesn't provide time-in-zones, so we estimate based on avg HR
+ */
+async function storeStravaHeartRateZones(userId, activityId, stravaActivity) {
+    const activity = await Activity.findByPk(activityId);
+    if (!activity) return;
+
+    // Estimate which zone the activity was mostly in based on average HR
+    const avgHr = stravaActivity.average_heartrate;
+    const duration = stravaActivity.moving_time;
+
+    let zoneData = {
+        zone1Seconds: 0,
+        zone2Seconds: 0,
+        zone3Seconds: 0,
+        zone4Seconds: 0,
+        zone5Seconds: 0
+    };
+
+    // Assign to primary zone based on average HR
+    if (avgHr <= HR_ZONES.zone1.max) {
+        zoneData.zone1Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone2.max) {
+        zoneData.zone2Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone3.max) {
+        zoneData.zone3Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone4.max) {
+        zoneData.zone4Seconds = duration;
+    } else {
+        zoneData.zone5Seconds = duration;
+    }
+
+    await HeartRateZone.upsert({
+        userId,
+        activityId,
+        date: activity.startTime.toISOString().split('T')[0],
+        activityType: stravaActivity.type,
+        durationSeconds: duration,
+        ...zoneData,
+        avgHr: Math.round(avgHr),
+        maxHr: stravaActivity.max_heartrate,
+        provider: 'strava'
+    });
 }
 
 /**
