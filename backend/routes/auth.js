@@ -33,6 +33,84 @@ router.get('/test-db', async (req, res) => {
     }
 });
 
+// Cleanup endpoint - DELETE user and all related data
+router.delete('/cleanup/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const normalizedEmail = email.toLowerCase().trim();
+
+        console.log(`[CLEANUP] Starting cleanup for: ${normalizedEmail}`);
+
+        // Find user
+        const user = await User.findOne({ where: { email: normalizedEmail } });
+
+        if (!user) {
+            return res.json({ success: true, message: 'User not found (already deleted)' });
+        }
+
+        const userId = user.id;
+        console.log(`[CLEANUP] Found user ID: ${userId}`);
+
+        // Delete all related records
+        const { sequelize } = require('../models');
+
+        // Delete magic links
+        await MagicLink.destroy({ where: { userId } });
+        console.log(`[CLEANUP] Deleted magic links`);
+
+        // Delete coach-athlete relationships (as coach)
+        const coachRelationships = await CoachAthlete.destroy({ where: { coachId: userId } });
+        console.log(`[CLEANUP] Deleted ${coachRelationships} coach relationships`);
+
+        // Delete coach-athlete relationships (as athlete)
+        const athleteRelationships = await CoachAthlete.destroy({ where: { athleteId: userId } });
+        console.log(`[CLEANUP] Deleted ${athleteRelationships} athlete relationships`);
+
+        // Delete OAuth tokens if table exists
+        try {
+            await sequelize.query('DELETE FROM oauth_tokens WHERE "userId" = :userId', {
+                replacements: { userId }
+            });
+            console.log(`[CLEANUP] Deleted OAuth tokens`);
+        } catch (e) {
+            console.log(`[CLEANUP] OAuth tokens table may not exist`);
+        }
+
+        // Delete activities
+        try {
+            await sequelize.query('DELETE FROM activities WHERE "userId" = :userId', {
+                replacements: { userId }
+            });
+            console.log(`[CLEANUP] Deleted activities`);
+        } catch (e) {
+            console.log(`[CLEANUP] Activities table may not exist`);
+        }
+
+        // Delete daily metrics
+        try {
+            await sequelize.query('DELETE FROM daily_metrics WHERE "userId" = :userId', {
+                replacements: { userId }
+            });
+            console.log(`[CLEANUP] Deleted daily metrics`);
+        } catch (e) {
+            console.log(`[CLEANUP] Daily metrics table may not exist`);
+        }
+
+        // Finally, delete the user
+        await User.destroy({ where: { id: userId } });
+        console.log(`[CLEANUP] Deleted user`);
+
+        res.json({
+            success: true,
+            message: `Successfully deleted user ${normalizedEmail} and all related data`
+        });
+
+    } catch (error) {
+        console.error('[CLEANUP] Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Generate secure token
 function generateToken() {
     return crypto.randomBytes(32).toString('hex');
