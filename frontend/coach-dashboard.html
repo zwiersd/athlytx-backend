@@ -300,6 +300,7 @@
             </div>
             <button id="refreshBtn">Refresh Data</button>
             <button id="syncBtn">Sync Now</button>
+            <button id="exportBtn">Export CSV</button>
         </div>
 
         <div id="errorContainer"></div>
@@ -445,6 +446,10 @@
 
             document.getElementById('syncBtn').addEventListener('click', () => {
                 syncData();
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                exportToCSV();
             });
         });
 
@@ -655,6 +660,76 @@
 
         function hideError() {
             document.getElementById('errorContainer').innerHTML = '';
+        }
+
+        function exportToCSV() {
+            if (!zoneData || !zoneData.data || zoneData.data.length === 0) {
+                showError('No data to export');
+                return;
+            }
+
+            // Remove duplicates
+            const uniqueActivities = {};
+            zoneData.data.forEach(act => {
+                const key = `${act.date}_${act.activityType}_${act.durationMinutes}_${act.provider}`;
+                if (!uniqueActivities[key]) {
+                    uniqueActivities[key] = act;
+                }
+            });
+
+            const activities = Object.values(uniqueActivities);
+
+            // CSV headers
+            const headers = [
+                'Date',
+                'Activity Type',
+                'Source',
+                'Duration (min)',
+                'Avg HR (bpm)',
+                'Max HR (bpm)',
+                'Zone 1 (min)',
+                'Zone 2 (min)',
+                'Zone 3 (min)',
+                'Zone 4 (min)',
+                'Zone 5 (min)',
+                'Primary Zone'
+            ];
+
+            // Convert activities to CSV rows
+            const rows = activities.map(act => {
+                const primaryZone = getPrimaryZone(act.zones);
+                return [
+                    act.date,
+                    act.activityType,
+                    act.provider || 'unknown',
+                    act.durationMinutes,
+                    act.hr.avg || '',
+                    act.hr.max || '',
+                    act.zones.zone1,
+                    act.zones.zone2,
+                    act.zones.zone3,
+                    act.zones.zone4,
+                    act.zones.zone5,
+                    `Zone ${primaryZone}`
+                ].join(',');
+            });
+
+            // Combine headers and rows
+            const csv = [headers.join(','), ...rows].join('\n');
+
+            // Create download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            const today = new Date().toISOString().split('T')[0];
+            a.download = `athlytx-training-data-${today}.csv`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>
