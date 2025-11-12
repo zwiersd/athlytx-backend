@@ -14,7 +14,9 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || true,
     credentials: true
 }));
-app.use(express.json());
+// Increase payload limit for Garmin Health API (min 10MB, Activity Details: 100MB)
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cookieParser());
 app.use(session({
     secret: process.env.SESSION_SECRET || 'athlytx-secret-key-change-in-production',
@@ -66,8 +68,10 @@ legacyRoutes(app);
 // Import new routes
 const syncRoutes = require('./backend/routes/sync');
 const testRoutes = require('./backend/routes/test-garmin');
+const garminHealthRoutes = require('./backend/routes/garmin-health');
 app.use('/api/sync', syncRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/garmin', garminHealthRoutes);
 
 // Import future routes (will create these next)
 // const authRoutes = require('./backend/routes/auth');
