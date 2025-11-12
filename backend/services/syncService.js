@@ -412,6 +412,13 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
             const workoutsData = await workoutsResponse.json();
             console.log(`  Found ${workoutsData.data?.length || 0} Oura workouts`);
 
+            // Log activity types for debugging
+            const activityTypes = {};
+            for (const w of (workoutsData.data || [])) {
+                activityTypes[w.activity] = (activityTypes[w.activity] || 0) + 1;
+            }
+            console.log(`  Activity types:`, activityTypes);
+
             for (const workout of (workoutsData.data || [])) {
                 try {
                     // Store workout activity
@@ -439,7 +446,7 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
                     });
 
                     // Store HR zone data if available
-                    if (workout.heart_rate && workout.average_heart_rate) {
+                    if (workout.average_heart_rate) {
                         await storeOuraHeartRateZones(
                             userId,
                             activity.id,
