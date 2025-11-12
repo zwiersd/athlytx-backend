@@ -574,10 +574,10 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
 }
 
 /**
- * Sync Whoop data (workouts with HR zones)
+ * Sync Whoop data (workouts with HR zones from cycles)
  */
 async function syncWhoopData(userId, tokenRecord, daysBack) {
-    console.log(`  💪 Syncing Whoop workouts...`);
+    console.log(`  💪 Syncing Whoop data from cycles...`);
 
     const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
 
@@ -589,9 +589,9 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
     const endDateStr = endDate.toISOString();
     const startDateStr = startDate.toISOString();
 
-    // Fetch workouts from Whoop
-    const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDateStr}`;
-    console.log(`  📡 Fetching from: ${url}`);
+    // Fetch cycles from Whoop (which contain workout/activity data)
+    const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${startDateStr}&end=${endDateStr}`;
+    console.log(`  📡 Fetching cycles from: ${url}`);
 
     const response = await fetch(url, {
         headers: {
@@ -608,54 +608,64 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
     }
 
     const data = await response.json();
-    const workouts = data.records || [];
-    console.log(`  Found ${workouts.length} Whoop workouts`);
+    const cycles = data.records || [];
+    console.log(`  Found ${cycles.length} Whoop cycles`);
 
     let stored = 0;
-    for (const workout of workouts) {
+    for (const cycle of cycles) {
         try {
-            // Only process scored workouts with HR data
-            if (workout.score && workout.score.average_heart_rate) {
+            // Only process cycles with strain data (indicating activity)
+            if (cycle.score && cycle.score.strain > 0) {
                 const [activity, created] = await Activity.findOrCreate({
                     where: {
                         userId,
                         provider: 'whoop',
-                        externalId: workout.id.toString()
+                        externalId: `whoop_cycle_${cycle.id}`
                     },
                     defaults: {
                         userId,
                         provider: 'whoop',
-                        externalId: workout.id.toString(),
-                        activityType: workout.sport_name || 'Workout',
-                        activityName: workout.sport_name || 'Workout',
-                        startTime: new Date(workout.start),
-                        durationSeconds: Math.round((new Date(workout.end) - new Date(workout.start)) / 1000),
-                        calories: workout.score.kilojoule ? Math.round(workout.score.kilojoule * 0.239) : null,
-                        avgHr: Math.round(workout.score.average_heart_rate),
-                        maxHr: Math.round(workout.score.max_heart_rate),
-                        intensityScore: workout.score.strain,
-                        rawData: workout
+                        externalId: `whoop_cycle_${cycle.id}`,
+                        activityType: 'Whoop Day',
+                        activityName: 'Daily Activity',
+                        startTime: new Date(cycle.start),
+                        durationSeconds: Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000),
+                        calories: cycle.score.kilojoule ? Math.round(cycle.score.kilojoule * 0.239) : null,
+                        avgHr: cycle.score.average_heart_rate ? Math.round(cycle.score.average_heart_rate) : null,
+                        maxHr: null,
+                        intensityScore: cycle.score.strain,
+                        rawData: cycle
                     }
                 });
 
-                // Store HR zone data if available
-                if (workout.score.zone_duration) {
-                    await storeWhoopHeartRateZones(
+                // Store basic HR zone record (cycles don't have detailed zone breakdown)
+                if (cycle.score.average_heart_rate) {
+                    await HeartRateZone.upsert({
                         userId,
-                        activity.id,
-                        workout
-                    );
+                        activityId: activity.id,
+                        date: activity.startTime.toISOString().split('T')[0],
+                        activityType: 'Whoop Day',
+                        durationSeconds: Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000),
+                        zone1Seconds: 0,
+                        zone2Seconds: 0,
+                        zone3Seconds: 0,
+                        zone4Seconds: 0,
+                        zone5Seconds: 0,
+                        avgHr: Math.round(cycle.score.average_heart_rate),
+                        maxHr: null,
+                        provider: 'whoop'
+                    });
                 }
 
                 if (created) stored++;
             }
         } catch (error) {
-            console.error(`  ❌ Failed to store Whoop workout:`, error.message);
+            console.error(`  ❌ Failed to store Whoop cycle:`, error.message);
         }
     }
 
-    console.log(`  ✅ Stored ${stored} new Whoop workouts`);
-    return { workoutsFetched: workouts.length, workoutsStored: stored };
+    console.log(`  ✅ Stored ${stored} new Whoop cycles`);
+    return { cyclesFetched: cycles.length, cyclesStored: stored };
 }
 
 /**
