@@ -125,7 +125,7 @@ async function startServer() {
         console.error('⚠️  Database not ready, but starting server anyway...');
     }
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log('\n🚀 Athlytx Unified Service');
         console.log(`📡 Server running on port ${PORT}`);
         console.log(`🌐 Frontend: http://localhost:${PORT}`);
