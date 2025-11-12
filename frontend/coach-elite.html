@@ -560,6 +560,79 @@
             color: var(--primary);
             text-decoration: none;
         }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
+            padding: 24px 30px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            padding: 0 30px 30px 30px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-700);
+            border: 2px solid var(--gray-300);
+        }
+
+        .btn-ghost:hover {
+            background: var(--gray-100);
+        }
     </style>
 </head>
 <body>
@@ -828,6 +901,31 @@
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="btn btn-ghost" onclick="closeNoteModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Athlete Modal -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Invite Athlete</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Athlete Email</label>
+                    <input type="email" id="inviteEmail" class="form-input" placeholder="athlete@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Personal Message (Optional)</label>
+                    <textarea id="inviteMessage" class="form-input" placeholder="Hey! I'd love to coach you using Athlytx. Let's take your training to the next level!" rows="4" style="resize: vertical;"></textarea>
+                </div>
+                <div id="inviteError" style="display: none; color: var(--danger); margin-top: 12px; padding: 12px; background: rgba(245, 101, 101, 0.1); border-radius: 8px; font-size: 14px;"></div>
+                <div id="inviteSuccess" style="display: none; color: var(--success); margin-top: 12px; padding: 12px; background: rgba(72, 187, 120, 0.1); border-radius: 8px; font-size: 14px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
+                <button id="sendInviteBtn" class="btn btn-primary" onclick="sendInvite()">Send Invitation</button>
             </div>
         </div>
     </div>
@@ -1235,29 +1333,79 @@
             `;
         }
 
-        async function inviteAthlete() {
-            const email = prompt('Enter athlete email:');
-            if (!email) return;
+        function inviteAthlete() {
+            // Reset form
+            document.getElementById('inviteEmail').value = '';
+            document.getElementById('inviteMessage').value = '';
+            document.getElementById('inviteError').style.display = 'none';
+            document.getElementById('inviteSuccess').style.display = 'none';
+
+            // Show modal
+            document.getElementById('inviteModal').classList.add('active');
+            document.getElementById('inviteEmail').focus();
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').classList.remove('active');
+        }
+
+        async function sendInvite() {
+            const email = document.getElementById('inviteEmail').value.trim();
+            const message = document.getElementById('inviteMessage').value.trim();
+            const errorDiv = document.getElementById('inviteError');
+            const successDiv = document.getElementById('inviteSuccess');
+            const sendBtn = document.getElementById('sendInviteBtn');
+
+            // Hide previous messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Validate email
+            if (!email) {
+                errorDiv.textContent = 'Please enter an athlete email address';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Disable button and show loading
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
 
             try {
+                console.log('Sending invite to:', email);
                 const response = await fetch('/api/auth/invite-athlete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         coachId: currentCoach.id,
                         athleteEmail: email,
-                        message: `${currentCoach.name} has invited you to join Athlytx for advanced training analytics.`
+                        message: message || `${currentCoach.name} has invited you to join Athlytx for advanced training analytics.`
                     })
                 });
 
                 const result = await response.json();
+                console.log('Invite response:', result);
 
                 if (result.success) {
-                    alert('Invitation sent!');
+                    successDiv.textContent = `✅ Invitation sent to ${email}! They'll receive an email with instructions.`;
+                    successDiv.style.display = 'block';
+
+                    // Close modal after 2 seconds
+                    setTimeout(() => {
+                        closeInviteModal();
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = result.error || 'Failed to send invitation';
+                    errorDiv.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Invite error:', error);
-                alert('Failed to send invitation');
+                errorDiv.textContent = 'Failed to send invitation: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                // Re-enable button
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send Invitation';
             }
         }
 
@@ -1313,6 +1461,7 @@
 
             if (sessionToken && coach) {
                 currentCoach = JSON.parse(coach);
+                console.log('[SESSION] Found stored session, validating...');
 
                 // Validate session
                 fetch('/api/auth/session', {
@@ -1320,22 +1469,30 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionToken })
                 })
-                .then(r => r.json())
+                .then(r => {
+                    console.log('[SESSION] Response status:', r.status);
+                    return r.json();
+                })
                 .then(result => {
+                    console.log('[SESSION] Response:', result);
                     if (result.success) {
+                        console.log('[SESSION] Valid! Loading dashboard...');
                         currentCoach = result.user;
                         athletes = result.relationships || [];
                         showDashboard();
                     } else {
+                        console.warn('[SESSION] Invalid session, clearing...');
                         // Session invalid - clear and show auth
                         localStorage.clear();
                     }
                 })
                 .catch(error => {
                     // Session validation failed - clear and show auth
-                    console.error('Session validation failed:', error);
+                    console.error('[SESSION] Validation failed:', error);
                     localStorage.clear();
                 });
+            } else {
+                console.log('[SESSION] No stored session found');
             }
 
             // Auth form handler
