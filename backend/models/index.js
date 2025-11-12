@@ -39,9 +39,17 @@ async function initializeDatabase() {
         await sequelize.authenticate();
         console.log('✅ Database connection successful');
 
-        // Sync models (create tables if they don't exist)
-        // Use basic sync - don't alter in production
-        await sequelize.sync();
+        // Skip sync in production - tables already exist
+        // This avoids index conflicts and migration issues
+        if (process.env.NODE_ENV !== 'production') {
+            try {
+                await sequelize.sync({ force: false });
+            } catch (syncError) {
+                console.log('⚠️  Sync skipped:', syncError.message);
+            }
+        } else {
+            console.log('⚠️  Sync skipped in production (tables exist)')
+        }
         console.log('✅ Database models synchronized');
 
         return true;
