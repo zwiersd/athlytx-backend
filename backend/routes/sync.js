@@ -111,7 +111,6 @@ router.get('/zones/:userId', async (req, res) => {
             order: [['date', 'DESC']],
             include: [{
                 model: require('../models').Activity,
-                as: 'activity',
                 attributes: ['activityName', 'activityType', 'startTime']
             }]
         });

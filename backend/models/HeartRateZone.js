@@ -93,7 +93,7 @@ const HeartRateZone = sequelize.define('HeartRateZone', {
 
     // Data source
     provider: {
-        type: DataTypes.ENUM('garmin', 'oura', 'whoop'),
+        type: DataTypes.ENUM('garmin', 'oura', 'whoop', 'strava'),
         allowNull: false,
         comment: 'Which API provided this data'
     }
