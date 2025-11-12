@@ -22,7 +22,7 @@ const Activity = sequelize.define('Activity', {
         comment: 'Provider\'s activity ID'
     },
     provider: {
-        type: DataTypes.ENUM('strava', 'garmin', 'whoop'),
+        type: DataTypes.ENUM('strava', 'garmin', 'whoop', 'oura'),
         allowNull: false
     },
 

@@ -337,7 +337,53 @@ async function storeHeartRateZones(userId, activityId, garminActivity, provider)
 }
 
 /**
- * Sync Oura data (mainly for recovery metrics, not zone data)
+ * Store HR zones for Oura workouts
+ * Oura provides heart rate data but not detailed time-in-zones
+ * We'll estimate based on average HR similar to Strava
+ */
+async function storeOuraHeartRateZones(userId, activityId, workout) {
+    const activity = await Activity.findByPk(activityId);
+    if (!activity) return;
+
+    const avgHr = workout.average_heart_rate;
+    const duration = workout.duration;
+
+    let zoneData = {
+        zone1Seconds: 0,
+        zone2Seconds: 0,
+        zone3Seconds: 0,
+        zone4Seconds: 0,
+        zone5Seconds: 0
+    };
+
+    // Assign to primary zone based on average HR
+    if (avgHr <= HR_ZONES.zone1.max) {
+        zoneData.zone1Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone2.max) {
+        zoneData.zone2Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone3.max) {
+        zoneData.zone3Seconds = duration;
+    } else if (avgHr <= HR_ZONES.zone4.max) {
+        zoneData.zone4Seconds = duration;
+    } else {
+        zoneData.zone5Seconds = duration;
+    }
+
+    await HeartRateZone.upsert({
+        userId,
+        activityId,
+        date: activity.startTime.toISOString().split('T')[0],
+        activityType: workout.activity,
+        durationSeconds: duration,
+        ...zoneData,
+        avgHr: Math.round(avgHr),
+        maxHr: workout.max_heart_rate,
+        provider: 'oura'
+    });
+}
+
+/**
+ * Sync Oura data (workouts and daily activity with HR data)
  */
 async function syncOuraData(userId, tokenRecord, daysBack) {
     console.log(`  💍 Syncing Oura data...`);
@@ -349,8 +395,70 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
     startDate.setDate(startDate.getDate() - daysBack);
     const startDateStr = startDate.toISOString().split('T')[0];
 
-    // Fetch daily activity
-    const response = await fetch(
+    let stored = 0;
+
+    // Fetch workouts (Oura v2 API)
+    try {
+        const workoutsResponse = await fetch(
+            `https://api.ouraring.com/v2/usercollection/workout?start_date=${startDateStr}&end_date=${endDate}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        if (workoutsResponse.ok) {
+            const workoutsData = await workoutsResponse.json();
+            console.log(`  Found ${workoutsData.data?.length || 0} Oura workouts`);
+
+            for (const workout of (workoutsData.data || [])) {
+                try {
+                    // Store workout activity
+                    const [activity, created] = await Activity.findOrCreate({
+                        where: {
+                            userId,
+                            provider: 'oura',
+                            externalId: workout.id
+                        },
+                        defaults: {
+                            userId,
+                            provider: 'oura',
+                            externalId: workout.id,
+                            activityType: workout.activity,
+                            activityName: workout.activity,
+                            startTime: new Date(workout.start_datetime),
+                            durationSeconds: workout.duration || 0,
+                            distanceMeters: workout.distance || null,
+                            calories: workout.calories || null,
+                            avgHr: workout.average_heart_rate || null,
+                            maxHr: workout.max_heart_rate || null,
+                            intensityScore: workout.intensity,
+                            rawData: workout
+                        }
+                    });
+
+                    // Store HR zone data if available
+                    if (workout.heart_rate && workout.average_heart_rate) {
+                        await storeOuraHeartRateZones(
+                            userId,
+                            activity.id,
+                            workout
+                        );
+                    }
+
+                    if (created) stored++;
+                } catch (error) {
+                    console.error(`  ❌ Failed to store Oura workout:`, error.message);
+                }
+            }
+        }
+    } catch (error) {
+        console.error(`  ❌ Failed to fetch Oura workouts:`, error.message);
+    }
+
+    // Fetch daily activity for overall metrics
+    const dailyResponse = await fetch(
         `https://api.ouraring.com/v2/usercollection/daily_activity?start_date=${startDateStr}&end_date=${endDate}`,
         {
             headers: {
@@ -359,14 +467,18 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
         }
     );
 
-    if (!response.ok) {
-        throw new Error(`Oura API error: ${response.status}`);
+    if (!dailyResponse.ok) {
+        throw new Error(`Oura API error: ${dailyResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log(`  ✅ Fetched Oura data for ${data.data?.length || 0} days`);
+    const dailyData = await dailyResponse.json();
+    console.log(`  ✅ Fetched Oura data for ${dailyData.data?.length || 0} days`);
+    console.log(`  ✅ Stored ${stored} new Oura workouts`);
 
-    return { daysFetched: data.data?.length || 0 };
+    return {
+        daysFetched: dailyData.data?.length || 0,
+        workoutsStored: stored
+    };
 }
 
 /**
