@@ -590,17 +590,21 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
     const startDateStr = startDate.toISOString();
 
     // Fetch workouts from Whoop
-    const response = await fetch(
-        `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDateStr}`,
-        {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
+    const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDateStr}`;
+    console.log(`  📡 Fetching from: ${url}`);
+
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
         }
-    );
+    });
+
+    console.log(`  📊 Whoop response status: ${response.status}`);
 
     if (!response.ok) {
-        throw new Error(`Whoop API error: ${response.status}`);
+        const errorText = await response.text();
+        console.log(`  ❌ Whoop error response: ${errorText.substring(0, 200)}`);
+        throw new Error(`Whoop API error: ${response.status} - ${errorText.substring(0, 100)}`);
     }
 
     const data = await response.json();
