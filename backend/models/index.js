@@ -8,7 +8,9 @@ const Activity = require('./Activity');
 const HeartRateZone = require('./HeartRateZone');
 const TrainingSummary = require('./TrainingSummary');
 
-// Define associations
+// Define associations - temporarily commented to fix deployment
+// TODO: Re-enable after fixing circular dependencies
+/*
 User.hasMany(MagicLink, { foreignKey: 'userId' });
 MagicLink.belongsTo(User, { foreignKey: 'userId' });
 
@@ -29,6 +31,7 @@ User.hasMany(CoachAthlete, { as: 'CoachingRelationships', foreignKey: 'coachId' 
 User.hasMany(CoachAthlete, { as: 'AthleteRelationships', foreignKey: 'athleteId' });
 CoachAthlete.belongsTo(User, { as: 'coach', foreignKey: 'coachId' });
 CoachAthlete.belongsTo(User, { as: 'athlete', foreignKey: 'athleteId' });
+*/
 
 // Initialize database and sync models
 async function initializeDatabase() {

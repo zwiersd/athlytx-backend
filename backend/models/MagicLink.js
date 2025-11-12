@@ -9,11 +9,7 @@ const MagicLink = sequelize.define('MagicLink', {
     },
     userId: {
         type: DataTypes.UUID,
-        allowNull: false,
-        references: {
-            model: 'users',
-            key: 'id'
-        }
+        allowNull: true  // Make it nullable for now
     },
     email: {
         type: DataTypes.STRING,
