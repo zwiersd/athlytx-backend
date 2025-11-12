@@ -73,11 +73,11 @@ app.use('/api/sync', syncRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/garmin', garminHealthRoutes);
 
-// Import future routes (will create these next)
-// const authRoutes = require('./backend/routes/auth');
-// const coachRoutes = require('./backend/routes/coach');
-// app.use('/api/auth', authRoutes);
-// app.use('/api/coach', coachRoutes);
+// Import authentication and coach routes
+const authRoutes = require('./backend/routes/auth');
+const coachRoutes = require('./backend/routes/coach');
+app.use('/api/auth', authRoutes);
+app.use('/api/coach', coachRoutes);
 
 // ===== SPECIAL ROUTES =====
 app.get('/coach', (req, res) => {
