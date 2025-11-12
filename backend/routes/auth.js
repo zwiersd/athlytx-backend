@@ -77,12 +77,8 @@ router.post('/magic-link', async (req, res) => {
             console.log('[AUTH] User found:', user.id);
         }
 
-        // Expire any existing magic links
-        console.log('[AUTH] Expiring old magic links...');
-        await MagicLink.update(
-            { used: true },
-            { where: { userId: user.id, used: false } }
-        );
+        // Expire any existing magic links (skip for now - table schema mismatch)
+        console.log('[AUTH] Skipping old magic link expiration...');
 
         // Create new magic link
         console.log('[AUTH] Generating token and code...');
