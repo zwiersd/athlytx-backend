@@ -222,7 +222,7 @@ app.post('/api/whoop/token', async (req, res) => {
             has_client_secret: !!process.env.WHOOP_CLIENT_SECRET
         });
 
-        const response = await fetch('https://api.prod.whoop.com/oauth/token', {
+        const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
