@@ -90,7 +90,11 @@ router.post('/magic-link', async (req, res) => {
 
     } catch (error) {
         console.error('Magic link error:', error);
-        res.status(500).json({ error: 'Failed to send magic link' });
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            error: 'Failed to send magic link',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
