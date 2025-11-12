@@ -614,8 +614,18 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
     let stored = 0;
     for (const cycle of cycles) {
         try {
+            // Skip full-day cycles - we only want actual workout sessions
+            // Cycles over 4 hours are likely full day tracking, not individual workouts
+            const durationSeconds = Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000);
+            const durationHours = durationSeconds / 3600;
+
+            if (durationHours > 4) {
+                console.log(`  ⏭️  Skipping long cycle: ${durationHours.toFixed(1)} hours`);
+                continue;
+            }
+
             // Only process cycles with strain data (indicating activity)
-            if (cycle.score && cycle.score.strain > 0) {
+            if (cycle.score && cycle.score.strain > 5) { // Higher threshold for actual workouts
                 const [activity, created] = await Activity.findOrCreate({
                     where: {
                         userId,
@@ -626,10 +636,10 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
                         userId,
                         provider: 'whoop',
                         externalId: `whoop_cycle_${cycle.id}`,
-                        activityType: 'Whoop Day',
-                        activityName: 'Daily Activity',
+                        activityType: 'Workout',
+                        activityName: `Strain ${cycle.score.strain.toFixed(1)}`,
                         startTime: new Date(cycle.start),
-                        durationSeconds: Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000),
+                        durationSeconds: durationSeconds,
                         calories: cycle.score.kilojoule ? Math.round(cycle.score.kilojoule * 0.239) : null,
                         avgHr: cycle.score.average_heart_rate ? Math.round(cycle.score.average_heart_rate) : null,
                         maxHr: null,
@@ -644,8 +654,8 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
                         userId,
                         activityId: activity.id,
                         date: activity.startTime.toISOString().split('T')[0],
-                        activityType: 'Whoop Day',
-                        durationSeconds: Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000),
+                        activityType: 'Workout',
+                        durationSeconds: durationSeconds,
                         zone1Seconds: 0,
                         zone2Seconds: 0,
                         zone3Seconds: 0,
