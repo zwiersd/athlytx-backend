@@ -164,7 +164,25 @@
         .btn-garmin { background: #007CC3; }
         .btn-oura { background: #B45CF3; }
         .btn-strava { background: #FC4C02; }
-        
+
+        .disconnect-btn {
+            width: 100%;
+            padding: 8px 16px;
+            border: 2px solid #dc2626;
+            border-radius: 8px;
+            background: transparent;
+            color: #dc2626;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .disconnect-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
         .analytics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -744,6 +762,9 @@
                         <button class="connect-btn btn-strava" onclick="connectDevice('strava')">
                             Connect Strava
                         </button>
+                        <button class="disconnect-btn btn-strava-disconnect" onclick="disconnectDevice('strava')" style="display: none; margin-top: 8px;">
+                            Disconnect
+                        </button>
                     </div>
 
                     <div class="device-card">
@@ -758,6 +779,9 @@
                         </div>
                         <button class="connect-btn btn-oura" onclick="connectDevice('oura')">
                             Connect Oura
+                        </button>
+                        <button class="disconnect-btn btn-oura-disconnect" onclick="disconnectDevice('oura')" style="display: none; margin-top: 8px;">
+                            Disconnect
                         </button>
                     </div>
 
@@ -774,6 +798,9 @@
                         <button class="connect-btn btn-garmin" onclick="connectDevice('garmin')">
                             Connect Garmin
                         </button>
+                        <button class="disconnect-btn btn-garmin-disconnect" onclick="disconnectDevice('garmin')" style="display: none; margin-top: 8px;">
+                            Disconnect
+                        </button>
                     </div>
 
                     <div class="device-card">
@@ -788,6 +815,9 @@
                         </div>
                         <button class="connect-btn btn-whoop" onclick="connectDevice('whoop')">
                             Connect Whoop
+                        </button>
+                        <button class="disconnect-btn btn-whoop-disconnect" onclick="disconnectDevice('whoop')" style="display: none; margin-top: 8px;">
+                            Disconnect
                         </button>
                     </div>
                 </div>
@@ -1361,6 +1391,53 @@
             }
         }
 
+        function disconnectDevice(device) {
+            if (!confirm(`Are you sure you want to disconnect ${device.charAt(0).toUpperCase() + device.slice(1)}?`)) {
+                return;
+            }
+
+            // Clear localStorage tokens
+            if (device === 'strava') {
+                localStorage.removeItem('strava_token');
+                localStorage.removeItem('strava_expiry');
+                localStorage.removeItem('strava_refresh_token');
+            } else if (device === 'oura') {
+                localStorage.removeItem('oura_token');
+                localStorage.removeItem('oura_expiry');
+            } else if (device === 'garmin') {
+                localStorage.removeItem('garmin_token');
+                localStorage.removeItem('garmin_expiry');
+                localStorage.removeItem('garmin_refresh_token');
+                localStorage.removeItem('garmin_access_token');
+                localStorage.removeItem('garmin_token_expires_at');
+            } else if (device === 'whoop') {
+                localStorage.removeItem('whoop_token');
+                localStorage.removeItem('whoop_expiry');
+                localStorage.removeItem('whoop_refresh_token');
+            }
+
+            // Update button visibility
+            const connectBtn = document.querySelector(`.btn-${device}`);
+            const disconnectBtn = document.querySelector(`.btn-${device}-disconnect`);
+
+            if (connectBtn) {
+                connectBtn.innerHTML = `Connect ${device.charAt(0).toUpperCase() + device.slice(1)}`;
+                connectBtn.disabled = false;
+                connectBtn.style.display = 'flex';
+            }
+
+            if (disconnectBtn) {
+                disconnectBtn.style.display = 'none';
+            }
+
+            showMessage(`${device.charAt(0).toUpperCase() + device.slice(1)} disconnected`, 'info');
+
+            // Reload page to clear data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
         // ===== OAUTH CALLBACK HANDLING =====
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1673,6 +1750,12 @@
                 button.innerHTML = `✅ ${athlete.firstname || 'Strava'} - Connected`;
                 button.disabled = false;
 
+                // Show disconnect button
+                const disconnectBtn = document.querySelector('.btn-strava-disconnect');
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'block';
+                }
+
                 showMessage(`Strava connected! Found ${fitnessData.strava.activities.length} activities`, 'success');
                 updateAnalytics();
                 updateConnectionStatus();
@@ -1777,6 +1860,12 @@
                 const userEmail = personal?.email || 'Oura User';
                 button.innerHTML = `✅ ${userEmail.split('@')[0]} - Connected`;
                 button.disabled = false;
+
+                // Show disconnect button
+                const disconnectBtn = document.querySelector('.btn-oura-disconnect');
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'block';
+                }
 
                 const totalRecords = (sleep?.data?.length || 0) + (readiness?.data?.length || 0) + (activity?.data?.length || 0);
                 showMessage(`Oura connected! ${totalRecords} records loaded`, 'success');
@@ -3090,6 +3179,12 @@
                     }
                     
                     button.innerHTML = '<span class="check-icon">✓</span> Connected';
+
+                    // Show disconnect button
+                    const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
+                    if (disconnectBtn) {
+                        disconnectBtn.style.display = 'block';
+                    }
                     button.classList.add('connected');
                 } else {
                     throw new Error('No data available');
