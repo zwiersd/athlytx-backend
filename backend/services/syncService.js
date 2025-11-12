@@ -485,11 +485,68 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
 
     const dailyData = await dailyResponse.json();
     console.log(`  ✅ Fetched Oura data for ${dailyData.data?.length || 0} days`);
+
+    // Process daily activity data for HR information
+    let dailyActivitiesStored = 0;
+    if (dailyData.data && Array.isArray(dailyData.data)) {
+        for (const day of dailyData.data) {
+            try {
+                // Check if this day has heart rate data
+                if (day.average_heart_rate && day.average_heart_rate > 0) {
+                    // Create an activity record for this day's overall activity
+                    const dayDate = new Date(day.day);
+
+                    const [activity, created] = await Activity.findOrCreate({
+                        where: {
+                            userId,
+                            provider: 'oura',
+                            externalId: `oura_daily_${day.day}`
+                        },
+                        defaults: {
+                            userId,
+                            provider: 'oura',
+                            externalId: `oura_daily_${day.day}`,
+                            activityType: 'Daily Activity',
+                            activityName: 'Daily Activity',
+                            startTime: dayDate,
+                            durationSeconds: day.active_seconds || 0,
+                            calories: day.active_calories || day.total_calories || null,
+                            avgHr: Math.round(day.average_heart_rate),
+                            maxHr: day.high_heart_rate || null,
+                            rawData: day
+                        }
+                    });
+
+                    // Store HR zone data for daily activity
+                    if (day.average_heart_rate) {
+                        await storeOuraHeartRateZones(
+                            userId,
+                            activity.id,
+                            {
+                                activity: 'Daily Activity',
+                                average_heart_rate: day.average_heart_rate,
+                                max_heart_rate: day.high_heart_rate,
+                                duration: day.active_seconds || 0,
+                                start_datetime: day.day
+                            }
+                        );
+                    }
+
+                    if (created) dailyActivitiesStored++;
+                }
+            } catch (error) {
+                console.error(`  ❌ Failed to store Oura daily activity:`, error.message);
+            }
+        }
+    }
+
     console.log(`  ✅ Stored ${stored} new Oura workouts`);
+    console.log(`  ✅ Stored ${dailyActivitiesStored} new Oura daily activities with HR data`);
 
     return {
         daysFetched: dailyData.data?.length || 0,
-        workoutsStored: stored
+        workoutsStored: stored,
+        dailyActivitiesStored
     };
 }
 
