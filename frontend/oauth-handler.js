@@ -15,7 +15,7 @@ class OAuthHandler {
                 clientId: 'ee6809d5-abc0-4a33-b38a-d433e5045987',
                 clientSecret: '0Xjs//vs29LPby1XbvGUBcVM1gzn7/idbavTyTVnl3M',
                 redirectUri: 'https://www.athlytx.com',
-                scope: 'HEALTH_READ'
+                scope: 'WELLNESS_READ'
             });
         }
 
