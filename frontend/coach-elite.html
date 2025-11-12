@@ -576,11 +576,6 @@
                     <label class="form-label">Coach Email</label>
                     <input type="email" id="coachEmail" class="form-input" placeholder="coach@example.com" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">
-                        <input type="checkbox" id="isNewCoach"> I'm a new coach
-                    </label>
-                </div>
                 <button type="submit" class="btn btn-primary btn-full">
                     Send Magic Link
                 </button>
@@ -592,6 +587,9 @@
                 </div>
                 <button onclick="verifyCode()" class="btn btn-primary btn-full">
                     Verify Code
+                </button>
+                <button id="resendCodeBtn" onclick="resendCode()" class="btn btn-secondary btn-full" style="display: none; margin-top: 12px;">
+                    Send Another Code
                 </button>
             </div>
             <div class="auth-footer">
@@ -843,7 +841,7 @@
         let charts = {};
 
         // Authentication
-        async function authenticate(email, isNewCoach = false) {
+        async function authenticate(email) {
             try {
                 console.log('Sending magic link request for:', email);
                 const response = await fetch('/api/auth/magic-link', {
@@ -851,7 +849,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        role: isNewCoach ? 'coach' : undefined
+                        role: 'coach' // Always create as coach for Elite dashboard
                     })
                 });
 
@@ -881,6 +879,11 @@
 
                     // Focus the code input
                     document.getElementById('verifyCode').focus();
+
+                    // Show "Send Another Code" button after 60 seconds
+                    setTimeout(() => {
+                        document.getElementById('resendCodeBtn').style.display = 'block';
+                    }, 60000);
                 } else {
                     console.error('Failed:', result);
                     alert('❌ Error: ' + (result.error || 'Failed to send magic link'));
@@ -918,6 +921,16 @@
                 console.error('Verify error:', error);
                 alert('Invalid code');
             }
+        }
+
+        async function resendCode() {
+            const email = document.getElementById('coachEmail').value;
+
+            // Hide resend button temporarily
+            document.getElementById('resendCodeBtn').style.display = 'none';
+
+            // Send new code
+            await authenticate(email);
         }
 
         function showDashboard() {
@@ -1329,8 +1342,7 @@
             document.getElementById('authForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const email = document.getElementById('coachEmail').value;
-                const isNewCoach = document.getElementById('isNewCoach').checked;
-                authenticate(email, isNewCoach);
+                authenticate(email);
             });
         });
     </script>
