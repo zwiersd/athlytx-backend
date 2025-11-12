@@ -37,8 +37,8 @@ async function initializeDatabase() {
         console.log('✅ Database connection successful');
 
         // Sync models (create tables if they don't exist)
-        // Use alter: true to update existing tables without data loss
-        await sequelize.sync({ alter: true });
+        // Use basic sync - don't alter in production
+        await sequelize.sync();
         console.log('✅ Database models synchronized');
 
         return true;
