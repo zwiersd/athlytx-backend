@@ -458,9 +458,13 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${start}&uploadEndTimeInSeconds=${end}`;
+        // Convert date strings to Unix timestamps
+        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        console.log('📊 Garmin dailies request:', { url, hasToken: !!token });
+        const url = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+
+        console.log('📊 Garmin dailies request:', { url, hasToken: !!token, start, end, startTimestamp, endTimestamp });
 
         const response = await fetch(url, {
             headers: {
@@ -491,7 +495,11 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${start}&uploadEndTimeInSeconds=${end}`;
+        // Convert date strings to Unix timestamps
+        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+
+        const url = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
         const response = await fetch(url, {
             headers: {
@@ -516,7 +524,11 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${start}&uploadEndTimeInSeconds=${end}`;
+        // Convert date strings to Unix timestamps
+        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
+        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
+
+        const url = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
         const response = await fetch(url, {
             headers: {
