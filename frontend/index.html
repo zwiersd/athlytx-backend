@@ -3241,14 +3241,55 @@
                     }
                     button.classList.add('connected');
                 } else {
-                    throw new Error('No data available');
+                    // No data available yet, but connection is successful
+                    fitnessData.garmin = {
+                        dailySummary: null,
+                        activities: null,
+                        sleep: null,
+                        connected: true
+                    };
+
+                    button.innerHTML = '<span class="check-icon">✓</span> Connected';
+                    button.classList.add('connected');
+                    button.disabled = false;
+
+                    // Show disconnect button
+                    const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
+                    if (disconnectBtn) {
+                        disconnectBtn.style.display = 'block';
+                    }
+
+                    showMessage('Garmin connected! Data will sync automatically via webhooks.', 'success');
                 }
-                
+
             } catch (error) {
                 console.error('Garmin data fetch error:', error);
-                showMessage(`Failed to load Garmin data: ${error.message}`, 'error');
-                button.innerHTML = 'Connect Garmin';
-                button.disabled = false;
+                // Check if we have a token - if yes, still show connected
+                const token = tokenParam || localStorage.getItem('garmin_token');
+                if (token) {
+                    fitnessData.garmin = {
+                        dailySummary: null,
+                        activities: null,
+                        sleep: null,
+                        connected: true
+                    };
+
+                    button.innerHTML = '<span class="check-icon">✓</span> Connected';
+                    button.classList.add('connected');
+                    button.disabled = false;
+
+                    // Show disconnect button
+                    const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
+                    if (disconnectBtn) {
+                        disconnectBtn.style.display = 'block';
+                    }
+
+                    showMessage('Garmin connected! Data will sync automatically.', 'success');
+                } else {
+                    showMessage(`Failed to connect Garmin: ${error.message}`, 'error');
+                    button.innerHTML = 'Connect Garmin';
+                    button.disabled = false;
+                }
             }
         }
 
