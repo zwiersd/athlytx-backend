@@ -26,6 +26,7 @@ function generateCode() {
  */
 router.post('/magic-link', async (req, res) => {
     try {
+        console.log('[AUTH] Magic link request received:', req.body);
         const { email, role = 'athlete' } = req.body;
 
         if (!email) {
@@ -34,30 +35,39 @@ router.post('/magic-link', async (req, res) => {
 
         // Normalize email
         const normalizedEmail = email.toLowerCase().trim();
+        console.log('[AUTH] Normalized email:', normalizedEmail);
 
         // Find or create user
+        console.log('[AUTH] Finding user...');
         let user = await User.findOne({ where: { email: normalizedEmail } });
 
         if (!user) {
+            console.log('[AUTH] User not found, creating new user...');
             user = await User.create({
                 email: normalizedEmail,
                 name: normalizedEmail.split('@')[0],
                 role: role, // 'coach' or 'athlete'
                 isActive: true
             });
+            console.log('[AUTH] User created:', user.id);
+        } else {
+            console.log('[AUTH] User found:', user.id);
         }
 
         // Expire any existing magic links
+        console.log('[AUTH] Expiring old magic links...');
         await MagicLink.update(
             { used: true },
             { where: { userId: user.id, used: false } }
         );
 
         // Create new magic link
+        console.log('[AUTH] Generating token and code...');
         const token = generateToken();
         const code = generateCode();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+        console.log('[AUTH] Creating magic link record...');
         await MagicLink.create({
             userId: user.id,
             email: normalizedEmail,
@@ -66,6 +76,7 @@ router.post('/magic-link', async (req, res) => {
             expiresAt,
             used: false
         });
+        console.log('[AUTH] Magic link record created');
 
         // Send magic link email
         const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?token=${token}`;
