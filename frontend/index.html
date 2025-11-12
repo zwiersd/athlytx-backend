@@ -1495,6 +1495,34 @@
             }, 100);
         });
 
+        // ===== TOKEN MANAGEMENT =====
+        async function saveTokenToDatabase(provider, accessToken, refreshToken = null, expiresAt = null) {
+            try {
+                const response = await fetch(`${API_CONFIG.backend}/api/sync/save-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        provider,
+                        accessToken,
+                        refreshToken,
+                        expiresAt
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to save token to database:', await response.text());
+                    return false;
+                }
+
+                const result = await response.json();
+                console.log(`✅ Token saved to database for ${provider}:`, result);
+                return true;
+            } catch (error) {
+                console.error('Error saving token to database:', error);
+                return false;
+            }
+        }
+
         // ===== CONNECTION MANAGEMENT =====
         function loadExistingConnections() {
             console.log('🔍 Loading existing connections...');
@@ -1571,7 +1599,15 @@
                     if (data.expires_at) {
                         localStorage.setItem('strava_expiry', data.expires_at * 1000);
                     }
-                    
+
+                    // Save to database
+                    await saveTokenToDatabase(
+                        'strava',
+                        data.access_token,
+                        data.refresh_token,
+                        data.expires_at ? new Date(data.expires_at * 1000).toISOString() : null
+                    );
+
                     await fetchStravaData(data.access_token);
                 } else {
                     throw new Error('No access token received');
@@ -1606,11 +1642,20 @@
                 
                 if (data.access_token) {
                     localStorage.setItem('oura_token', data.access_token);
+                    let expiryTime = null;
                     if (data.expires_in) {
-                        const expiryTime = Date.now() + (data.expires_in * 1000);
+                        expiryTime = Date.now() + (data.expires_in * 1000);
                         localStorage.setItem('oura_expiry', expiryTime);
                     }
-                    
+
+                    // Save to database
+                    await saveTokenToDatabase(
+                        'oura',
+                        data.access_token,
+                        data.refresh_token,
+                        expiryTime ? new Date(expiryTime).toISOString() : null
+                    );
+
                     await fetchOuraData(data.access_token);
                 } else {
                     throw new Error('No access token received');
@@ -1659,14 +1704,23 @@
                 if (data.access_token) {
                     // Store Garmin OAuth 2.0 token
                     localStorage.setItem('garmin_token', data.access_token);
+                    let expiryTime = null;
                     if (data.refresh_token) {
                         localStorage.setItem('garmin_refresh_token', data.refresh_token);
                     }
                     if (data.expires_in) {
-                        const expiryTime = Date.now() + (data.expires_in * 1000);
+                        expiryTime = Date.now() + (data.expires_in * 1000);
                         localStorage.setItem('garmin_expiry', expiryTime);
                     }
-                    
+
+                    // Save to database
+                    await saveTokenToDatabase(
+                        'garmin',
+                        data.access_token,
+                        data.refresh_token,
+                        expiryTime ? new Date(expiryTime).toISOString() : null
+                    );
+
                     // Clean up PKCE verifier
                     sessionStorage.removeItem('garmin_code_verifier');
                     
