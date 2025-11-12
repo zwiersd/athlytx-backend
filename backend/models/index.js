@@ -36,22 +36,23 @@ async function initializeDatabase() {
         await sequelize.authenticate();
         console.log('✅ Database connection successful');
 
-        // Sync models individually - create if not exists, don't alter existing
-        // Use alter: false to prevent schema changes to existing tables
-        const syncOptions = { alter: false };
-
+        // Sync models individually
         try {
-            await User.sync(syncOptions);
-            await MagicLink.sync(syncOptions);
-            await OAuthToken.sync(syncOptions);
-            await CoachAthlete.sync(syncOptions);
-            await DailyMetric.sync(syncOptions);
-            await Activity.sync(syncOptions);
-            await HeartRateZone.sync(syncOptions);
-            await TrainingSummary.sync(syncOptions);
+            // User table needs alter to add sessionToken/sessionExpiry columns
+            await User.sync({ alter: true });
+            console.log('✅ User table synced with schema updates');
+
+            // Other tables - create if not exists, don't alter
+            await MagicLink.sync({ alter: false });
+            await OAuthToken.sync({ alter: false });
+            await CoachAthlete.sync({ alter: false });
+            await DailyMetric.sync({ alter: false });
+            await Activity.sync({ alter: false });
+            await HeartRateZone.sync({ alter: false });
+            await TrainingSummary.sync({ alter: false });
             console.log('✅ Database models synchronized');
         } catch (syncError) {
-            console.warn('⚠️  Some tables may already exist, continuing anyway:', syncError.message);
+            console.warn('⚠️  Some sync issues, continuing anyway:', syncError.message);
         }
 
         return true;
