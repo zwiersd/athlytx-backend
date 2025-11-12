@@ -854,8 +854,18 @@
                 console.log('Response data:', result);
 
                 if (result.success) {
+                    // Hide the auth form
+                    document.getElementById('authForm').style.display = 'none';
+
                     // Show verification section
-                    document.getElementById('verifySection').style.display = 'block';
+                    const verifySection = document.getElementById('verifySection');
+                    verifySection.style.display = 'block';
+
+                    // Add email sent message
+                    const emailMsg = document.createElement('p');
+                    emailMsg.style.cssText = 'color: #059669; margin-bottom: 20px; text-align: center; font-size: 14px;';
+                    emailMsg.innerHTML = '✅ Magic link sent! Check your email for the 6-digit code.';
+                    verifySection.insertBefore(emailMsg, verifySection.firstChild);
 
                     // In dev, auto-fill code
                     if (result.code) {
@@ -863,7 +873,8 @@
                         console.log('Dev mode - Code:', result.code);
                     }
 
-                    alert('✅ Check your email for the magic link!');
+                    // Focus the code input
+                    document.getElementById('verifyCode').focus();
                 } else {
                     console.error('Failed:', result);
                     alert('❌ Error: ' + (result.error || 'Failed to send magic link'));
