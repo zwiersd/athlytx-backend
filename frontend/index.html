@@ -1301,7 +1301,7 @@
                 window.location.href = authUrl;
                 
             } else if (device === 'oura') {
-                const authUrl = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${API_CONFIG.oura.clientId}&redirect_uri=${encodeURIComponent(API_CONFIG.oura.redirectUri)}&scope=daily&state=oura_auth`;
+                const authUrl = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${API_CONFIG.oura.clientId}&redirect_uri=${encodeURIComponent(API_CONFIG.oura.redirectUri)}&scope=daily+workout+heartrate&state=oura_auth`;
                 window.location.href = authUrl;
                 
             } else if (device === 'garmin') {
