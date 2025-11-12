@@ -414,10 +414,15 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
 
             // Log activity types for debugging
             const activityTypes = {};
+            let withHR = 0;
+            let withoutHR = 0;
             for (const w of (workoutsData.data || [])) {
                 activityTypes[w.activity] = (activityTypes[w.activity] || 0) + 1;
+                if (w.average_heart_rate) withHR++;
+                else withoutHR++;
             }
             console.log(`  Activity types:`, activityTypes);
+            console.log(`  With HR data: ${withHR}, Without HR data: ${withoutHR}`);
 
             for (const workout of (workoutsData.data || [])) {
                 try {
@@ -445,7 +450,7 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
                         }
                     });
 
-                    // Store HR zone data if available
+                    // Store HR zone data if available (always, even for existing activities)
                     if (workout.average_heart_rate) {
                         await storeOuraHeartRateZones(
                             userId,
