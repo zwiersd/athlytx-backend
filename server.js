@@ -75,6 +75,11 @@ app.use('/api/test', testRoutes);
 // app.use('/api/auth', authRoutes);
 // app.use('/api/coach', coachRoutes);
 
+// ===== SPECIAL ROUTES =====
+app.get('/coach', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
+});
+
 // ===== CATCH-ALL: Serve index.html for SPA routing =====
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
