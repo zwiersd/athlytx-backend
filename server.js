@@ -84,6 +84,19 @@ app.get('/coach', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
 });
 
+// Clean URL routes (without .html)
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'privacy.html'));
+});
+
+app.get('/terms', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'terms.html'));
+});
+
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'about.html'));
+});
+
 // ===== CATCH-ALL: Serve index.html for SPA routing =====
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
