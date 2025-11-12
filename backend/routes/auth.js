@@ -60,6 +60,7 @@ router.post('/magic-link', async (req, res) => {
 
         await MagicLink.create({
             userId: user.id,
+            email: normalizedEmail,
             token,
             code,
             expiresAt,
