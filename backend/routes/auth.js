@@ -347,9 +347,12 @@ router.post('/verify', async (req, res) => {
 router.post('/session', async (req, res) => {
     try {
         const { sessionToken } = req.body;
+        console.log('[SESSION-API] Validation request received');
+        console.log('[SESSION-API] Token:', sessionToken?.substring(0, 20) + '...');
 
         if (!sessionToken) {
-            return res.status(400).json({ error: 'Session token required' });
+            console.log('[SESSION-API] ❌ No token provided');
+            return res.status(400).json({ success: false, error: 'Session token required' });
         }
 
         const user = await User.findOne({
@@ -361,8 +364,11 @@ router.post('/session', async (req, res) => {
         });
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid session' });
+            console.log('[SESSION-API] ❌ User not found or token expired');
+            return res.status(401).json({ success: false, error: 'Invalid session' });
         }
+
+        console.log('[SESSION-API] ✅ User found:', user.email);
 
         // Get relationships
         let relationships = [];
@@ -386,6 +392,8 @@ router.post('/session', async (req, res) => {
             });
         }
 
+        console.log('[SESSION-API] Found user:', user.email, 'with', relationships.length, 'relationships');
+
         res.json({
             success: true,
             user: {
@@ -395,16 +403,17 @@ router.post('/session', async (req, res) => {
                 role: user.role
             },
             relationships: relationships.map(r => ({
-                id: user.role === 'coach' ? r.Athlete.id : r.Coach.id,
-                email: user.role === 'coach' ? r.Athlete.email : r.Coach.email,
-                name: user.role === 'coach' ? r.Athlete.name : r.Coach.name,
+                id: user.role === 'coach' ? r.Athlete?.id : r.Coach?.id,
+                email: user.role === 'coach' ? r.Athlete?.email : r.Coach?.email,
+                name: user.role === 'coach' ? r.Athlete?.name : r.Coach?.name,
                 status: r.status
-            }))
+            })).filter(r => r.id) // Filter out any null relationships
         });
 
     } catch (error) {
-        console.error('Session error:', error);
-        res.status(500).json({ error: 'Session validation failed' });
+        console.error('[SESSION-API] Error:', error);
+        console.error('[SESSION-API] Stack:', error.stack);
+        res.status(500).json({ success: false, error: 'Session validation failed', details: error.message });
     }
 });
 
