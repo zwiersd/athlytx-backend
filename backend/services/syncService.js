@@ -486,6 +486,18 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
     const dailyData = await dailyResponse.json();
     console.log(`  ✅ Fetched Oura data for ${dailyData.data?.length || 0} days`);
 
+    // Log what HR fields are available
+    if (dailyData.data && dailyData.data.length > 0) {
+        const sample = dailyData.data[0];
+        console.log(`  📊 Oura daily activity sample fields:`, Object.keys(sample));
+        console.log(`  ❤️  HR fields:`, {
+            average_heart_rate: sample.average_heart_rate,
+            high_heart_rate: sample.high_heart_rate,
+            low_heart_rate: sample.low_heart_rate,
+            resting_heart_rate: sample.resting_heart_rate
+        });
+    }
+
     // Process daily activity data for HR information
     let dailyActivitiesStored = 0;
     if (dailyData.data && Array.isArray(dailyData.data)) {
