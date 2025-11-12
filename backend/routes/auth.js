@@ -293,7 +293,7 @@ router.post('/session', async (req, res) => {
                 where: { coachId: user.id, status: 'active' },
                 include: [{
                     model: User,
-                    as: 'athlete',
+                    as: 'Athlete',
                     attributes: ['id', 'email', 'name']
                 }]
             });
@@ -302,7 +302,7 @@ router.post('/session', async (req, res) => {
                 where: { athleteId: user.id, status: 'active' },
                 include: [{
                     model: User,
-                    as: 'coach',
+                    as: 'Coach',
                     attributes: ['id', 'email', 'name']
                 }]
             });
@@ -317,9 +317,9 @@ router.post('/session', async (req, res) => {
                 role: user.role
             },
             relationships: relationships.map(r => ({
-                id: user.role === 'coach' ? r.athlete.id : r.coach.id,
-                email: user.role === 'coach' ? r.athlete.email : r.coach.email,
-                name: user.role === 'coach' ? r.athlete.name : r.coach.name,
+                id: user.role === 'coach' ? r.Athlete.id : r.Coach.id,
+                email: user.role === 'coach' ? r.Athlete.email : r.Coach.email,
+                name: user.role === 'coach' ? r.Athlete.name : r.Coach.name,
                 status: r.status
             }))
         });

@@ -1313,7 +1313,15 @@
                         currentCoach = result.user;
                         athletes = result.relationships || [];
                         showDashboard();
+                    } else {
+                        // Session invalid - clear and show auth
+                        localStorage.clear();
                     }
+                })
+                .catch(error => {
+                    // Session validation failed - clear and show auth
+                    console.error('Session validation failed:', error);
+                    localStorage.clear();
                 });
             }
 
