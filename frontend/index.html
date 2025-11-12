@@ -3428,12 +3428,35 @@
                 }
             }
 
-            // Update strain from cycles data
+            // Update strain from cycles data (and extract recovery/sleep if not already set)
             if (cycles && cycles.length > 0) {
                 const latestCycle = cycles[cycles.length - 1];
                 console.log('🔥 Latest cycle data:', latestCycle);
 
                 updateStat('whoopStrain', latestCycle.score?.strain?.toFixed(1), '');
+
+                // If recovery endpoint failed, try to get recovery from cycle
+                if (!recovery || recovery.length === 0) {
+                    const recoveryScore = latestCycle.score?.recovery_score;
+                    if (recoveryScore !== undefined) {
+                        const displayValue = recoveryScore > 1 ? Math.round(recoveryScore) : Math.round(recoveryScore * 100);
+                        updateStat('whoopRecovery', displayValue, '%');
+                    }
+
+                    const hrv = latestCycle.score?.hrv_rmssd_milli;
+                    if (hrv !== undefined) {
+                        updateStat('whoopHRV', Math.round(hrv), '');
+                    }
+                }
+
+                // If sleep endpoint failed, try to get sleep from cycle
+                if (!sleep || sleep.length === 0) {
+                    const sleepPerformance = latestCycle.score?.sleep_performance_percentage;
+                    if (sleepPerformance !== undefined) {
+                        const displayValue = sleepPerformance > 1 ? Math.round(sleepPerformance) : Math.round(sleepPerformance * 100);
+                        updateStat('whoopSleep', displayValue, '%');
+                    }
+                }
             }
 
             // Update activities list
