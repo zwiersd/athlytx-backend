@@ -581,14 +581,17 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
 
     const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
 
-    const endDate = new Date().toISOString();
+    const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
+
+    // Whoop API requires ISO 8601 format with time
+    const endDateStr = endDate.toISOString();
     const startDateStr = startDate.toISOString();
 
     // Fetch workouts from Whoop
     const response = await fetch(
-        `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDate}`,
+        `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDateStr}`,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`

@@ -3269,8 +3269,8 @@
                 }
 
                 const today = new Date();
-                const startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                const endDate = today.toISOString().split('T')[0];
+                const startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+                const endDate = today.toISOString();
 
                 console.log('📡 Fetching Whoop data from backend...');
                 console.log('Date range:', startDate, 'to', endDate);
