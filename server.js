@@ -84,7 +84,7 @@ app.get('/coach', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
 });
 
-app.get('/coach-elite', (req, res) => {
+app.get('/elite', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
 });
 
