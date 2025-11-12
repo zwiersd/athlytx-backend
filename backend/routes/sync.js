@@ -172,4 +172,33 @@ router.post('/all', async (req, res) => {
     }
 });
 
+/**
+ * List all users (for finding your user ID)
+ * GET /api/sync/users
+ */
+router.get('/users', async (req, res) => {
+    try {
+        const { OAuthToken } = require('../models');
+
+        const tokens = await OAuthToken.findAll({
+            attributes: ['userId', 'provider', 'createdAt'],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json({
+            users: tokens.map(t => ({
+                userId: t.userId,
+                provider: t.provider,
+                connectedAt: t.createdAt
+            }))
+        });
+    } catch (error) {
+        console.error('List users error:', error);
+        res.status(500).json({
+            error: 'Failed to list users',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
