@@ -387,12 +387,24 @@ app.post('/api/garmin/token', async (req, res) => {
         console.log('🔐 Garmin token exchange with PKCE:', {
             code: code ? code.substring(0, 10) + '...' : 'missing',
             code_verifier: code_verifier ? code_verifier.substring(0, 10) + '...' : 'missing',
-            has_client_secret: !!process.env.GARMIN_CONSUMER_SECRET
+            has_consumer_key: !!process.env.GARMIN_CONSUMER_KEY,
+            has_consumer_secret: !!process.env.GARMIN_CONSUMER_SECRET,
+            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com',
+            consumer_key: process.env.GARMIN_CONSUMER_KEY ? process.env.GARMIN_CONSUMER_KEY.substring(0, 10) + '...' : 'missing'
         });
 
         const credentials = Buffer.from(
             `${process.env.GARMIN_CONSUMER_KEY}:${process.env.GARMIN_CONSUMER_SECRET}`
         ).toString('base64');
+
+        const tokenParams = new URLSearchParams({
+            grant_type: 'authorization_code',
+            code: code,
+            code_verifier: code_verifier,
+            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com'
+        });
+
+        console.log('🔐 Token exchange params:', tokenParams.toString());
 
         const response = await fetch('https://diauth.garmin.com/di-oauth2-service/oauth/token', {
             method: 'POST',
@@ -400,16 +412,12 @@ app.post('/api/garmin/token', async (req, res) => {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Basic ${credentials}`
             },
-            body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                code_verifier: code_verifier,
-                redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com'
-            })
+            body: tokenParams
         });
 
         const responseText = await response.text();
         console.log('🔐 Garmin raw response:', responseText);
+        console.log('🔐 Garmin response status:', response.status);
 
         let data;
         try {
