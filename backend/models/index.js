@@ -15,7 +15,8 @@ async function initializeDatabase() {
         console.log('✅ Database connection successful');
 
         // Sync models (create tables if they don't exist)
-        await sequelize.sync({ alter: false }); // Set to true for development to auto-migrate
+        // Force sync on first deployment to create all tables
+        await sequelize.sync({ force: false, alter: true });
         console.log('✅ Database models synchronized');
 
         return true;
