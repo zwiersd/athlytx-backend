@@ -36,11 +36,16 @@ async function initializeDatabase() {
         await sequelize.authenticate();
         console.log('✅ Database connection successful');
 
-        // Skip sync entirely - tables already exist in production
-        // This avoids ALL sync issues
-        console.log('⚠️  Database sync skipped (using existing tables)');
+        // Sync models individually - create if not exists, don't alter existing
+        await User.sync();
+        await MagicLink.sync();
+        await OAuthToken.sync();
+        await CoachAthlete.sync();
+        await DailyMetric.sync();
+        await Activity.sync();
+        await HeartRateZone.sync();
+        await TrainingSummary.sync();
 
-        // Don't try to sync at all - just use existing tables
         console.log('✅ Database models synchronized');
 
         return true;
