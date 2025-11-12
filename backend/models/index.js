@@ -48,18 +48,21 @@ async function initializeDatabase() {
             console.warn('⚠️  User table alter warning (may already exist):', alterError.message);
         }
 
-        // Add missing columns to magic_links table
+        // Add missing columns to magic_links table (separate statements for PostgreSQL)
         try {
-            await sequelize.query(`
-                ALTER TABLE magic_links
-                ADD COLUMN IF NOT EXISTS "userId" UUID,
-                ADD COLUMN IF NOT EXISTS code VARCHAR(255),
-                ADD COLUMN IF NOT EXISTS used BOOLEAN DEFAULT false;
-            `);
-            console.log('✅ magic_links table columns added');
-        } catch (tableError) {
-            console.warn('⚠️  magic_links table warning:', tableError.message);
-        }
+            await sequelize.query(`ALTER TABLE magic_links ADD COLUMN IF NOT EXISTS "userId" UUID;`);
+            console.log('✅ Added userId column');
+        } catch (e) { console.warn('userId column:', e.message); }
+
+        try {
+            await sequelize.query(`ALTER TABLE magic_links ADD COLUMN IF NOT EXISTS code VARCHAR(255);`);
+            console.log('✅ Added code column');
+        } catch (e) { console.warn('code column:', e.message); }
+
+        try {
+            await sequelize.query(`ALTER TABLE magic_links ADD COLUMN IF NOT EXISTS used BOOLEAN DEFAULT false;`);
+            console.log('✅ Added used column');
+        } catch (e) { console.warn('used column:', e.message); }
 
         // Create coach_athletes table if it doesn't exist
         try {
