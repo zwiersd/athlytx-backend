@@ -839,6 +839,7 @@
         // Authentication
         async function authenticate(email, isNewCoach = false) {
             try {
+                console.log('Sending magic link request for:', email);
                 const response = await fetch('/api/auth/magic-link', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -848,7 +849,9 @@
                     })
                 });
 
+                console.log('Response status:', response.status);
                 const result = await response.json();
+                console.log('Response data:', result);
 
                 if (result.success) {
                     // Show verification section
@@ -860,11 +863,14 @@
                         console.log('Dev mode - Code:', result.code);
                     }
 
-                    alert('Check your email for the magic link!');
+                    alert('✅ Check your email for the magic link!');
+                } else {
+                    console.error('Failed:', result);
+                    alert('❌ Error: ' + (result.error || 'Failed to send magic link'));
                 }
             } catch (error) {
                 console.error('Auth error:', error);
-                alert('Failed to send magic link');
+                alert('❌ Failed to send magic link: ' + error.message);
             }
         }
 
