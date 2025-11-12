@@ -52,7 +52,7 @@ router.get('/athletes', async (req, res) => {
             where: { coachId, status: 'active' },
             include: [{
                 model: User,
-                as: 'athlete',
+                as: 'Athlete',
                 attributes: ['id', 'email', 'name', 'lastLogin'],
                 include: [{
                     model: OAuthToken,
@@ -64,7 +64,7 @@ router.get('/athletes', async (req, res) => {
 
         // Get latest metrics for each athlete
         const athleteData = await Promise.all(athletes.map(async (rel) => {
-            const athlete = rel.athlete;
+            const athlete = rel.Athlete;
 
             // Get latest daily metric
             const latestMetric = await DailyMetric.findOne({

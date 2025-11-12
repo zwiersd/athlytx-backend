@@ -8,9 +8,7 @@ const Activity = require('./Activity');
 const HeartRateZone = require('./HeartRateZone');
 const TrainingSummary = require('./TrainingSummary');
 
-// Define associations - temporarily commented to fix deployment
-// TODO: Re-enable after fixing circular dependencies
-/*
+// Define associations
 User.hasMany(MagicLink, { foreignKey: 'userId' });
 MagicLink.belongsTo(User, { foreignKey: 'userId' });
 
@@ -26,12 +24,11 @@ DailyMetric.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(TrainingSummary, { foreignKey: 'userId' });
 TrainingSummary.belongsTo(User, { foreignKey: 'userId' });
 
-// Coach-Athlete relationships
+// Coach-Athlete relationships - Fixed: using unique aliases
 User.hasMany(CoachAthlete, { as: 'CoachingRelationships', foreignKey: 'coachId' });
 User.hasMany(CoachAthlete, { as: 'AthleteRelationships', foreignKey: 'athleteId' });
-CoachAthlete.belongsTo(User, { as: 'coach', foreignKey: 'coachId' });
-CoachAthlete.belongsTo(User, { as: 'athlete', foreignKey: 'athleteId' });
-*/
+CoachAthlete.belongsTo(User, { as: 'Coach', foreignKey: 'coachId' }); // Changed from 'coach' to 'Coach'
+CoachAthlete.belongsTo(User, { as: 'Athlete', foreignKey: 'athleteId' }); // Changed from 'athlete' to 'Athlete'
 
 // Initialize database and sync models
 async function initializeDatabase() {
