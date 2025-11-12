@@ -146,33 +146,54 @@ router.post('/magic-link', async (req, res) => {
  */
 router.post('/verify', async (req, res) => {
     try {
+        console.log('[VERIFY] Request received:', req.body);
         const { token, code } = req.body;
 
         if (!token && !code) {
+            console.log('[VERIFY] Missing token or code');
             return res.status(400).json({ error: 'Token or code required' });
         }
 
         // Find magic link
         const where = token ? { token } : { code };
+        console.log('[VERIFY] Looking for magic link with:', where);
+
         const magicLink = await MagicLink.findOne({
             where: {
                 ...where,
                 used: false,
                 expiresAt: { [Op.gt]: new Date() }
-            },
-            include: [{
-                model: User,
-                attributes: ['id', 'email', 'name', 'role']
-            }]
+            }
         });
 
+        console.log('[VERIFY] Magic link found:', !!magicLink);
+        if (magicLink) {
+            console.log('[VERIFY] Magic link details:', {
+                id: magicLink.id,
+                userId: magicLink.userId,
+                email: magicLink.email,
+                used: magicLink.used,
+                expiresAt: magicLink.expiresAt
+            });
+        }
+
         if (!magicLink) {
+            console.log('[VERIFY] No valid magic link found');
             return res.status(401).json({ error: 'Invalid or expired link' });
         }
 
         // Mark as used
         magicLink.used = true;
         await magicLink.save();
+        console.log('[VERIFY] Magic link marked as used');
+
+        // Get the user
+        const user = await User.findByPk(magicLink.userId);
+        if (!user) {
+            console.log('[VERIFY] User not found for userId:', magicLink.userId);
+            return res.status(401).json({ error: 'User not found' });
+        }
+        console.log('[VERIFY] User found:', user.email, 'Role:', user.role);
 
         // Create session token
         const sessionToken = generateToken();
@@ -187,53 +208,57 @@ router.post('/verify', async (req, res) => {
             },
             { where: { id: magicLink.userId } }
         );
+        console.log('[VERIFY] Session created for user');
 
         // Get user's coach/athlete relationships
         let relationships = [];
-        if (magicLink.User.role === 'coach') {
+        if (user.role === 'coach') {
             // Get coach's athletes
-            relationships = await CoachAthlete.findAll({
-                where: { coachId: magicLink.userId },
-                include: [{
-                    model: User,
-                    as: 'athlete',
-                    attributes: ['id', 'email', 'name']
-                }]
-            });
+            try {
+                relationships = await CoachAthlete.findAll({
+                    where: { coachId: magicLink.userId }
+                });
+                console.log('[VERIFY] Found', relationships.length, 'athlete relationships');
+            } catch (relError) {
+                console.warn('[VERIFY] Could not load relationships:', relError.message);
+                relationships = [];
+            }
         } else {
             // Get athlete's coaches
-            relationships = await CoachAthlete.findAll({
-                where: { athleteId: magicLink.userId },
-                include: [{
-                    model: User,
-                    as: 'coach',
-                    attributes: ['id', 'email', 'name']
-                }]
-            });
+            try {
+                relationships = await CoachAthlete.findAll({
+                    where: { athleteId: magicLink.userId }
+                });
+                console.log('[VERIFY] Found', relationships.length, 'coach relationships');
+            } catch (relError) {
+                console.warn('[VERIFY] Could not load relationships:', relError.message);
+                relationships = [];
+            }
         }
 
+        console.log('[VERIFY] Verification successful, returning session');
         res.json({
             success: true,
             user: {
-                id: magicLink.User.id,
-                email: magicLink.User.email,
-                name: magicLink.User.name,
-                role: magicLink.User.role
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role
             },
             sessionToken,
             sessionExpiry,
             relationships: relationships.map(r => ({
-                id: magicLink.User.role === 'coach' ? r.athlete.id : r.coach.id,
-                email: magicLink.User.role === 'coach' ? r.athlete.email : r.coach.email,
-                name: magicLink.User.role === 'coach' ? r.athlete.name : r.coach.name,
+                coachId: r.coachId,
+                athleteId: r.athleteId,
                 status: r.status,
                 createdAt: r.createdAt
             }))
         });
 
     } catch (error) {
-        console.error('Verify error:', error);
-        res.status(500).json({ error: 'Verification failed' });
+        console.error('[VERIFY] Error:', error);
+        console.error('[VERIFY] Stack:', error.stack);
+        res.status(500).json({ error: 'Verification failed', details: error.message });
     }
 });
 
