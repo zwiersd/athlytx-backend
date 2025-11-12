@@ -551,9 +551,10 @@
 
             zones.forEach(zone => {
                 const percent = parseFloat(zone.percent) || 0;
+                const minutes = zone.minutes !== undefined && zone.minutes !== null ? zone.minutes : 0;
                 document.getElementById(`zone${zone.num}Percent`).textContent = `${percent}%`;
                 document.getElementById(`zone${zone.num}Bar`).style.width = `${percent}%`;
-                document.getElementById(`zone${zone.num}Minutes`).textContent = `${zone.minutes} min`;
+                document.getElementById(`zone${zone.num}Minutes`).textContent = `${minutes} min`;
             });
         }
 
@@ -579,12 +580,13 @@
             tbody.innerHTML = unique.map(act => {
                 const primaryZone = getPrimaryZone(act.zones);
                 const provider = act.provider || 'unknown';
+                const duration = act.durationMinutes !== undefined && act.durationMinutes !== null ? `${act.durationMinutes} min` : '--';
                 return `
                     <tr>
                         <td>${act.date}</td>
                         <td class="activity-type">${act.activityType}</td>
                         <td><span class="provider-badge provider-${provider}">${provider}</span></td>
-                        <td>${act.durationMinutes} min</td>
+                        <td>${duration}</td>
                         <td>${act.hr.avg || '--'} bpm</td>
                         <td>${act.hr.max || '--'} bpm</td>
                         <td>
