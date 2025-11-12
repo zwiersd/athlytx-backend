@@ -27,6 +27,7 @@ async function syncUserData(userId, daysBack = 1) {
             strava: null,
             garmin: null,
             oura: null,
+            whoop: null,
             errors: []
         };
 
@@ -57,6 +58,16 @@ async function syncUserData(userId, daysBack = 1) {
                 results.oura = await syncOuraData(userId, ouraToken, daysBack);
             } catch (error) {
                 results.errors.push(`Oura: ${error.message}`);
+            }
+        }
+
+        // Sync Whoop
+        const whoopToken = tokens.find(t => t.provider === 'whoop');
+        if (whoopToken) {
+            try {
+                results.whoop = await syncWhoopData(userId, whoopToken, daysBack);
+            } catch (error) {
+                results.errors.push(`Whoop: ${error.message}`);
             }
         }
 
@@ -560,6 +571,113 @@ async function syncOuraData(userId, tokenRecord, daysBack) {
         workoutsStored: stored,
         dailyActivitiesStored
     };
+}
+
+/**
+ * Sync Whoop data (workouts with HR zones)
+ */
+async function syncWhoopData(userId, tokenRecord, daysBack) {
+    console.log(`  💪 Syncing Whoop workouts...`);
+
+    const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
+
+    const endDate = new Date().toISOString();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysBack);
+    const startDateStr = startDate.toISOString();
+
+    // Fetch workouts from Whoop
+    const response = await fetch(
+        `https://api.prod.whoop.com/developer/v1/activity/workout?start=${startDateStr}&end=${endDate}`,
+        {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Whoop API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const workouts = data.records || [];
+    console.log(`  Found ${workouts.length} Whoop workouts`);
+
+    let stored = 0;
+    for (const workout of workouts) {
+        try {
+            // Only process scored workouts with HR data
+            if (workout.score && workout.score.average_heart_rate) {
+                const [activity, created] = await Activity.findOrCreate({
+                    where: {
+                        userId,
+                        provider: 'whoop',
+                        externalId: workout.id.toString()
+                    },
+                    defaults: {
+                        userId,
+                        provider: 'whoop',
+                        externalId: workout.id.toString(),
+                        activityType: workout.sport_name || 'Workout',
+                        activityName: workout.sport_name || 'Workout',
+                        startTime: new Date(workout.start),
+                        durationSeconds: Math.round((new Date(workout.end) - new Date(workout.start)) / 1000),
+                        calories: workout.score.kilojoule ? Math.round(workout.score.kilojoule * 0.239) : null,
+                        avgHr: Math.round(workout.score.average_heart_rate),
+                        maxHr: Math.round(workout.score.max_heart_rate),
+                        intensityScore: workout.score.strain,
+                        rawData: workout
+                    }
+                });
+
+                // Store HR zone data if available
+                if (workout.score.zone_duration) {
+                    await storeWhoopHeartRateZones(
+                        userId,
+                        activity.id,
+                        workout
+                    );
+                }
+
+                if (created) stored++;
+            }
+        } catch (error) {
+            console.error(`  ❌ Failed to store Whoop workout:`, error.message);
+        }
+    }
+
+    console.log(`  ✅ Stored ${stored} new Whoop workouts`);
+    return { workoutsFetched: workouts.length, workoutsStored: stored };
+}
+
+/**
+ * Store HR zones for Whoop workouts
+ * Whoop provides detailed time in each zone (milliseconds)
+ */
+async function storeWhoopHeartRateZones(userId, activityId, workout) {
+    const activity = await Activity.findByPk(activityId);
+    if (!activity) return;
+
+    // Whoop provides zone_duration as an object with zone_zero through zone_five
+    // Convert milliseconds to seconds
+    const zoneDuration = workout.score.zone_duration;
+
+    await HeartRateZone.upsert({
+        userId,
+        activityId,
+        date: activity.startTime.toISOString().split('T')[0],
+        activityType: workout.sport_name || 'Workout',
+        durationSeconds: Math.round((new Date(workout.end) - new Date(workout.start)) / 1000),
+        zone1Seconds: Math.round((zoneDuration.zone_one || 0) / 1000),
+        zone2Seconds: Math.round((zoneDuration.zone_two || 0) / 1000),
+        zone3Seconds: Math.round((zoneDuration.zone_three || 0) / 1000),
+        zone4Seconds: Math.round((zoneDuration.zone_four || 0) / 1000),
+        zone5Seconds: Math.round((zoneDuration.zone_five || 0) / 1000),
+        avgHr: Math.round(workout.score.average_heart_rate),
+        maxHr: Math.round(workout.score.max_heart_rate),
+        provider: 'whoop'
+    });
 }
 
 /**
