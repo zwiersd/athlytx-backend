@@ -48,25 +48,17 @@ async function initializeDatabase() {
             console.warn('⚠️  User table alter warning (may already exist):', alterError.message);
         }
 
-        // Create magic_links table if it doesn't exist
+        // Add missing columns to magic_links table
         try {
             await sequelize.query(`
-                CREATE TABLE IF NOT EXISTS magic_links (
-                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                    "userId" UUID,
-                    email VARCHAR(255) NOT NULL,
-                    token VARCHAR(255) NOT NULL UNIQUE,
-                    code VARCHAR(255),
-                    "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
-                    used BOOLEAN DEFAULT false,
-                    "usedAt" TIMESTAMP WITH TIME ZONE,
-                    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-                );
+                ALTER TABLE magic_links
+                ADD COLUMN IF NOT EXISTS "userId" UUID,
+                ADD COLUMN IF NOT EXISTS code VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS used BOOLEAN DEFAULT false;
             `);
-            console.log('✅ magic_links table checked/created');
+            console.log('✅ magic_links table columns added');
         } catch (tableError) {
-            console.warn('⚠️  magic_links table warning (may already exist):', tableError.message);
+            console.warn('⚠️  magic_links table warning:', tableError.message);
         }
 
         // Create coach_athletes table if it doesn't exist
