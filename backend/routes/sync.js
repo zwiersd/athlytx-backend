@@ -123,6 +123,7 @@ router.get('/zones/:userId', async (req, res) => {
                 date: z.date,
                 activityType: z.activityType,
                 durationMinutes: Math.round(z.durationSeconds / 60),
+                provider: z.provider,
                 zones: {
                     zone1: Math.round(z.zone1Seconds / 60),
                     zone2: Math.round(z.zone2Seconds / 60),

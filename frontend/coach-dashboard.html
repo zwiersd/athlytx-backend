@@ -220,6 +220,36 @@
             margin-right: 3px;
         }
 
+        .provider-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .provider-strava {
+            background: #FC4C02;
+            color: white;
+        }
+
+        .provider-garmin {
+            background: #007CC3;
+            color: white;
+        }
+
+        .provider-oura {
+            background: #0B0E0F;
+            color: white;
+        }
+
+        .provider-whoop {
+            background: #FF3E5B;
+            color: white;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -297,6 +327,13 @@
                             <div class="stat-label">Max HR</div>
                         </div>
                     </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Data Sources</div>
+                        <div id="dataSources" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span class="provider-badge provider-strava">Strava</span>
+                            <span class="provider-badge provider-oura">Oura</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card" style="grid-column: span 2;">
@@ -368,6 +405,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Activity</th>
+                            <th>Source</th>
                             <th>Duration</th>
                             <th>Avg HR</th>
                             <th>Max HR</th>
@@ -376,7 +414,7 @@
                     </thead>
                     <tbody id="activitiesTableBody">
                         <tr>
-                            <td colspan="6" style="text-align: center; color: #999;">Loading activities...</td>
+                            <td colspan="7" style="text-align: center; color: #999;">Loading activities...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -433,6 +471,9 @@
                 // Calculate summary stats
                 updateSummaryStats(zones.data);
 
+                // Update data sources
+                updateDataSources(zones.data);
+
                 // Update zone distribution
                 if (status.weeklySummary) {
                     updateZoneDistribution(status.weeklySummary);
@@ -474,6 +515,26 @@
             document.getElementById('maxHr').textContent = maxHr || '--';
         }
 
+        function updateDataSources(activities) {
+            // Get unique providers from activities
+            const providers = new Set();
+            activities.forEach(act => {
+                if (act.provider) {
+                    providers.add(act.provider);
+                }
+            });
+
+            const container = document.getElementById('dataSources');
+            if (providers.size === 0) {
+                container.innerHTML = '<span style="color: #999; font-size: 12px;">No data sources</span>';
+                return;
+            }
+
+            container.innerHTML = Array.from(providers).sort().map(provider => {
+                return `<span class="provider-badge provider-${provider}">${provider}</span>`;
+            }).join('');
+        }
+
         function updateZoneDistribution(summary) {
             const zones = [
                 { num: 1, minutes: summary.totalZone1Minutes, percent: summary.zone1Percent },
@@ -506,16 +567,18 @@
             const unique = Object.values(uniqueActivities).slice(0, 20);
 
             if (unique.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No activities found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No activities found</td></tr>';
                 return;
             }
 
             tbody.innerHTML = unique.map(act => {
                 const primaryZone = getPrimaryZone(act.zones);
+                const provider = act.provider || 'unknown';
                 return `
                     <tr>
                         <td>${act.date}</td>
                         <td class="activity-type">${act.activityType}</td>
+                        <td><span class="provider-badge provider-${provider}">${provider}</span></td>
                         <td>${act.durationMinutes} min</td>
                         <td>${act.hr.avg || '--'} bpm</td>
                         <td>${act.hr.max || '--'} bpm</td>
