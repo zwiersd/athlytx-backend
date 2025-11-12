@@ -201,4 +201,60 @@ router.get('/users', async (req, res) => {
     }
 });
 
+/**
+ * Save OAuth token to database
+ * POST /api/sync/save-token
+ * Body: { provider: 'garmin', accessToken: '...', refreshToken: '...', expiresAt: '...' }
+ */
+router.post('/save-token', async (req, res) => {
+    try {
+        const { provider, accessToken, refreshToken, expiresAt } = req.body;
+        const { User, OAuthToken } = require('../models');
+        const { encrypt } = require('../utils/encryption');
+        const { v4: uuidv4 } = require('uuid');
+
+        if (!provider || !accessToken) {
+            return res.status(400).json({ error: 'provider and accessToken required' });
+        }
+
+        // Create or get user (for now, use a single user - in production you'd use session)
+        let user = await User.findOne({ where: { email: 'athlete@athlytx.com' } });
+
+        if (!user) {
+            user = await User.create({
+                id: uuidv4(),
+                email: 'athlete@athlytx.com',
+                name: 'Athlytx Athlete'
+            });
+            console.log('✅ Created user:', user.id);
+        }
+
+        // Save or update OAuth token
+        const [token, created] = await OAuthToken.upsert({
+            userId: user.id,
+            provider: provider,
+            accessTokenEncrypted: encrypt(accessToken),
+            refreshTokenEncrypted: refreshToken ? encrypt(refreshToken) : null,
+            expiresAt: expiresAt ? new Date(expiresAt) : null
+        }, {
+            returning: true
+        });
+
+        console.log(`✅ ${created ? 'Created' : 'Updated'} ${provider} token for user ${user.id}`);
+
+        res.json({
+            success: true,
+            userId: user.id,
+            provider: provider,
+            action: created ? 'created' : 'updated'
+        });
+    } catch (error) {
+        console.error('Save token error:', error);
+        res.status(500).json({
+            error: 'Failed to save token',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
