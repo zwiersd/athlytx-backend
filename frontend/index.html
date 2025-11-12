@@ -3358,6 +3358,12 @@
                     const userName = profile?.first_name || 'Whoop User';
                     button.innerHTML = `<span class="check-icon">✓</span> ${userName} - Connected`;
                     button.classList.add('connected');
+
+                    // Show disconnect button
+                    const disconnectBtn = document.querySelector('.btn-whoop-disconnect');
+                    if (disconnectBtn) {
+                        disconnectBtn.style.display = 'block';
+                    }
                 } else {
                     throw new Error('No data available from Whoop');
                 }
