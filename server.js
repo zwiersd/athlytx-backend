@@ -41,12 +41,20 @@ app.get('/health', (req, res) => {
     console.log(`  - Garmin: ${process.env.GARMIN_CONSUMER_SECRET ? '✅' : '❌'}`);
     console.log(`  - Database: ${process.env.DATABASE_URL ? '✅' : '❌'}`);
 
+    const { sequelize } = require('./backend/models');
+    const dbDialect = sequelize.getDialect();
+
     res.json({
         message: 'Athlytx Unified Service Live! 🚀',
         timestamp: new Date().toISOString(),
         status: 'healthy',
         version: '2.0.0',
-        features: ['frontend', 'api', 'database', 'auth', 'coach-sharing']
+        features: ['frontend', 'api', 'database', 'auth', 'coach-sharing'],
+        database: {
+            connected: !!process.env.DATABASE_URL,
+            dialect: dbDialect,
+            type: dbDialect === 'postgres' ? 'PostgreSQL' : 'SQLite'
+        }
     });
 });
 
