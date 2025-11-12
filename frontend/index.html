@@ -747,7 +747,7 @@
                 <button class="nav-tab" onclick="switchTab('overview')">Overview</button>
                 <button class="nav-tab" onclick="switchTab('strava')">Strava Data</button>
                 <button class="nav-tab" onclick="switchTab('oura')">Oura Data</button>
-                <button class="nav-tab" onclick="switchTab('garmin')">Garmin Data</button>
+                <button class="nav-tab" onclick="switchTab('garmin')">Garmin Connect Data</button>
                 <button class="nav-tab" onclick="switchTab('whoop')">Whoop Data</button>
                 <button class="nav-tab" onclick="switchTab('running')">🏃 Running</button>
                 <button class="nav-tab" onclick="switchTab('insights')">AI Insights</button>
@@ -795,15 +795,15 @@
                     <div class="device-card">
                         <div class="device-header">
                             <div class="device-icon garmin">
-                                <img src="/src/images/garmin-logo.jpeg" alt="Garmin" onerror="this.style.display='none'; this.parentNode.innerHTML='G';">
+                                <img src="/src/images/GarminConnect.png" alt="Garmin Connect" onerror="this.style.display='none'; this.parentNode.innerHTML='G';">
                             </div>
                             <div class="device-info">
-                                <h3>Garmin</h3>
+                                <h3>Garmin Connect</h3>
                                 <p>Activities, body battery, and wellness</p>
                             </div>
                         </div>
                         <button class="connect-btn btn-garmin" onclick="connectDevice('garmin')">
-                            Connect Garmin
+                            Connect Garmin Connect
                         </button>
                         <button class="disconnect-btn btn-garmin-disconnect" onclick="disconnectDevice('garmin')" style="display: none; margin-top: 8px;">
                             Disconnect
@@ -1005,13 +1005,13 @@
                 </div>
             </div>
 
-            <!-- Garmin Data Tab -->
+            <!-- Garmin Connect Data Tab -->
             <div id="garmin" class="tab-content">
                 <div class="analytics-card">
-                    <h3>⌚ Garmin Wellness & Performance</h3>
+                    <h3>⌚ Garmin Connect Wellness & Performance</h3>
                     <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">
-                        <h4>Garmin Integration Pending</h4>
-                        <p>Connect your Garmin device to see Body Battery, stress metrics, and training status.</p>
+                        <h4>Garmin Connect Integration Pending</h4>
+                        <p>Connect your Garmin Connect device to see Body Battery, stress metrics, and training status.</p>
                     </div>
                 </div>
             </div>
@@ -1344,7 +1344,7 @@
             } else if (device === 'garmin') {
                 // Try the preauthorized endpoint that some libraries use
                 // This might work for evaluation apps with proper client credentials
-                showMessage('Attempting Garmin connection via preauthorized flow...', 'info');
+                showMessage('Attempting Garmin Connect connection via preauthorized flow...', 'info');
                 
                 // Generate PKCE challenge
                 const codeVerifier = generateCodeVerifier();
@@ -1466,7 +1466,7 @@
             const tickets = urlParams.toString().match(/ticket=/g);
             if (tickets && tickets.length > 1) {
                 console.error('Garmin redirect loop detected - multiple tickets found');
-                showMessage('Garmin authorization failed - please try again', 'error');
+                showMessage('Garmin Connect authorization failed - please try again', 'error');
                 sessionStorage.removeItem('processed_oauth_code');
                 window.history.replaceState({}, document.title, window.location.pathname);
                 return;
@@ -1682,7 +1682,7 @@
         // Garmin OAuth 2.0 callback handler with PKCE
         async function handleGarminCallback(code) {
             try {
-                showMessage('Processing Garmin authorization...', 'info');
+                showMessage('Processing Garmin Connect authorization...', 'info');
                 console.log('Garmin auth code received:', code);
                 
                 // Get the PKCE verifier (try localStorage first for mobile compatibility)
