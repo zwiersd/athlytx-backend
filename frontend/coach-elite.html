@@ -569,8 +569,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -581,57 +581,89 @@
         }
 
         .modal-content {
-            background: white;
-            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(30, 38, 89, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
             width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            animation: modalSlideIn 0.3s ease-out;
+            max-width: 520px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(102, 126, 234, 0.3);
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(-30px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #667eea, #5a67d8);
+            background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%);
             color: white;
-            padding: 24px 30px;
-            border-radius: 16px 16px 0 0;
+            padding: 28px 32px;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         }
 
         .modal-header h2 {
             margin: 0;
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .modal-body {
-            padding: 30px;
+            padding: 32px;
+        }
+
+        .modal-body .form-label {
+            color: rgba(255,255,255,0.95);
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .modal-body .form-input {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .modal-body .form-input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .modal-body .form-input:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
         }
 
         .modal-footer {
-            padding: 0 30px 30px 30px;
+            padding: 0 32px 32px 32px;
             display: flex;
             gap: 12px;
             justify-content: flex-end;
         }
 
         .btn-ghost {
-            background: transparent;
-            color: var(--gray-700);
-            border: 2px solid var(--gray-300);
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
+            border: 2px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
         }
 
         .btn-ghost:hover {
-            background: var(--gray-100);
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -909,9 +941,12 @@
     <div id="inviteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Invite Athlete</h2>
+                <h2>✉️ Invite Athlete</h2>
             </div>
             <div class="modal-body">
+                <p style="color: rgba(255,255,255,0.75); margin-bottom: 24px; font-size: 15px; line-height: 1.6;">
+                    Send an invitation to your athlete. They'll receive an email with instructions to connect their fitness devices.
+                </p>
                 <div class="form-group">
                     <label class="form-label">Athlete Email</label>
                     <input type="email" id="inviteEmail" class="form-input" placeholder="athlete@example.com" required>
@@ -920,12 +955,14 @@
                     <label class="form-label">Personal Message (Optional)</label>
                     <textarea id="inviteMessage" class="form-input" placeholder="Hey! I'd love to coach you using Athlytx. Let's take your training to the next level!" rows="4" style="resize: vertical;"></textarea>
                 </div>
-                <div id="inviteError" style="display: none; color: var(--danger); margin-top: 12px; padding: 12px; background: rgba(245, 101, 101, 0.1); border-radius: 8px; font-size: 14px;"></div>
-                <div id="inviteSuccess" style="display: none; color: var(--success); margin-top: 12px; padding: 12px; background: rgba(72, 187, 120, 0.1); border-radius: 8px; font-size: 14px;"></div>
+                <div id="inviteError" style="display: none; color: #ff6b6b; margin-top: 16px; padding: 16px; background: rgba(255, 107, 107, 0.15); border-radius: 10px; font-size: 14px; border: 1px solid rgba(255, 107, 107, 0.3); font-weight: 500;"></div>
+                <div id="inviteSuccess" style="display: none; color: #51cf66; margin-top: 16px; padding: 16px; background: rgba(81, 207, 102, 0.15); border-radius: 10px; font-size: 14px; border: 1px solid rgba(81, 207, 102, 0.3); font-weight: 500;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
-                <button id="sendInviteBtn" class="btn btn-primary" onclick="sendInvite()">Send Invitation</button>
+                <button id="sendInviteBtn" class="btn btn-primary" onclick="sendInvite()">
+                    <span id="sendInviteBtnText">Send Invitation</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1403,7 +1440,7 @@
 
             // Disable button and show loading
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Sending...';
+            document.getElementById('sendInviteBtnText').textContent = 'Sending...';
 
             try {
                 console.log('Sending invite to:', email);
@@ -1439,7 +1476,7 @@
             } finally {
                 // Re-enable button
                 sendBtn.disabled = false;
-                sendBtn.textContent = 'Send Invitation';
+                document.getElementById('sendInviteBtnText').textContent = 'Send Invitation';
             }
         }
 
