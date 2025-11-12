@@ -48,6 +48,47 @@ async function initializeDatabase() {
             console.warn('⚠️  User table alter warning (may already exist):', alterError.message);
         }
 
+        // Create magic_links table if it doesn't exist
+        try {
+            await sequelize.query(`
+                CREATE TABLE IF NOT EXISTS magic_links (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    "userId" UUID,
+                    email VARCHAR(255) NOT NULL,
+                    token VARCHAR(255) NOT NULL UNIQUE,
+                    code VARCHAR(255),
+                    "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+                    used BOOLEAN DEFAULT false,
+                    "usedAt" TIMESTAMP WITH TIME ZONE,
+                    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+                );
+            `);
+            console.log('✅ magic_links table checked/created');
+        } catch (tableError) {
+            console.warn('⚠️  magic_links table warning (may already exist):', tableError.message);
+        }
+
+        // Create coach_athletes table if it doesn't exist
+        try {
+            await sequelize.query(`
+                CREATE TABLE IF NOT EXISTS coach_athletes (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    "coachId" UUID NOT NULL,
+                    "athleteId" UUID NOT NULL,
+                    status VARCHAR(50) DEFAULT 'pending',
+                    "invitedAt" TIMESTAMP WITH TIME ZONE,
+                    "acceptedAt" TIMESTAMP WITH TIME ZONE,
+                    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    UNIQUE("coachId", "athleteId")
+                );
+            `);
+            console.log('✅ coach_athletes table checked/created');
+        } catch (tableError) {
+            console.warn('⚠️  coach_athletes table warning (may already exist):', tableError.message);
+        }
+
         // Sync models individually - create tables if they don't exist
         try {
             await User.sync();
