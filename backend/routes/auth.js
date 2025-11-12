@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { User, MagicLink, CoachAthlete } = require('../models');
-const { sendMagicLink } = require('../utils/email');
+const { sendMagicLink, sendAthleteInvite } = require('../utils/email');
 const { Op } = require('sequelize');
 
 /**
@@ -402,13 +402,30 @@ router.post('/invite-athlete', async (req, res) => {
             inviteMessage: message
         });
 
-        // Send invite email (for now, log to console)
-        console.log(`
-            📧 Coach Invite
-            From: ${coach.name} (${coach.email})
-            To: ${athlete.email}
-            Message: ${message || 'Join me on Athlytx for training analytics'}
-        `);
+        // Create invite URL - athlete can use the elite page to log in and accept
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?invite=${coachId}-${athlete.id}`;
+
+        // Send invite email
+        try {
+            await sendAthleteInvite(
+                athlete.email,
+                coach.name || coach.email.split('@')[0],
+                coach.email,
+                inviteUrl,
+                message
+            );
+            console.log(`✅ Invite email sent to ${athlete.email}`);
+        } catch (emailError) {
+            console.error('❌ Email failed, but continuing:', emailError.message);
+            // Continue even if email fails - log to console as fallback
+            console.log(`
+                📧 Coach Invite (email failed, logged)
+                From: ${coach.name} (${coach.email})
+                To: ${athlete.email}
+                URL: ${inviteUrl}
+                Message: ${message || 'Join me on Athlytx for training analytics'}
+            `);
+        }
 
         res.json({
             success: true,
