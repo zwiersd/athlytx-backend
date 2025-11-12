@@ -703,6 +703,28 @@
         </div>
     </div>
 
+    <!-- Onboarding Screen -->
+    <div id="onboardingScreen" class="auth-container" style="display: none;">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1 style="font-size: 32px; margin-bottom: 12px;">👋 Welcome!</h1>
+                <p style="color: rgba(10, 14, 39, 0.7); font-size: 16px;">Let's get your Elite coaching dashboard set up</p>
+            </div>
+            <form id="onboardingForm">
+                <div class="form-group">
+                    <label class="form-label">Your Full Name</label>
+                    <input type="text" id="coachName" class="form-input" placeholder="e.g., John Smith" required>
+                    <small style="color: rgba(10, 14, 39, 0.6); font-size: 13px; display: block; margin-top: 8px;">
+                        This will be shown to your athletes when you invite them
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Continue to Dashboard →
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Main Dashboard -->
     <div id="dashboardScreen" style="display: none;">
         <!-- Header -->
@@ -734,6 +756,8 @@
                     <button class="btn btn-primary" onclick="inviteAthlete()">
                         + Invite Athlete
                     </button>
+
+                    <span id="coachNameDisplay" style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;"></span>
 
                     <button class="btn btn-ghost" onclick="logout()">
                         Logout
@@ -1049,8 +1073,15 @@
                     currentCoach = result.user;
                     athletes = result.relationships || [];
 
-                    // Show dashboard
-                    showDashboard();
+                    // Check if onboarding needed (name is still email prefix)
+                    const emailPrefix = currentCoach.email.split('@')[0];
+                    const needsOnboarding = currentCoach.name === emailPrefix;
+
+                    if (needsOnboarding) {
+                        showOnboarding();
+                    } else {
+                        showDashboard();
+                    }
                 }
             } catch (error) {
                 console.error('Verify error:', error);
@@ -1068,9 +1099,49 @@
             await authenticate(email);
         }
 
+        function showOnboarding() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('onboardingScreen').style.display = 'flex';
+            document.getElementById('coachName').focus();
+        }
+
+        async function completeOnboarding(name) {
+            try {
+                const response = await fetch('/api/auth/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionToken: localStorage.getItem('sessionToken'),
+                        name
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update stored coach info
+                    currentCoach = result.user;
+                    localStorage.setItem('coach', JSON.stringify(result.user));
+
+                    // Show dashboard
+                    document.getElementById('onboardingScreen').style.display = 'none';
+                    showDashboard();
+                } else {
+                    alert('Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Onboarding error:', error);
+                alert('Failed to complete onboarding');
+            }
+        }
+
         function showDashboard() {
             document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('onboardingScreen').style.display = 'none';
             document.getElementById('dashboardScreen').style.display = 'block';
+
+            // Update header with coach name
+            document.getElementById('coachNameDisplay').textContent = currentCoach.name;
 
             // Load first athlete if available
             if (athletes.length > 0) {
@@ -1571,6 +1642,15 @@
                 e.preventDefault();
                 const email = document.getElementById('coachEmail').value;
                 authenticate(email);
+            });
+
+            // Onboarding form handler
+            document.getElementById('onboardingForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('coachName').value.trim();
+                if (name) {
+                    completeOnboarding(name);
+                }
             });
         });
     </script>

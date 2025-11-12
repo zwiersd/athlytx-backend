@@ -444,6 +444,50 @@ router.post('/invite-athlete', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/update-profile
+ * Update coach/athlete profile information
+ */
+router.post('/update-profile', async (req, res) => {
+    try {
+        const { sessionToken, name } = req.body;
+
+        if (!sessionToken || !name) {
+            return res.status(400).json({ error: 'Session token and name required' });
+        }
+
+        // Find user by session token
+        const user = await User.findOne({
+            where: {
+                sessionToken,
+                sessionExpiry: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid session' });
+        }
+
+        // Update user name
+        user.name = name.trim();
+        await user.save();
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
+});
+
+/**
  * POST /api/auth/accept-invite
  * Athlete accepts coach invitation
  */
