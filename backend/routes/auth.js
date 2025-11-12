@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { User, MagicLink, CoachAthlete } = require('../models');
-const { sendMagicLink } = require('../utils/email');
+// const { sendMagicLink } = require('../utils/email'); // TODO: Implement email service
 const { Op } = require('sequelize');
 
 /**
