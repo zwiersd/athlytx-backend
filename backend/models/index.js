@@ -36,20 +36,28 @@ async function initializeDatabase() {
         await sequelize.authenticate();
         console.log('✅ Database connection successful');
 
-        // Sync models individually
+        // Add missing columns to users table if they don't exist
         try {
-            // User table needs alter to add sessionToken/sessionExpiry columns
-            await User.sync({ alter: true });
-            console.log('✅ User table synced with schema updates');
+            await sequelize.query(`
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS "sessionToken" VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS "sessionExpiry" TIMESTAMP WITH TIME ZONE;
+            `);
+            console.log('✅ User table columns checked/added');
+        } catch (alterError) {
+            console.warn('⚠️  User table alter warning (may already exist):', alterError.message);
+        }
 
-            // Other tables - create if not exists, don't alter
-            await MagicLink.sync({ alter: false });
-            await OAuthToken.sync({ alter: false });
-            await CoachAthlete.sync({ alter: false });
-            await DailyMetric.sync({ alter: false });
-            await Activity.sync({ alter: false });
-            await HeartRateZone.sync({ alter: false });
-            await TrainingSummary.sync({ alter: false });
+        // Sync models individually - create tables if they don't exist
+        try {
+            await User.sync();
+            await MagicLink.sync();
+            await OAuthToken.sync();
+            await CoachAthlete.sync();
+            await DailyMetric.sync();
+            await Activity.sync();
+            await HeartRateZone.sync();
+            await TrainingSummary.sync();
             console.log('✅ Database models synchronized');
         } catch (syncError) {
             console.warn('⚠️  Some sync issues, continuing anyway:', syncError.message);
