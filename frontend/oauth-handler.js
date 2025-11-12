@@ -120,6 +120,12 @@ class OAuthHandler {
                 console.log('✅ Whoop connection successful!');
                 this.showMessage('Whoop connected successfully!', 'success');
 
+                // Save token to database
+                if (typeof saveTokenToDatabase === 'function') {
+                    const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000).toISOString() : null;
+                    await saveTokenToDatabase('whoop', tokens.access_token, tokens.refresh_token, expiresAt);
+                }
+
                 // Clean up URL
                 window.history.replaceState({}, document.title, window.location.pathname);
 
