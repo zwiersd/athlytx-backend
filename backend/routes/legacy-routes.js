@@ -284,6 +284,7 @@ app.get('/api/whoop/recovery', async (req, res) => {
         const { token, start, end } = req.query;
 
         const url = `https://api.prod.whoop.com/developer/v1/recovery?start=${start}&end=${end}`;
+        console.log('Fetching Whoop recovery:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -291,12 +292,14 @@ app.get('/api/whoop/recovery', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('Whoop recovery response status:', response.status);
 
         if (!response.ok) {
-            throw new Error(`Whoop recovery fetch failed: ${data.message}`);
+            throw new Error(`Whoop recovery fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
         }
 
+        const data = JSON.parse(responseText);
         res.json(data);
     } catch (error) {
         console.error('Whoop recovery error:', error);
@@ -334,6 +337,7 @@ app.get('/api/whoop/workouts', async (req, res) => {
         const { token, start, end } = req.query;
 
         const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`;
+        console.log('Fetching Whoop workouts:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -341,12 +345,15 @@ app.get('/api/whoop/workouts', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('Whoop workouts response status:', response.status);
+        console.log('Whoop workouts response:', responseText.substring(0, 500));
 
         if (!response.ok) {
-            throw new Error(`Whoop workouts fetch failed: ${data.message}`);
+            throw new Error(`Whoop workouts fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
         }
 
+        const data = JSON.parse(responseText);
         res.json(data);
     } catch (error) {
         console.error('Whoop workouts error:', error);
