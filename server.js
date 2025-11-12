@@ -51,7 +51,8 @@ app.get('/health', (req, res) => {
         version: '2.0.0',
         features: ['frontend', 'api', 'database', 'auth', 'coach-sharing'],
         database: {
-            connected: !!process.env.DATABASE_URL,
+            hasUrl: !!process.env.DATABASE_URL,
+            urlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'not set',
             dialect: dbDialect,
             type: dbDialect === 'postgres' ? 'PostgreSQL' : 'SQLite'
         }
