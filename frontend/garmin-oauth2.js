@@ -39,8 +39,11 @@ class GarminOAuth2 {
     async generatePKCE() {
         this.codeVerifier = this.generateRandomString(128);
         const codeChallenge = await this.sha256(this.codeVerifier);
-        // Persist across redirect
+        // Persist across redirect - use both storage types for reliability
         try {
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('garmin_code_verifier', this.codeVerifier);
+            }
             if (typeof sessionStorage !== 'undefined') {
                 sessionStorage.setItem('garmin_code_verifier', this.codeVerifier);
             }
@@ -73,8 +76,15 @@ class GarminOAuth2 {
 
     // Get stored PKCE code_verifier
     getStoredCodeVerifier() {
+        // Try localStorage first (more reliable across redirects)
+        if (typeof localStorage !== 'undefined') {
+            const verifier = localStorage.getItem('garmin_code_verifier');
+            if (verifier) return verifier;
+        }
+        // Fallback to sessionStorage
         if (typeof sessionStorage !== 'undefined') {
-            return sessionStorage.getItem('garmin_code_verifier');
+            const verifier = sessionStorage.getItem('garmin_code_verifier');
+            if (verifier) return verifier;
         }
         return this.codeVerifier;
     }

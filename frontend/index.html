@@ -1342,8 +1342,9 @@
                 // Generate PKCE challenge
                 const codeVerifier = generateCodeVerifier();
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
-                
-                // Store verifier for token exchange
+
+                // Store verifier for token exchange (localStorage more reliable than sessionStorage on mobile)
+                localStorage.setItem('garmin_code_verifier', codeVerifier);
                 sessionStorage.setItem('garmin_code_verifier', codeVerifier);
                 
                 // First, try the preauthorized endpoint that some integrations use
@@ -1677,8 +1678,8 @@
                 showMessage('Processing Garmin authorization...', 'info');
                 console.log('Garmin auth code received:', code);
                 
-                // Get the PKCE verifier
-                const codeVerifier = sessionStorage.getItem('garmin_code_verifier');
+                // Get the PKCE verifier (try localStorage first for mobile compatibility)
+                const codeVerifier = localStorage.getItem('garmin_code_verifier') || sessionStorage.getItem('garmin_code_verifier');
                 
                 // Your backend should exchange the code with Garmin's token endpoint
                 const response = await fetch(`${API_CONFIG.backend}/api/garmin/token`, {
@@ -1721,7 +1722,8 @@
                         expiryTime ? new Date(expiryTime).toISOString() : null
                     );
 
-                    // Clean up PKCE verifier
+                    // Clean up PKCE verifier from both storages
+                    localStorage.removeItem('garmin_code_verifier');
                     sessionStorage.removeItem('garmin_code_verifier');
                     
                     showMessage('Garmin connected successfully!', 'success');
