@@ -10,6 +10,29 @@ const { Op } = require('sequelize');
  * Using passwordless magic link authentication
  */
 
+// Test endpoint to check database setup
+router.get('/test-db', async (req, res) => {
+    try {
+        const { sequelize } = require('../models');
+
+        // Check if users table has sessionToken column
+        const usersQuery = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'");
+
+        // Check if magic_links table exists
+        const magicLinksQuery = await sequelize.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'magic_links'");
+
+        res.json({
+            success: true,
+            users_columns: usersQuery[0].map(c => c.column_name),
+            magic_links_columns: magicLinksQuery[0].map(c => c.column_name),
+            has_sessionToken: usersQuery[0].some(c => c.column_name === 'sessionToken'),
+            magic_links_exists: magicLinksQuery[0].length > 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Generate secure token
 function generateToken() {
     return crypto.randomBytes(32).toString('hex');
