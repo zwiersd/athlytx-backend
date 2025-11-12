@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coach Dashboard - Athlytx</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -399,6 +400,21 @@
                 </div>
             </div>
 
+            <div class="card" style="grid-column: span 2;">
+                <h2>Training Volume Over Time</h2>
+                <canvas id="volumeChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <div class="card">
+                <h2>Weekly Training Load</h2>
+                <canvas id="loadChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <div class="card">
+                <h2>Activity Type Breakdown</h2>
+                <canvas id="activityTypeChart" style="max-height: 300px;"></canvas>
+            </div>
+
             <div class="card">
                 <h2>Recent Activities</h2>
                 <table class="activities-table">
@@ -487,6 +503,9 @@
                 // Update activities table
                 updateActivitiesTable(zones.data);
 
+                // Create charts
+                createCharts(zones);
+
                 showDashboard();
             } catch (error) {
                 console.error('Dashboard load error:', error);
@@ -495,9 +514,16 @@
         }
 
         function updateSummaryStats(activities) {
+            // Filter out invalid activities (negative duration, missing data, or very long duration)
+            const validActivities = activities.filter(act =>
+                act.durationMinutes > 0 &&
+                act.durationMinutes < 500 && // Less than 8 hours
+                act.activityType
+            );
+
             // Remove duplicates by grouping by date+activityType+duration
             const uniqueActivities = {};
-            activities.forEach(act => {
+            validActivities.forEach(act => {
                 const key = `${act.date}_${act.activityType}_${act.durationMinutes}`;
                 if (!uniqueActivities[key]) {
                     uniqueActivities[key] = act;
@@ -561,9 +587,16 @@
         function updateActivitiesTable(activities) {
             const tbody = document.getElementById('activitiesTableBody');
 
+            // Filter out invalid activities
+            const validActivities = activities.filter(act =>
+                act.durationMinutes > 0 &&
+                act.durationMinutes < 500 && // Less than 8 hours
+                act.activityType
+            );
+
             // Remove duplicates and take most recent 20
             const uniqueActivities = {};
-            activities.forEach(act => {
+            validActivities.forEach(act => {
                 const key = `${act.date}_${act.activityType}_${act.durationMinutes}`;
                 if (!uniqueActivities[key]) {
                     uniqueActivities[key] = act;
@@ -608,6 +641,168 @@
             ];
             const maxMinutes = Math.max(...zoneMinutes);
             return zoneMinutes.indexOf(maxMinutes) + 1;
+        }
+
+        // Chart instances
+        let volumeChart = null;
+        let loadChart = null;
+        let activityTypeChart = null;
+
+        function createCharts(data) {
+            const activities = data.data || [];
+
+            // Filter out invalid activities
+            const validActivities = activities.filter(act =>
+                act.durationMinutes > 0 &&
+                act.durationMinutes < 500 && // Less than 8 hours
+                act.activityType
+            );
+
+            // Remove duplicates
+            const uniqueActivities = {};
+            validActivities.forEach(act => {
+                const key = `${act.date}_${act.activityType}_${act.durationMinutes}`;
+                if (!uniqueActivities[key]) {
+                    uniqueActivities[key] = act;
+                }
+            });
+            const unique = Object.values(uniqueActivities);
+
+            // Group by date for volume chart
+            const volumeByDate = {};
+            unique.forEach(act => {
+                if (!volumeByDate[act.date]) {
+                    volumeByDate[act.date] = 0;
+                }
+                volumeByDate[act.date] += act.durationMinutes;
+            });
+
+            const dates = Object.keys(volumeByDate).sort();
+            const volumes = dates.map(d => volumeByDate[d]);
+
+            // Destroy existing charts
+            if (volumeChart) volumeChart.destroy();
+            if (loadChart) loadChart.destroy();
+            if (activityTypeChart) activityTypeChart.destroy();
+
+            // Training Volume Over Time
+            const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+            volumeChart = new Chart(volumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Training Minutes',
+                        data: volumes,
+                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Minutes'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Weekly Training Load (last 4 weeks)
+            const weeklyLoad = {};
+            unique.forEach(act => {
+                const date = new Date(act.date);
+                const weekStart = new Date(date);
+                weekStart.setDate(date.getDate() - date.getDay());
+                const weekKey = weekStart.toISOString().split('T')[0];
+
+                if (!weeklyLoad[weekKey]) {
+                    weeklyLoad[weekKey] = { minutes: 0, activities: 0 };
+                }
+                weeklyLoad[weekKey].minutes += act.durationMinutes;
+                weeklyLoad[weekKey].activities += 1;
+            });
+
+            const weeks = Object.keys(weeklyLoad).sort().slice(-4);
+            const weekMinutes = weeks.map(w => weeklyLoad[w].minutes);
+
+            const loadCtx = document.getElementById('loadChart').getContext('2d');
+            loadChart = new Chart(loadCtx, {
+                type: 'line',
+                data: {
+                    labels: weeks.map(w => `Week of ${w}`),
+                    datasets: [{
+                        label: 'Weekly Minutes',
+                        data: weekMinutes,
+                        backgroundColor: 'rgba(52, 211, 153, 0.2)',
+                        borderColor: 'rgba(52, 211, 153, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Minutes'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Activity Type Breakdown
+            const activityTypes = {};
+            unique.forEach(act => {
+                if (!activityTypes[act.activityType]) {
+                    activityTypes[act.activityType] = 0;
+                }
+                activityTypes[act.activityType] += act.durationMinutes;
+            });
+
+            const typeLabels = Object.keys(activityTypes);
+            const typeMinutes = Object.values(activityTypes);
+            const colors = [
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)'
+            ];
+
+            const activityTypeCtx = document.getElementById('activityTypeChart').getContext('2d');
+            activityTypeChart = new Chart(activityTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: typeLabels,
+                    datasets: [{
+                        data: typeMinutes,
+                        backgroundColor: colors.slice(0, typeLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
         }
 
         async function syncData() {
