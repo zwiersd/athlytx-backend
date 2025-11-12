@@ -129,7 +129,7 @@ class GarminOAuth2 {
 
         try {
             // Use backend API for token exchange (same pattern as Whoop)
-            const response = await fetch('https://athlytx-backend-production.up.railway.app/api/garmin/token', {
+            const response = await fetch('/api/garmin/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ class GarminOAuth2 {
     // Refresh access token
     async refreshToken(refreshToken) {
         try {
-            const response = await fetch('https://athlytx-backend-production.up.railway.app/api/garmin/refresh', {
+            const response = await fetch('/api/garmin/refresh', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
