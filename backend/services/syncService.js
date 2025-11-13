@@ -230,7 +230,7 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
 
         try {
             const response = await fetch(
-                `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`,
+                `https://apis.garmin.com/wellness-api/rest/activities?summaryStartTimeInSeconds=${startTimestamp}&summaryEndTimeInSeconds=${endTimestamp}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
