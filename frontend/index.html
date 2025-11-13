@@ -1364,57 +1364,43 @@
                 window.location.href = authUrl;
                 
             } else if (device === 'garmin') {
-                // Try the preauthorized endpoint that some libraries use
-                // This might work for evaluation apps with proper client credentials
-                showMessage('Attempting Garmin Connect connection via preauthorized flow...', 'info');
-                
-                // Generate PKCE challenge
-                const codeVerifier = generateCodeVerifier();
-                const codeChallenge = await generateCodeChallenge(codeVerifier);
+                showMessage('Redirecting to Garmin for authorization...', 'info');
 
-                // Store verifier for token exchange (localStorage more reliable than sessionStorage on mobile)
-                localStorage.setItem('garmin_code_verifier', codeVerifier);
-                sessionStorage.setItem('garmin_code_verifier', codeVerifier);
-                
-                // First, try the preauthorized endpoint that some integrations use
-                try {
-                    const preAuthResponse = await fetch(`${API_CONFIG.backend}/api/garmin/preauth`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            client_id: API_CONFIG.garmin.clientId,
-                            redirect_uri: API_CONFIG.garmin.redirectUri
-                        })
+                // Use the GarminOAuth2 class from garmin-oauth2.js
+                if (typeof GarminOAuth2 !== 'undefined') {
+                    const garminOAuth = new GarminOAuth2({
+                        clientId: API_CONFIG.garmin.clientId,
+                        redirectUri: API_CONFIG.garmin.redirectUri,
+                        scope: 'WELLNESS_READ'
                     });
-                    
-                    if (preAuthResponse.ok) {
-                        const data = await preAuthResponse.json();
-                        if (data.auth_url && typeof data.auth_url === 'string' && data.auth_url.includes('oauth2Confirm')) {
-                            window.location.href = data.auth_url;
-                            return;
-                        } else if (data.auth_url) {
-                            console.warn('Ignoring backend preauth URL (unexpected endpoint):', data.auth_url);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Preauth attempt failed:', error);
+
+                    const authUrl = await garminOAuth.buildAuthorizationUrl();
+                    window.location.href = authUrl;
+                } else {
+                    // Fallback: manual OAuth flow with proper state storage
+                    const codeVerifier = generateCodeVerifier();
+                    const codeChallenge = await generateCodeChallenge(codeVerifier);
+                    const state = 'garmin_' + Math.random().toString(36).substring(2, 15);
+
+                    // Store both verifier AND state for token exchange
+                    localStorage.setItem('garmin_code_verifier', codeVerifier);
+                    sessionStorage.setItem('garmin_code_verifier', codeVerifier);
+                    sessionStorage.setItem('garmin_oauth_state', state);
+
+                    const params = new URLSearchParams({
+                        client_id: API_CONFIG.garmin.clientId,
+                        response_type: 'code',
+                        redirect_uri: API_CONFIG.garmin.redirectUri,
+                        scope: 'WELLNESS_READ',
+                        state: state,
+                        code_challenge: codeChallenge,
+                        code_challenge_method: 'S256'
+                    });
+
+                    const authUrl = `https://connect.garmin.com/oauth2Confirm?${params.toString()}`;
+                    console.log('Attempting Garmin OAuth via correct endpoint:', authUrl);
+                    window.location.href = authUrl;
                 }
-                
-                // Use the correct OAuth 2.0 endpoint from Garmin Developer Portal
-                const params = new URLSearchParams({
-                    client_id: API_CONFIG.garmin.clientId,
-                    response_type: 'code',
-                    redirect_uri: API_CONFIG.garmin.redirectUri,
-                    scope: 'WELLNESS_READ',
-                    state: 'garmin_auth',
-                    code_challenge: codeChallenge,
-                    code_challenge_method: 'S256'
-                });
-                
-                // Use the correct OAuth endpoint that works in API Tools
-                const authUrl = `https://connect.garmin.com/oauth2Confirm?${params.toString()}`;
-                console.log('Attempting Garmin OAuth via correct endpoint:', authUrl);
-                window.location.href = authUrl;
             } else if (device === 'whoop') {
                 // This will be handled by the oauth-handler.js
                 showMessage('Redirecting to Whoop for authorization...', 'info');
