@@ -4356,8 +4356,25 @@
             }
         }
 
-        function clearAllData() {
+        async function clearAllData() {
             if (confirm('Clear all connected device data? You\'ll need to reconnect each service.')) {
+                // Delete tokens from backend database
+                const userId = localStorage.getItem('userId');
+                if (userId) {
+                    try {
+                        const providers = ['strava', 'oura', 'garmin', 'whoop'];
+                        for (const provider of providers) {
+                            await fetch(`${API_CONFIG.backend}/api/sync/delete-token`, {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId, provider })
+                            }).catch(err => console.warn(`Failed to delete ${provider} token:`, err));
+                        }
+                    } catch (error) {
+                        console.error('Error deleting tokens from database:', error);
+                    }
+                }
+
                 fitnessData = {
                     strava: null,
                     oura: null,
@@ -4365,7 +4382,7 @@
                     garmin: null,
                     lastUpdated: null
                 };
-                
+
                 localStorage.removeItem('strava_token');
                 localStorage.removeItem('strava_expiry');
                 localStorage.removeItem('oura_token');
@@ -4389,12 +4406,12 @@
                 document.querySelector('.btn-oura').innerHTML = 'Connect Oura';
                 document.querySelector('.btn-garmin').innerHTML = 'Connect Garmin';
                 document.querySelector('.btn-whoop').innerHTML = 'Connect Whoop';
-                
+
                 document.querySelectorAll('.connect-btn').forEach(btn => {
                     btn.disabled = false;
                     btn.classList.remove('connected');
                 });
-                
+
                 updateConnectionStatus();
                 showMessage('All data cleared. Ready to reconnect devices.', 'info');
             }

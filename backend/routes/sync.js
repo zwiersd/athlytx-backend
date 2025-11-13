@@ -267,4 +267,45 @@ router.post('/save-token', async (req, res) => {
     }
 });
 
+/**
+ * Delete OAuth token from database
+ * DELETE /api/sync/delete-token
+ * Body: { userId: 'uuid', provider: 'garmin' }
+ */
+router.delete('/delete-token', async (req, res) => {
+    try {
+        const { userId, provider } = req.body;
+        const { OAuthToken } = require('../models');
+
+        if (!userId || !provider) {
+            return res.status(400).json({ error: 'userId and provider required' });
+        }
+
+        const deleted = await OAuthToken.destroy({
+            where: { userId, provider }
+        });
+
+        if (deleted) {
+            console.log(`✅ Deleted ${provider} token for user ${userId}`);
+            res.json({
+                success: true,
+                message: `${provider} token deleted`,
+                deleted: true
+            });
+        } else {
+            res.json({
+                success: true,
+                message: `No ${provider} token found`,
+                deleted: false
+            });
+        }
+    } catch (error) {
+        console.error('Delete token error:', error);
+        res.status(500).json({
+            error: 'Failed to delete token',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
