@@ -308,4 +308,42 @@ router.delete('/delete-token', async (req, res) => {
     }
 });
 
+/**
+ * Check if OAuth token exists in database
+ * GET /api/sync/check-token
+ * Query: ?userId=uuid&provider=garmin
+ */
+router.get('/check-token', async (req, res) => {
+    try {
+        const { userId, provider } = req.query;
+        const { OAuthToken } = require('../models');
+
+        if (!provider) {
+            return res.status(400).json({ error: 'provider required' });
+        }
+
+        let whereClause = { provider };
+        if (userId) {
+            whereClause.userId = userId;
+        }
+
+        const tokens = await OAuthToken.findAll({
+            where: whereClause,
+            attributes: ['userId', 'provider', 'expiresAt', 'createdAt', 'updatedAt']
+        });
+
+        res.json({
+            success: true,
+            count: tokens.length,
+            tokens: tokens
+        });
+    } catch (error) {
+        console.error('Check token error:', error);
+        res.status(500).json({
+            error: 'Failed to check token',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
