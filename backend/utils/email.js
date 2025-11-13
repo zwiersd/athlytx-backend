@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 
-// Initialize Resend with API key from environment
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend with API key from environment (or dummy key for development)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_dev');
 
 /**
  * Send magic link authentication email
