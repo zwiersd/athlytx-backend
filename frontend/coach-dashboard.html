@@ -496,35 +496,6 @@
 
                 zoneData = zones;
 
-                // DEMO: Add dummy Garmin activities to show data source badge
-                if (!zones.data) zones.data = [];
-
-                // Add 3 sample Garmin activities with unique characteristics
-                zones.data.unshift({
-                    date: new Date().toISOString().split('T')[0],
-                    activityType: 'Morning Run',
-                    provider: 'garmin',
-                    durationMinutes: 45,
-                    hr: { avg: 145, max: 172 },
-                    zones: { zone1: 5, zone2: 20, zone3: 15, zone4: 5, zone5: 0 }
-                });
-                zones.data.unshift({
-                    date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                    activityType: 'Cycling',
-                    provider: 'garmin',
-                    durationMinutes: 60,
-                    hr: { avg: 138, max: 165 },
-                    zones: { zone1: 10, zone2: 35, zone3: 10, zone4: 5, zone5: 0 }
-                });
-                zones.data.unshift({
-                    date: new Date(Date.now() - 2*86400000).toISOString().split('T')[0],
-                    activityType: 'Trail Run',
-                    provider: 'garmin',
-                    durationMinutes: 52,
-                    hr: { avg: 152, max: 178 },
-                    zones: { zone1: 3, zone2: 18, zone3: 20, zone4: 10, zone5: 1 }
-                });
-
                 // Update header
                 document.getElementById('athleteName').textContent = 'Athlytx Athlete';
                 if (status.lastSync) {
