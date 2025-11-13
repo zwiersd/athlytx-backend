@@ -533,10 +533,12 @@
 
         function updateSummaryStats(activities) {
             // Filter out invalid activities (negative duration, missing data, or very long duration)
+            // ALSO exclude Whoop activities from summary stats (skewed data)
             const validActivities = activities.filter(act =>
                 act.durationMinutes > 0 &&
                 act.durationMinutes < 500 && // Less than 8 hours
-                act.activityType
+                act.activityType &&
+                act.provider !== 'whoop' // Exclude Whoop from summaries
             );
 
             // Remove duplicates by grouping by date+activityType+duration
@@ -650,13 +652,13 @@
 
                 let providerDisplay;
                 if (providerLower === 'garmin') {
-                    providerDisplay = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 20px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 18px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'strava') {
-                    providerDisplay = `<img src="/src/images/strava.svg" alt="Strava" style="height: 16px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/strava.svg" alt="Strava" style="height: 12px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'whoop') {
-                    providerDisplay = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 16px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 14px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'oura') {
-                    providerDisplay = `<img src="/src/images/oura.png" alt="Oura" style="height: 16px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/oura.png" alt="Oura" style="height: 14px; width: auto; vertical-align: middle;">`;
                 } else {
                     providerDisplay = provider;
                 }
@@ -703,11 +705,12 @@
         function createCharts(data) {
             const activities = data.data || [];
 
-            // Filter out invalid activities
+            // Filter out invalid activities and exclude Whoop (skewed data)
             const validActivities = activities.filter(act =>
                 act.durationMinutes > 0 &&
                 act.durationMinutes < 500 && // Less than 8 hours
-                act.activityType
+                act.activityType &&
+                act.provider !== 'whoop' // Exclude Whoop from charts
             );
 
             // Remove duplicates
