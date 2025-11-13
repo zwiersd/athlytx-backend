@@ -499,6 +499,27 @@
 
                 zoneData = zones;
 
+                // DEMO: Add dummy Garmin activities to show data source badge
+                if (zones.data && zones.data.length > 0) {
+                    // Add 2 sample Garmin activities
+                    zones.data.push({
+                        date: new Date().toISOString().split('T')[0],
+                        activityType: 'Run',
+                        provider: 'garmin',
+                        durationMinutes: 45,
+                        hr: { avg: 145, max: 172 },
+                        zones: { zone1: 5, zone2: 20, zone3: 15, zone4: 5, zone5: 0 }
+                    });
+                    zones.data.push({
+                        date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                        activityType: 'Bike',
+                        provider: 'garmin',
+                        durationMinutes: 60,
+                        hr: { avg: 138, max: 165 },
+                        zones: { zone1: 10, zone2: 35, zone3: 10, zone4: 5, zone5: 0 }
+                    });
+                }
+
                 // Update header
                 document.getElementById('athleteName').textContent = 'Athlytx Athlete';
                 if (status.lastSync) {
