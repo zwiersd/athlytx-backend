@@ -205,11 +205,11 @@ router.get('/users', async (req, res) => {
 /**
  * Save OAuth token to database
  * POST /api/sync/save-token
- * Body: { provider: 'garmin', accessToken: '...', refreshToken: '...', expiresAt: '...' }
+ * Body: { userId: 'uuid', provider: 'garmin', accessToken: '...', refreshToken: '...', expiresAt: '...' }
  */
 router.post('/save-token', async (req, res) => {
     try {
-        const { provider, accessToken, refreshToken, expiresAt } = req.body;
+        const { userId, provider, accessToken, refreshToken, expiresAt } = req.body;
         const { User, OAuthToken } = require('../models');
         const { encrypt } = require('../utils/encryption');
         const { v4: uuidv4 } = require('uuid');
@@ -218,16 +218,25 @@ router.post('/save-token', async (req, res) => {
             return res.status(400).json({ error: 'provider and accessToken required' });
         }
 
-        // Create or get user (for now, use a single user - in production you'd use session)
-        let user = await User.findOne({ where: { email: 'athlete@athlytx.com' } });
+        let user;
 
-        if (!user) {
-            user = await User.create({
-                id: uuidv4(),
-                email: 'athlete@athlytx.com',
-                name: 'Athlytx Athlete'
-            });
-            console.log('✅ Created user:', user.id);
+        // If userId provided, use it (user should already exist)
+        if (userId) {
+            user = await User.findByPk(userId);
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+        } else {
+            // Fallback: Create or get default user
+            user = await User.findOne({ where: { email: 'athlete@athlytx.com' } });
+            if (!user) {
+                user = await User.create({
+                    id: uuidv4(),
+                    email: 'athlete@athlytx.com',
+                    name: 'Athlytx Athlete'
+                });
+                console.log('✅ Created default user:', user.id);
+            }
         }
 
         // Save or update OAuth token

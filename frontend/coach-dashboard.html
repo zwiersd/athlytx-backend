@@ -456,14 +456,17 @@
 
     <script>
         // Configuration
-        const USER_ID = '3a2d6b17-6cd2-45e0-9487-e54d8c4d3e22';
         const API_BASE = '/api';
+
+        // Get user ID from localStorage (set by index.html when OAuth completes)
+        const USER_ID = localStorage.getItem('userId') || '3a2d6b17-6cd2-45e0-9487-e54d8c4d3e22'; // fallback to old default
 
         let currentPeriod = 14;
         let zoneData = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('📊 Loading dashboard for user:', USER_ID);
             loadDashboard();
 
             document.getElementById('periodSelect').addEventListener('change', (e) => {
