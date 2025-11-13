@@ -79,6 +79,12 @@ class OAuthHandler {
 
                 this.showMessage('Garmin connected successfully!', 'success');
 
+                // Save token to database
+                if (typeof saveTokenToDatabase === 'function') {
+                    const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000).toISOString() : null;
+                    await saveTokenToDatabase('garmin', tokens.access_token, tokens.refresh_token, expiresAt);
+                }
+
                 // If fetchGarminData function exists (from index.html), call it
                 if (typeof fetchGarminData === 'function') {
                     await fetchGarminData(tokens.access_token);
