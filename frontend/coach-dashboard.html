@@ -332,8 +332,7 @@
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
                         <div style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Data Sources</div>
                         <div id="dataSources" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <span class="provider-badge provider-strava">Strava</span>
-                            <span class="provider-badge provider-oura">Oura</span>
+                            <!-- Data sources populated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -437,6 +436,20 @@
                 </table>
             </div>
         </div>
+
+        <!-- Footer with Data Attribution -->
+        <footer style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">Data powered by:</div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <img src="https://developer.garmin.com/static/connect-logo-82407fb4605d26b7de1168330eb7f6e9.svg" alt="Garmin Connect" style="height: 24px;">
+                <span style="color: #ddd;">|</span>
+                <span style="color: #FC4C02; font-weight: 600; font-size: 14px;">Strava</span>
+                <span style="color: #ddd;">|</span>
+                <span style="color: #000; font-weight: 600; font-size: 14px;">Whoop</span>
+                <span style="color: #ddd;">|</span>
+                <span style="color: #0B0E0F; font-weight: 600; font-size: 14px;">Oura</span>
+            </div>
+        </footer>
     </div>
 
     <script>
