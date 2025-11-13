@@ -622,12 +622,17 @@
         function updateActivitiesTable(activities) {
             const tbody = document.getElementById('activitiesTableBody');
 
-            // Filter out invalid activities
-            const validActivities = activities.filter(act =>
-                act.durationMinutes > 0 &&
-                act.durationMinutes < 500 && // Less than 8 hours
-                act.activityType
-            );
+            // Filter out invalid activities BUT keep Whoop (even with bad duration)
+            const validActivities = activities.filter(act => {
+                // Always include Whoop activities
+                if (act.provider === 'whoop' && act.activityType) {
+                    return true;
+                }
+                // For others, require valid duration
+                return act.durationMinutes > 0 &&
+                    act.durationMinutes < 500 && // Less than 8 hours
+                    act.activityType;
+            });
 
             // Remove duplicates and take most recent 20
             const uniqueActivities = {};
@@ -666,7 +671,14 @@
                 // Display device model if available (Garmin only for now)
                 const deviceDisplay = act.deviceModel || '--';
 
-                const duration = act.durationMinutes !== undefined && act.durationMinutes !== null ? `${act.durationMinutes} min` : '--';
+                // For Whoop, show "Recorded" instead of invalid duration
+                let duration;
+                if (providerLower === 'whoop' && (act.durationMinutes < 0 || act.durationMinutes > 500)) {
+                    duration = 'Recorded';
+                } else {
+                    duration = act.durationMinutes !== undefined && act.durationMinutes !== null ? `${act.durationMinutes} min` : '--';
+                }
+
                 return `
                     <tr>
                         <td>${act.date}</td>
