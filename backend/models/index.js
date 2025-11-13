@@ -99,6 +99,14 @@ async function initializeDatabase() {
             console.warn('⚠️  Some sync issues, continuing anyway:', syncError.message);
         }
 
+        // Run migrations
+        try {
+            const { addDeviceModelColumn } = require('../migrations/add-device-model');
+            await addDeviceModelColumn(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration warning:', migrationError.message);
+        }
+
         return true;
     } catch (error) {
         console.error('❌ Database initialization failed:', error);
