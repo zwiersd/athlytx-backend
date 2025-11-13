@@ -232,23 +232,23 @@
         }
 
         .provider-strava {
-            background: #FC4C02;
-            color: white;
+            background: transparent;
+            padding: 2px 4px;
         }
 
         .provider-garmin {
-            background: #007CC3;
-            color: white;
+            background: transparent;
+            padding: 2px 4px;
         }
 
         .provider-oura {
-            background: #0B0E0F;
-            color: white;
+            background: transparent;
+            padding: 2px 4px;
         }
 
         .provider-whoop {
-            background: #000000;
-            color: white;
+            background: transparent;
+            padding: 2px 4px;
         }
 
         .loading {
@@ -495,6 +495,35 @@
 
                 zoneData = zones;
 
+                // DEMO: Add dummy Garmin activities to show data source badge
+                if (!zones.data) zones.data = [];
+
+                // Add 3 sample Garmin activities with unique characteristics
+                zones.data.unshift({
+                    date: new Date().toISOString().split('T')[0],
+                    activityType: 'Morning Run',
+                    provider: 'garmin',
+                    durationMinutes: 45,
+                    hr: { avg: 145, max: 172 },
+                    zones: { zone1: 5, zone2: 20, zone3: 15, zone4: 5, zone5: 0 }
+                });
+                zones.data.unshift({
+                    date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                    activityType: 'Cycling',
+                    provider: 'garmin',
+                    durationMinutes: 60,
+                    hr: { avg: 138, max: 165 },
+                    zones: { zone1: 10, zone2: 35, zone3: 10, zone4: 5, zone5: 0 }
+                });
+                zones.data.unshift({
+                    date: new Date(Date.now() - 2*86400000).toISOString().split('T')[0],
+                    activityType: 'Trail Run',
+                    provider: 'garmin',
+                    durationMinutes: 52,
+                    hr: { avg: 152, max: 178 },
+                    zones: { zone1: 3, zone2: 18, zone3: 20, zone4: 10, zone5: 1 }
+                });
+
                 // Update header
                 document.getElementById('athleteName').textContent = 'Athlytx Athlete';
                 if (status.lastSync) {
@@ -575,7 +604,22 @@
             }
 
             container.innerHTML = Array.from(providers).sort().map(provider => {
-                return `<span class="provider-badge provider-${provider}">${provider}</span>`;
+                const providerLower = provider.toLowerCase();
+                let displayContent;
+
+                if (providerLower === 'garmin') {
+                    displayContent = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'strava') {
+                    displayContent = `<img src="/src/images/strava.svg" alt="Strava" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'whoop') {
+                    displayContent = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'oura') {
+                    displayContent = `<img src="/src/images/oura.png" alt="Oura" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else {
+                    displayContent = provider;
+                }
+
+                return `<span class="provider-badge provider-${provider}">${displayContent}</span>`;
             }).join('');
         }
 
@@ -626,12 +670,27 @@
             tbody.innerHTML = unique.map(act => {
                 const primaryZone = getPrimaryZone(act.zones);
                 const provider = act.provider || 'unknown';
+                const providerLower = provider.toLowerCase();
+
+                let providerDisplay;
+                if (providerLower === 'garmin') {
+                    providerDisplay = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'strava') {
+                    providerDisplay = `<img src="/src/images/strava.svg" alt="Strava" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'whoop') {
+                    providerDisplay = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else if (providerLower === 'oura') {
+                    providerDisplay = `<img src="/src/images/oura.png" alt="Oura" style="height: 18px; width: auto; vertical-align: middle;">`;
+                } else {
+                    providerDisplay = provider;
+                }
+
                 const duration = act.durationMinutes !== undefined && act.durationMinutes !== null ? `${act.durationMinutes} min` : '--';
                 return `
                     <tr>
                         <td>${act.date}</td>
                         <td class="activity-type">${act.activityType}</td>
-                        <td><span class="provider-badge provider-${provider}">${provider}</span></td>
+                        <td><span class="provider-badge provider-${provider}">${providerDisplay}</span></td>
                         <td>${duration}</td>
                         <td>${act.hr.avg || '--'} bpm</td>
                         <td>${act.hr.max || '--'} bpm</td>
