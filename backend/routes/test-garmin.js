@@ -167,4 +167,116 @@ router.get('/garmin/device-data/:userId', async (req, res) => {
     }
 });
 
+/**
+ * Debug endpoint to verify token decryption and API request
+ * GET /api/test/garmin/debug/:userId
+ */
+router.get('/garmin/debug/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Get Garmin token
+        const tokenRecord = await OAuthToken.findOne({
+            where: {
+                userId,
+                provider: 'garmin'
+            }
+        });
+
+        if (!tokenRecord) {
+            return res.status(404).json({ error: 'No Garmin token found for this user' });
+        }
+
+        // Decrypt token
+        const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
+
+        // Show token info (first/last few chars for security)
+        const tokenPreview = accessToken.length > 20
+            ? `${accessToken.substring(0, 10)}...${accessToken.substring(accessToken.length - 10)}`
+            : '[token too short]';
+
+        // Check if it's a JWT
+        const isJWT = accessToken.split('.').length === 3;
+        let jwtPayload = null;
+        if (isJWT) {
+            try {
+                const payload = accessToken.split('.')[1];
+                const decoded = Buffer.from(payload, 'base64').toString();
+                jwtPayload = JSON.parse(decoded);
+            } catch (e) {
+                jwtPayload = { error: 'Failed to decode JWT' };
+            }
+        }
+
+        // Test API call
+        const endDate = Math.floor(Date.now() / 1000);
+        const startDate = endDate - (3 * 24 * 60 * 60);
+
+        const apiUrl = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startDate}&uploadEndTimeInSeconds=${endDate}`;
+
+        console.log('\n=== GARMIN DEBUG ===');
+        console.log('User ID:', userId);
+        console.log('Token Preview:', tokenPreview);
+        console.log('Token Length:', accessToken.length);
+        console.log('Is JWT:', isJWT);
+        console.log('API URL:', apiUrl);
+        console.log('Authorization Header:', `Bearer ${tokenPreview}`);
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+
+        let responseBody = null;
+        const responseText = await response.text();
+
+        try {
+            responseBody = JSON.parse(responseText);
+        } catch (e) {
+            responseBody = responseText;
+        }
+
+        console.log('Response Body:', responseBody);
+        console.log('===================\n');
+
+        res.json({
+            debug: {
+                userId,
+                tokenInfo: {
+                    preview: tokenPreview,
+                    length: accessToken.length,
+                    isJWT,
+                    jwtPayload: isJWT ? jwtPayload : null,
+                    expiresAt: tokenRecord.expiresAt,
+                    isExpired: tokenRecord.expiresAt ? new Date(tokenRecord.expiresAt) < new Date() : null
+                },
+                apiRequest: {
+                    url: apiUrl,
+                    method: 'GET',
+                    startDate: new Date(startDate * 1000).toISOString(),
+                    endDate: new Date(endDate * 1000).toISOString()
+                },
+                apiResponse: {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    body: responseBody
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Debug endpoint error:', error);
+        res.status(500).json({
+            error: 'Debug failed',
+            message: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 module.exports = router;
