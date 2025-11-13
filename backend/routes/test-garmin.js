@@ -26,9 +26,9 @@ router.get('/garmin/:userId', async (req, res) => {
 
         const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
 
-        // Fetch last 3 days of activities
+        // Fetch last 24 hours of activities (Garmin max)
         const endDate = Math.floor(Date.now() / 1000);
-        const startDate = endDate - (3 * 24 * 60 * 60);
+        const startDate = endDate - (24 * 60 * 60);
 
         const response = await fetch(
             `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startDate}&uploadEndTimeInSeconds=${endDate}`,
@@ -208,9 +208,9 @@ router.get('/garmin/debug/:userId', async (req, res) => {
             }
         }
 
-        // Test API call
+        // Test API call - last 24 hours only (Garmin limit)
         const endDate = Math.floor(Date.now() / 1000);
-        const startDate = endDate - (3 * 24 * 60 * 60);
+        const startDate = endDate - (24 * 60 * 60);
 
         const apiUrl = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startDate}&uploadEndTimeInSeconds=${endDate}`;
 
