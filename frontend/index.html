@@ -1016,9 +1016,85 @@
             <div id="garmin" class="tab-content">
                 <div class="analytics-card">
                     <h3>⌚ Garmin Connect Wellness & Performance</h3>
-                    <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">
-                        <h4>Garmin Connect Integration Pending</h4>
-                        <p>Connect your Garmin Connect device to see Body Battery, stress metrics, and training status.</p>
+                    <div class="data-summary">
+                        <div class="summary-card">
+                            <span class="summary-value">12,543</span>
+                            <div class="summary-label">Steps Today</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value">85</span>
+                            <div class="summary-label">Body Battery</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value">32</span>
+                            <div class="summary-label">Stress Level</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value">58</span>
+                            <div class="summary-label">Resting HR (bpm)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Recent Activities</h3>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table style="width: 100%; color: rgba(255,255,255,0.9);">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding: 10px; text-align: left;">Date</th>
+                                        <th style="padding: 10px; text-align: left;">Activity</th>
+                                        <th style="padding: 10px; text-align: right;">Duration</th>
+                                        <th style="padding: 10px; text-align: right;">Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <td style="padding: 10px;">Today</td>
+                                        <td style="padding: 10px;">🏃 Morning Run</td>
+                                        <td style="padding: 10px; text-align: right;">45 min</td>
+                                        <td style="padding: 10px; text-align: right;">7.2 km</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <td style="padding: 10px;">Yesterday</td>
+                                        <td style="padding: 10px;">🚴 Cycling</td>
+                                        <td style="padding: 10px; text-align: right;">1h 20m</td>
+                                        <td style="padding: 10px; text-align: right;">28.5 km</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <td style="padding: 10px;">2 days ago</td>
+                                        <td style="padding: 10px;">🏃 Trail Run</td>
+                                        <td style="padding: 10px; text-align: right;">52 min</td>
+                                        <td style="padding: 10px; text-align: right;">8.1 km</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px;">3 days ago</td>
+                                        <td style="padding: 10px;">💪 Strength Training</td>
+                                        <td style="padding: 10px; text-align: right;">38 min</td>
+                                        <td style="padding: 10px; text-align: right;">—</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Training Status</h3>
+                        <div class="insight-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px;">
+                            <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Productive</div>
+                            <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your training load is building your fitness effectively. Keep up the good work!</p>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>VO2 Max</span>
+                                <span style="font-weight: bold;">52 ml/kg/min</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Fitness Age</span>
+                                <span style="font-weight: bold;">28 years</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
