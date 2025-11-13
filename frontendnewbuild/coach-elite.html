@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlytx Elite Coach Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --gray-100: #f7fafc;
+            --gray-200: #edf2f7;
+            --gray-300: #e2e8f0;
+            --gray-400: #cbd5e0;
+            --gray-500: #a0aec0;
+            --gray-600: #718096;
+            --gray-700: #4a5568;
+            --gray-800: #2d3748;
+            --gray-900: #1a202c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+
+        /* Header */
+        .header {
+            background: rgba(10, 14, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            gap: 12px;
+        }
+
+        .logo h1 {
+            font-size: 26px;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .badge-elite {
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Athlete Selector */
+        .athlete-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .athlete-dropdown {
+            position: relative;
+        }
+
+        .athlete-current {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .athlete-current:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .athlete-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .athlete-info {
+            text-align: left;
+        }
+
+        .athlete-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .athlete-status {
+            font-size: 11px;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-fresh { background: var(--success); }
+        .status-optimal { background: #38b2ac; }
+        .status-fatigued { background: var(--warning); }
+        .status-overtrained { background: var(--danger); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Key Metrics Bar */
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .metric-card.alert::before {
+            background: var(--danger);
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .metric-unit {
+            font-size: 14px;
+            color: var(--gray-500);
+            font-weight: 400;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .change-positive { color: var(--success); }
+        .change-negative { color: var(--danger); }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-ghost:hover {
+            background: var(--gray-100);
+        }
+
+        /* Performance Management Chart */
+        .pmc-container {
+            height: 400px;
+            position: relative;
+        }
+
+        /* Alerts Panel */
+        .alerts-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 15px;
+            border-left: 3px solid;
+            margin-bottom: 10px;
+            background: var(--gray-50);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .alert-high {
+            border-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .alert-medium {
+            border-color: var(--warning);
+            background: #fffaf0;
+        }
+
+        .alert-low {
+            border-color: var(--primary);
+            background: #f7fafc;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .alert-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .alert-message {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+
+        /* Zone Distribution */
+        .zone-chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 300px;
+        }
+
+        /* Activity Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--gray-50);
+            padding: 12px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-600);
+            font-weight: 700;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: var(--gray-500);
+        }
+
+        .spinner {
+            border: 3px solid var(--gray-300);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal for Notes */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Auth Screen */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-logo h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .auth-logo p {
+            color: var(--gray-600);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(30, 38, 89, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 520px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(102, 126, 234, 0.3);
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%);
+            color: white;
+            padding: 28px 32px;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .modal-body .form-label {
+            color: rgba(255,255,255,0.95);
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .modal-body .form-input {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .modal-body .form-input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .modal-body .form-input:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .modal-footer {
+            padding: 0 32px 32px 32px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.9);
+            border: 2px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="src/images/logo.png" alt="Athlytx Logo" style="height: 60px; margin-bottom: 20px;">
+                <h1>Athlytx Elite</h1>
+                <p>Professional Coaching Dashboard</p>
+            </div>
+            <form id="authForm">
+                <div class="form-group">
+                    <label class="form-label">Coach Email</label>
+                    <input type="email" id="coachEmail" class="form-input" placeholder="coach@example.com" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Send Magic Link
+                </button>
+            </form>
+            <div id="verifySection" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Enter Verification Code</label>
+                    <input type="text" id="verifyCode" class="form-input" placeholder="123456" maxlength="6">
+                </div>
+                <button onclick="verifyCode()" class="btn btn-primary btn-full">
+                    Verify Code
+                </button>
+                <button id="resendCodeBtn" onclick="resendCode()" class="btn btn-secondary btn-full" style="display: none; margin-top: 12px;">
+                    Send Another Code
+                </button>
+            </div>
+            <div class="auth-footer">
+                <p>By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Screen -->
+    <div id="onboardingScreen" class="auth-container" style="display: none;">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1 style="font-size: 32px; margin-bottom: 12px;">👋 Welcome!</h1>
+                <p style="color: rgba(10, 14, 39, 0.7); font-size: 16px;">Let's get your Elite coaching dashboard set up</p>
+            </div>
+            <form id="onboardingForm">
+                <div class="form-group">
+                    <label class="form-label">Your Full Name</label>
+                    <input type="text" id="coachName" class="form-input" placeholder="e.g., John Smith" required>
+                    <small style="color: rgba(10, 14, 39, 0.6); font-size: 13px; display: block; margin-top: 8px;">
+                        This will be shown to your athletes when you invite them
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Continue to Dashboard →
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardScreen" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Athlytx</h1>
+                    <span class="badge-elite">ELITE</span>
+                </div>
+
+                <div class="athlete-selector">
+                    <div class="athlete-dropdown">
+                        <div class="athlete-current" onclick="toggleAthleteMenu()">
+                            <div class="athlete-avatar" id="athleteAvatar">JD</div>
+                            <div class="athlete-info">
+                                <div class="athlete-name" id="athleteName">Select Athlete</div>
+                                <div class="athlete-status">
+                                    <span class="status-indicator status-optimal"></span>
+                                    <span id="athleteStatus">No athlete selected</span>
+                                </div>
+                            </div>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <!-- Dropdown menu would go here -->
+                    </div>
+
+                    <button class="btn btn-primary" onclick="inviteAthlete()">
+                        + Invite Athlete
+                    </button>
+
+                    <span id="coachNameDisplay" style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;"></span>
+
+                    <button class="btn btn-ghost" onclick="logout()">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Key Metrics Bar -->
+            <div class="metrics-bar">
+                <div class="metric-card" id="ctlCard">
+                    <div class="metric-label">Fitness (CTL)</div>
+                    <div class="metric-value">
+                        <span id="ctlValue">--</span>
+                        <span class="metric-unit">TSS</span>
+                    </div>
+                    <div class="metric-change change-positive">
+                        <span>↑</span>
+                        <span id="ctlChange">+0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="atlCard">
+                    <div class="metric-label">Fatigue (ATL)</div>
+                    <div class="metric-value">
+                        <span id="atlValue">--</span>
+                        <span class="metric-unit">TSS</span>
+                    </div>
+                    <div class="metric-change">
+                        <span id="atlChange">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="tsbCard">
+                    <div class="metric-label">Form (TSB)</div>
+                    <div class="metric-value">
+                        <span id="tsbValue">--</span>
+                        <span class="metric-unit"></span>
+                    </div>
+                    <div class="metric-change">
+                        <span id="tsbStatus">Optimal</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="acwrCard">
+                    <div class="metric-label">Injury Risk (ACWR)</div>
+                    <div class="metric-value">
+                        <span id="acwrValue">--</span>
+                        <span class="metric-unit"></span>
+                    </div>
+                    <div class="metric-change">
+                        <span id="acwrStatus">Safe Zone</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">HRV Trend</div>
+                    <div class="metric-value">
+                        <span id="hrvValue">--</span>
+                        <span class="metric-unit">ms</span>
+                    </div>
+                    <div class="metric-change" id="hrvTrend">
+                        <span>Stable</span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Recovery Score</div>
+                    <div class="metric-value">
+                        <span id="recoveryValue">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="metric-change">
+                        <span id="recoveryStatus">Good</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Performance Management Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Performance Management Chart</h2>
+                        <div class="card-actions">
+                            <select id="pmcRange" onchange="updatePMC()">
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="180">6 months</option>
+                                <option value="365">1 year</option>
+                            </select>
+                            <button class="btn btn-ghost" onclick="exportPMC()">Export</button>
+                        </div>
+                    </div>
+                    <div class="pmc-container">
+                        <canvas id="pmcChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Alerts & Insights -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Alerts & Insights</h2>
+                        <button class="btn btn-ghost" onclick="clearAlerts()">Clear</button>
+                    </div>
+                    <div class="alerts-panel" id="alertsPanel">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone Distribution & Weekly Load -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Training Zone Distribution</h2>
+                        <select id="zoneRange" onchange="updateZones()">
+                            <option value="7">This week</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="zone-chart-container">
+                        <canvas id="zoneChart"></canvas>
+                        <canvas id="polarizedChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Weekly Training Load</h2>
+                    </div>
+                    <canvas id="weeklyLoadChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activities</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="syncData()">Sync Now</button>
+                        <button class="btn btn-ghost" onclick="exportActivities()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="activitiesTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Activity</th>
+                                <th>Duration</th>
+                                <th>TSS</th>
+                                <th>Avg HR</th>
+                                <th>IF</th>
+                                <th>EF</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activitiesBody">
+                            <tr>
+                                <td colspan="9" style="text-align: center;">
+                                    <div class="loading">Loading activities...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer with Data Attribution -->
+            <footer style="background: transparent; border-radius: 12px; padding: 25px; margin-top: 20px; text-align: center;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 15px;">Data powered by:</div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 25px; flex-wrap: wrap;">
+                    <img src="src/images/GarminConnect.png" alt="Garmin Connect" style="height: 40px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <span style="color: #ddd;">|</span>
+                    <img src="src/images/strava-logo.jpeg" alt="Strava" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <span style="color: #ddd;">|</span>
+                    <img src="src/images/whoop-logo.jpeg" alt="Whoop" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <span style="color: #ddd;">|</span>
+                    <img src="src/images/oura-logo.jpeg" alt="Oura" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Coach Note</h3>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Note Type</label>
+                <select id="noteType" class="form-input">
+                    <option value="general">General</option>
+                    <option value="workout">Workout Feedback</option>
+                    <option value="alert">Alert/Warning</option>
+                    <option value="goal">Goal/Target</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Note</label>
+                <textarea id="noteText" placeholder="Enter your note here..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-ghost" onclick="closeNoteModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Athlete Modal -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✉️ Invite Athlete</h2>
+            </div>
+            <div class="modal-body">
+                <p style="color: rgba(255,255,255,0.75); margin-bottom: 24px; font-size: 15px; line-height: 1.6;">
+                    Send an invitation to your athlete. They'll receive an email with instructions to connect their fitness devices.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Athlete Email</label>
+                    <input type="email" id="inviteEmail" class="form-input" placeholder="athlete@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Personal Message (Optional)</label>
+                    <textarea id="inviteMessage" class="form-input" placeholder="Hey! I'd love to coach you using Athlytx. Let's take your training to the next level!" rows="4" style="resize: vertical;"></textarea>
+                </div>
+                <div id="inviteError" style="display: none; color: #ff6b6b; margin-top: 16px; padding: 16px; background: rgba(255, 107, 107, 0.15); border-radius: 10px; font-size: 14px; border: 1px solid rgba(255, 107, 107, 0.3); font-weight: 500;"></div>
+                <div id="inviteSuccess" style="display: none; color: #51cf66; margin-top: 16px; padding: 16px; background: rgba(81, 207, 102, 0.15); border-radius: 10px; font-size: 14px; border: 1px solid rgba(81, 207, 102, 0.3); font-weight: 500;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeInviteModal()">Cancel</button>
+                <button id="sendInviteBtn" class="btn btn-primary" onclick="sendInvite()">
+                    <span id="sendInviteBtnText">Send Invitation</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let currentCoach = null;
+        let currentAthlete = null;
+        let athletes = [];
+        let dashboardData = null;
+        let charts = {};
+
+        // Authentication
+        async function authenticate(email) {
+            try {
+                console.log('Sending magic link request for:', email);
+                const response = await fetch('/api/auth/magic-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        role: 'coach' // Always create as coach for Elite dashboard
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response data:', result);
+
+                if (result.success) {
+                    // Hide the auth form
+                    document.getElementById('authForm').style.display = 'none';
+
+                    // Show verification section
+                    const verifySection = document.getElementById('verifySection');
+                    verifySection.style.display = 'block';
+
+                    // Add email sent message
+                    const emailMsg = document.createElement('p');
+                    emailMsg.style.cssText = 'color: #059669; margin-bottom: 20px; text-align: center; font-size: 14px;';
+                    emailMsg.innerHTML = '✅ Magic link sent! Check your email for the 6-digit code.';
+                    verifySection.insertBefore(emailMsg, verifySection.firstChild);
+
+                    // In dev, auto-fill code
+                    if (result.code) {
+                        document.getElementById('verifyCode').value = result.code;
+                        console.log('Dev mode - Code:', result.code);
+                    }
+
+                    // Focus the code input
+                    document.getElementById('verifyCode').focus();
+
+                    // Show "Send Another Code" button after 60 seconds
+                    setTimeout(() => {
+                        document.getElementById('resendCodeBtn').style.display = 'block';
+                    }, 60000);
+                } else {
+                    console.error('Failed:', result);
+                    alert('❌ Error: ' + (result.error || 'Failed to send magic link'));
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                alert('❌ Failed to send magic link: ' + error.message);
+            }
+        }
+
+        async function verifyCode() {
+            const code = document.getElementById('verifyCode').value;
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Store session
+                    localStorage.setItem('sessionToken', result.sessionToken);
+                    localStorage.setItem('coach', JSON.stringify(result.user));
+
+                    currentCoach = result.user;
+                    athletes = result.relationships || [];
+
+                    // Check if onboarding needed (name is still email prefix)
+                    const emailPrefix = currentCoach.email.split('@')[0];
+                    const needsOnboarding = currentCoach.name === emailPrefix;
+
+                    if (needsOnboarding) {
+                        showOnboarding();
+                    } else {
+                        showDashboard();
+                    }
+                }
+            } catch (error) {
+                console.error('Verify error:', error);
+                alert('Invalid code');
+            }
+        }
+
+        async function resendCode() {
+            const email = document.getElementById('coachEmail').value;
+
+            // Hide resend button temporarily
+            document.getElementById('resendCodeBtn').style.display = 'none';
+
+            // Send new code
+            await authenticate(email);
+        }
+
+        function showOnboarding() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('onboardingScreen').style.display = 'flex';
+            document.getElementById('coachName').focus();
+        }
+
+        async function completeOnboarding(name) {
+            try {
+                const response = await fetch('/api/auth/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionToken: localStorage.getItem('sessionToken'),
+                        name
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update stored coach info
+                    currentCoach = result.user;
+                    localStorage.setItem('coach', JSON.stringify(result.user));
+
+                    // Show dashboard
+                    document.getElementById('onboardingScreen').style.display = 'none';
+                    showDashboard();
+                } else {
+                    alert('Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Onboarding error:', error);
+                alert('Failed to complete onboarding');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('onboardingScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+
+            // Update header with coach name
+            document.getElementById('coachNameDisplay').textContent = currentCoach.name;
+
+            // Load first athlete if available
+            if (athletes.length > 0) {
+                loadAthlete(athletes[0].id);
+            } else {
+                showEmptyState();
+            }
+        }
+
+        async function loadAthlete(athleteId) {
+            currentAthlete = athletes.find(a => a.id === athleteId);
+            if (!currentAthlete) return;
+
+            // Update UI
+            const initials = currentAthlete.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('athleteAvatar').textContent = initials;
+            document.getElementById('athleteName').textContent = currentAthlete.name;
+
+            try {
+                // Load dashboard data
+                const response = await fetch(`/api/coach/athlete/${athleteId}/dashboard?coachId=${currentCoach.id}&days=90`);
+                const data = await response.json();
+
+                if (data.success) {
+                    dashboardData = data;
+
+                    // Check if athlete has any data
+                    const hasData = data.activities && data.activities.length > 0;
+
+                    if (!hasData) {
+                        showNoDataState();
+                    } else {
+                        updateDashboard(data);
+                    }
+                }
+            } catch (error) {
+                console.error('Load athlete error:', error);
+            }
+        }
+
+        function showNoDataState() {
+            // Show message in main content area
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 80px 40px; color: white;">
+                    <div style="font-size: 64px; margin-bottom: 24px; opacity: 0.5;">📊</div>
+                    <h2 style="font-size: 28px; margin-bottom: 16px; color: rgba(255,255,255,0.95);">No Data Available</h2>
+                    <p style="color: rgba(255,255,255,0.75); margin-bottom: 32px; font-size: 16px; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        ${currentAthlete.name} needs to connect their fitness devices to start tracking training data.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 600px; margin: 0 auto; text-align: left;">
+                        <h3 style="color: rgba(255,255,255,0.95); margin-bottom: 16px; font-size: 18px;">Supported Devices:</h3>
+                        <ul style="color: rgba(255,255,255,0.85); list-style: none; padding: 0; font-size: 15px; line-height: 2;">
+                            <li>🏃 <strong>Garmin Connect</strong> - Watches, bike computers</li>
+                            <li>💪 <strong>Whoop</strong> - Recovery & strain tracking</li>
+                            <li>💍 <strong>Oura</strong> - Sleep & readiness</li>
+                            <li>🚴 <strong>Strava</strong> - Activity sync</li>
+                        </ul>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.6); margin-top: 32px; font-size: 14px;">
+                        Once they connect a device, their training data will appear here automatically.
+                    </p>
+                </div>
+            `;
+        }
+
+        function updateDashboard(data) {
+            // Update metrics
+            updateMetrics(data.summary, data.trends);
+
+            // Update alerts
+            updateAlerts(data.alerts);
+
+            // Update charts
+            updateCharts(data);
+
+            // Update activities table
+            updateActivitiesTable(data.activities);
+        }
+
+        function updateMetrics(summary, trends) {
+            // CTL
+            document.getElementById('ctlValue').textContent = summary.currentCTL?.toFixed(1) || '--';
+
+            // ATL
+            document.getElementById('atlValue').textContent = summary.currentATL?.toFixed(1) || '--';
+
+            // TSB
+            const tsb = summary.currentTSB || 0;
+            document.getElementById('tsbValue').textContent = tsb.toFixed(1);
+
+            let tsbStatus = 'Optimal';
+            let tsbClass = '';
+            if (tsb < -30) {
+                tsbStatus = 'Very Fatigued';
+                tsbClass = 'alert';
+            } else if (tsb < -20) {
+                tsbStatus = 'Fatigued';
+            } else if (tsb > 10) {
+                tsbStatus = 'Fresh';
+            }
+            document.getElementById('tsbStatus').textContent = tsbStatus;
+            document.getElementById('tsbCard').className = `metric-card ${tsbClass}`;
+
+            // ACWR
+            const acwr = summary.currentATL && summary.currentCTL ?
+                (summary.currentATL / summary.currentCTL).toFixed(2) : '--';
+            document.getElementById('acwrValue').textContent = acwr;
+
+            let acwrStatus = 'Safe Zone';
+            let acwrClass = '';
+            if (acwr > 1.5) {
+                acwrStatus = 'High Risk';
+                acwrClass = 'alert';
+            } else if (acwr > 1.3) {
+                acwrStatus = 'Moderate Risk';
+            } else if (acwr < 0.8) {
+                acwrStatus = 'Undertraining';
+            }
+            document.getElementById('acwrStatus').textContent = acwrStatus;
+            document.getElementById('acwrCard').className = `metric-card ${acwrClass}`;
+        }
+
+        function updateAlerts(alerts) {
+            const panel = document.getElementById('alertsPanel');
+
+            if (!alerts || alerts.length === 0) {
+                panel.innerHTML = '<div style="text-align: center; color: #718096;">No alerts at this time</div>';
+                return;
+            }
+
+            panel.innerHTML = alerts.map(alert => `
+                <div class="alert-item alert-${alert.severity}">
+                    <div class="alert-header">
+                        <span class="alert-type">${alert.category}</span>
+                        <span class="alert-time">Now</span>
+                    </div>
+                    <div class="alert-message">${alert.message}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateCharts(data) {
+            // Create PMC Chart
+            createPMCChart(data.trainingSummaries);
+
+            // Create Zone Chart
+            createZoneChart(data.zones);
+
+            // Create Weekly Load Chart
+            createWeeklyLoadChart(data.trainingSummaries);
+        }
+
+        function createPMCChart(summaries) {
+            const ctx = document.getElementById('pmcChart').getContext('2d');
+
+            if (charts.pmc) charts.pmc.destroy();
+
+            const dates = summaries.map(s => s.weekStart);
+            const ctlData = summaries.map(s => s.ctl || 0);
+            const atlData = summaries.map(s => s.atl || 0);
+            const tsbData = summaries.map(s => s.tsb || 0);
+
+            charts.pmc = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Fitness (CTL)',
+                            data: ctlData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Fatigue (ATL)',
+                            data: atlData,
+                            borderColor: '#f56565',
+                            backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Form (TSB)',
+                            data: tsbData,
+                            borderColor: '#48bb78',
+                            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function createZoneChart(zones) {
+            const ctx = document.getElementById('zoneChart').getContext('2d');
+
+            if (charts.zone) charts.zone.destroy();
+
+            charts.zone = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'],
+                    datasets: [{
+                        data: [
+                            zones.zone1 || 0,
+                            zones.zone2 || 0,
+                            zones.zone3 || 0,
+                            zones.zone4 || 0,
+                            zones.zone5 || 0
+                        ],
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#8BC34A',
+                            '#FFC107',
+                            '#FF9800',
+                            '#F44336'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function createWeeklyLoadChart(summaries) {
+            const ctx = document.getElementById('weeklyLoadChart').getContext('2d');
+
+            if (charts.weeklyLoad) charts.weeklyLoad.destroy();
+
+            const weeks = summaries.slice(0, 8).reverse();
+            const labels = weeks.map(w => w.weekStart);
+            const minutes = weeks.map(w => w.minutes || 0);
+
+            charts.weeklyLoad = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Training Minutes',
+                        data: minutes,
+                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function updateActivitiesTable(activities) {
+            const tbody = document.getElementById('activitiesBody');
+
+            if (!activities || activities.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No activities found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = activities.slice(0, 10).map(activity => {
+                const duration = activity.duration ? `${Math.round(activity.duration / 60)}m` : '--';
+                const tss = activity.tss || '--';
+                const avgHr = activity.avgHeartRate || '--';
+                const intensityFactor = '--'; // Would calculate from power/pace
+                const efficiencyFactor = '--'; // Would calculate from HR/power relationship
+
+                return `
+                    <tr>
+                        <td>${new Date(activity.date).toLocaleDateString()}</td>
+                        <td>${activity.type || 'Activity'}</td>
+                        <td>${duration}</td>
+                        <td>${tss}</td>
+                        <td>${avgHr}</td>
+                        <td>${intensityFactor}</td>
+                        <td>${efficiencyFactor}</td>
+                        <td>--</td>
+                        <td>
+                            <button class="btn btn-ghost" onclick="addNote('${activity.id}')">
+                                Add Note
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showEmptyState() {
+            document.getElementById('athleteName').textContent = 'No Athletes';
+            document.getElementById('athleteStatus').textContent = 'Invite athletes to get started';
+
+            // Show empty state in main area
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <h2 style="margin-bottom: 20px; color: white;">Welcome to Athlytx Elite</h2>
+                    <p style="color: rgba(255,255,255,0.85); margin-bottom: 30px;">
+                        Start by inviting your athletes to connect their fitness devices.
+                    </p>
+                    <button class="btn btn-primary" onclick="inviteAthlete()">
+                        Invite Your First Athlete
+                    </button>
+                </div>
+            `;
+        }
+
+        function inviteAthlete() {
+            // Reset form
+            document.getElementById('inviteEmail').value = '';
+            document.getElementById('inviteMessage').value = '';
+            document.getElementById('inviteError').style.display = 'none';
+            document.getElementById('inviteSuccess').style.display = 'none';
+
+            // Show modal
+            document.getElementById('inviteModal').classList.add('active');
+            document.getElementById('inviteEmail').focus();
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').classList.remove('active');
+        }
+
+        async function sendInvite() {
+            const email = document.getElementById('inviteEmail').value.trim();
+            const message = document.getElementById('inviteMessage').value.trim();
+            const errorDiv = document.getElementById('inviteError');
+            const successDiv = document.getElementById('inviteSuccess');
+            const sendBtn = document.getElementById('sendInviteBtn');
+
+            // Hide previous messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Validate email
+            if (!email) {
+                errorDiv.textContent = 'Please enter an athlete email address';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Disable button and show loading
+            sendBtn.disabled = true;
+            document.getElementById('sendInviteBtnText').textContent = 'Sending...';
+
+            try {
+                console.log('Sending invite to:', email);
+                const response = await fetch('/api/auth/invite-athlete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coachId: currentCoach.id,
+                        athleteEmail: email,
+                        message: message || `${currentCoach.name} has invited you to join Athlytx for advanced training analytics.`
+                    })
+                });
+
+                const result = await response.json();
+                console.log('Invite response:', result);
+
+                if (result.success) {
+                    successDiv.textContent = `✅ Invitation sent to ${email}! They'll receive an email with instructions.`;
+                    successDiv.style.display = 'block';
+
+                    // Close modal after 2 seconds
+                    setTimeout(() => {
+                        closeInviteModal();
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = result.error || 'Failed to send invitation';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Invite error:', error);
+                errorDiv.textContent = 'Failed to send invitation: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                // Re-enable button
+                sendBtn.disabled = false;
+                document.getElementById('sendInviteBtnText').textContent = 'Send Invitation';
+            }
+        }
+
+        function addNote(activityId) {
+            document.getElementById('noteModal').classList.add('active');
+            document.getElementById('noteModal').dataset.activityId = activityId;
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.remove('active');
+        }
+
+        async function saveNote() {
+            const activityId = document.getElementById('noteModal').dataset.activityId;
+            const type = document.getElementById('noteType').value;
+            const note = document.getElementById('noteText').value;
+
+            if (!note) return;
+
+            try {
+                const response = await fetch(`/api/coach/athlete/${currentAthlete.id}/note`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coachId: currentCoach.id,
+                        sessionToken: localStorage.getItem('sessionToken'),
+                        activityId,
+                        type,
+                        note,
+                        date: new Date()
+                    })
+                });
+
+                if (response.ok) {
+                    closeNoteModal();
+                    document.getElementById('noteText').value = '';
+                }
+            } catch (error) {
+                console.error('Save note error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for existing session
+            const sessionToken = localStorage.getItem('sessionToken');
+            const coach = localStorage.getItem('coach');
+
+            if (sessionToken && coach) {
+                currentCoach = JSON.parse(coach);
+                console.log('[SESSION] Found stored session for:', currentCoach.email);
+                console.log('[SESSION] Session token:', sessionToken.substring(0, 20) + '...');
+
+                // Validate session
+                fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken })
+                })
+                .then(r => {
+                    console.log('[SESSION] Response status:', r.status);
+
+                    // Check if it's a 401 (invalid session) - clear localStorage
+                    if (r.status === 401) {
+                        console.warn('[SESSION] ❌ 401 Invalid session - clearing localStorage');
+                        localStorage.clear();
+                        return null;
+                    }
+
+                    // For other errors, keep localStorage but show auth
+                    if (!r.ok) {
+                        console.error('[SESSION] ❌ Server error:', r.status, '- keeping localStorage, showing login');
+                        return null;
+                    }
+
+                    return r.json();
+                })
+                .then(result => {
+                    if (!result) {
+                        // Error occurred, auth screen is already showing
+                        return;
+                    }
+
+                    console.log('[SESSION] Response:', result);
+                    if (result.success) {
+                        console.log('[SESSION] ✅ Valid! Loading dashboard...');
+                        currentCoach = result.user;
+                        athletes = result.relationships || [];
+                        showDashboard();
+                    } else {
+                        console.warn('[SESSION] ❌ Invalid response:', result.error);
+                        console.warn('[SESSION] Clearing localStorage');
+                        localStorage.clear();
+                    }
+                })
+                .catch(error => {
+                    console.error('[SESSION] ❌ Network/fetch error:', error);
+                    console.error('[SESSION] Keeping localStorage, auth screen visible');
+                    // Auth screen is already visible, user can try to login again
+                });
+            } else {
+                console.log('[SESSION] No stored session found');
+            }
+
+            // Auth form handler
+            document.getElementById('authForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('coachEmail').value;
+                authenticate(email);
+            });
+
+            // Onboarding form handler
+            document.getElementById('onboardingForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('coachName').value.trim();
+                if (name) {
+                    completeOnboarding(name);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

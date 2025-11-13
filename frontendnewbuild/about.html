@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Athlytx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .logo {
+            height: 100px;
+            margin-bottom: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .content-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .section-subtitle {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 30px 0 20px 0;
+            color: #667eea;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .content-text {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .feature-description {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+        
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .score-component {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .component-weight {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .component-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .component-description {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .founder-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            margin: 40px 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .founder-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+        
+        .founder-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .founder-title {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+        }
+        
+        .founder-quote {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: rgba(255,255,255,0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            margin-top: 40px;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .highlight-box {
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.4);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .device-logos {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .device-logo {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .device-logo:hover {
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .tagline {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .content-section {
+                padding: 25px;
+            }
+            
+            .founder-section {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="logo">
+            <div class="tagline">Where All Your Fitness Data Makes Sense</div>
+            <div class="subtitle">One unified score. Infinite possibilities.</div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🎯 Our Mission</div>
+            <p class="content-text">
+                Athlytx transforms the chaos of multi-device fitness tracking into crystal-clear insights. We believe athletes shouldn't need a PhD in data science to understand their own performance. That's why we created a single, meaningful score that combines all your metrics into actionable intelligence.
+            </p>
+            
+            <div class="highlight-box">
+                <strong>The Problem:</strong> You have incredible devices from Strava, Garmin, Oura, and Whoop, each providing amazing data. But how do you make sense of it all? How do you know if you're ready to train hard or need to recover?
+                <br><br>
+                <strong>Our Solution:</strong> The Athlytx Score - a unified 0-100 metric that answers the most important question: "How ready am I to perform today?"
+            </div>
+        </div>
+
+        <div class="founder-section">
+            <div class="founder-photo">🏃‍♂️</div>
+            <div class="founder-name">Darren Zwiers</div>
+            <div class="founder-title">Founder & Geeky Athlete</div>
+            <div class="founder-quote">
+                "As an athlete with multiple tracking devices, I was drowning in data but starving for insights. Strava told me one thing, Oura another, Garmin something else. I needed a platform that could see the big picture - not to replace these incredible apps, but to help them work together. Athlytx is where all the magic comes together."
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🧮 How We Calculate Your Score</div>
+            <p class="content-text">
+                The Athlytx Score is a scientifically-weighted combination of your most important fitness metrics, calculated over the past 7 days to give you a current snapshot of your readiness.
+            </p>
+            
+            <div class="score-breakdown">
+                <div class="score-component">
+                    <span class="component-weight">25%</span>
+                    <div class="component-name">Recovery</div>
+                    <div class="component-description">Oura readiness score reflecting your body's overall recovery state</div>
+                </div>
+                
+                <div class="score-component">
+                    <span class="component-weight">20%</span>
+                    <div class="component-name">HRV</div>
+                    <div class="component-description">Heart rate variability from sleep data, indicating autonomic nervous system recovery</div>
+                </div>
+                
+                <div class="score-component">
+                    <span class="component-weight">20%</span>
+                    <div class="component-name">Sleep Quality</div>
+                    <div class="component-description">Sleep score combining duration, efficiency, and sleep stages</div>
+                </div>
+                
+                <div class="score-component">
+                    <span class="component-weight">20%</span>
+                    <div class="component-name">Training Load</div>
+                    <div class="component-description">Inverted training stress from Strava activities (lower load = higher score)</div>
+                </div>
+                
+                <div class="score-component">
+                    <span class="component-weight">15%</span>
+                    <div class="component-name">Resting HR</div>
+                    <div class="component-description">Cardiovascular efficiency indicator (lower RHR = higher score)</div>
+                </div>
+            </div>
+            
+            <div class="section-subtitle">🧠 Score Interpretation</div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🔋</span>
+                    <div class="feature-title">80-100: Peak Condition</div>
+                    <div class="feature-description">You're firing on all cylinders! Great recovery, optimal training load, excellent sleep. Time to capitalize on your fitness.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚖️</span>
+                    <div class="feature-title">60-79: Balanced State</div>
+                    <div class="feature-description">Good balance between stress and recovery. Monitor trends and adjust training intensity as needed.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚠️</span>
+                    <div class="feature-title">40-59: Recovery Needed</div>
+                    <div class="feature-description">Multiple metrics suggest fatigue is building. Consider reducing intensity and prioritizing recovery.</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔴</span>
+                    <div class="feature-title">0-39: High Fatigue Risk</div>
+                    <div class="feature-description">Your body is telling you to rest. Listen to it. Focus on sleep, nutrition, and easy recovery activities.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🔗 Supported Platforms</div>
+            <p class="content-text">
+                Athlytx integrates with the best fitness platforms in the world, respecting their individual strengths while creating unified insights.
+            </p>
+            
+            <div class="device-logos">
+                <div class="device-logo" style="background: #FC4C02; color: white;">STRAVA</div>
+                <div class="device-logo" style="background: #B45CF3; color: white;">OURA</div>
+                <div class="device-logo" style="background: #007CC3; color: white;">GARMIN</div>
+                <div class="device-logo" style="background: #FF6B35; color: white;">WHOOP</div>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🏃</span>
+                    <div class="feature-title">Strava</div>
+                    <div class="feature-description">Training load analysis from your activities, suffer scores, and performance metrics</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">💍</span>
+                    <div class="feature-title">Oura Ring</div>
+                    <div class="feature-description">Sleep quality, readiness scores, HRV trends, and recovery insights</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⌚</span>
+                    <div class="feature-title">Garmin</div>
+                    <div class="feature-description">Body Battery, stress metrics, VO2 max, and comprehensive wellness data</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">💪</span>
+                    <div class="feature-title">Whoop</div>
+                    <div class="feature-description">Strain vs recovery balance, sleep performance, and daily optimization recommendations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🔒 Privacy & Data Philosophy</div>
+            <p class="content-text">
+                Your data is yours. We built Athlytx with a "read and analyze" philosophy - we access your fitness data in real-time for analysis but never store it on our servers.
+            </p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <div class="feature-title">Real-Time Analysis</div>
+                    <div class="feature-description">Data is fetched and analyzed on-demand, ensuring fresh insights without permanent storage</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <div class="feature-title">Zero Data Storage</div>
+                    <div class="feature-description">Your fitness data never leaves the original platforms - we just read and analyze</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔑</span>
+                    <div class="feature-title">You Control Access</div>
+                    <div class="feature-description">Connect and disconnect devices anytime through your original platform settings</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🌐</span>
+                    <div class="feature-title">Open & Transparent</div>
+                    <div class="feature-description">See exactly what data we access and how your score is calculated</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🚀 Why Athlytx?</div>
+            
+            <div class="section-subtitle">🎯 For the Data-Driven Athlete</div>
+            <p class="content-text">
+                You've invested in the best tracking technology available. Strava knows your training, Oura understands your recovery, Garmin tracks your wellness, Whoop monitors your strain. Each platform excels in its domain, but the magic happens when they work together.
+            </p>
+            
+            <div class="section-subtitle">⚡ One Score, Endless Insights</div>
+            <p class="content-text">
+                Instead of juggling multiple apps and trying to mentally correlate different metrics, Athlytx gives you a single, actionable score. Wake up, check your Athlytx Score, and immediately know: "Am I ready to crush today's workout, or should I focus on recovery?"
+            </p>
+            
+            <div class="section-subtitle">🔬 Science-Based Approach</div>
+            <p class="content-text">
+                Our scoring algorithm is built on sports science principles, weighting each metric based on its impact on performance and recovery. We normalize data across platforms and provide context that helps you make better training decisions.
+            </p>
+            
+            <div class="highlight-box">
+                <strong>🎖️ Built by Athletes, for Athletes:</strong> Athlytx isn't just another analytics platform - it's the tool we wished existed when we were drowning in data but thirsting for insights. We respect your individual devices while creating something greater than the sum of its parts.
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">🔮 The Future of Fitness Analytics</div>
+            <p class="content-text">
+                We're just getting started. Athlytx will continue evolving with AI-powered insights, predictive analytics, and deeper integrations. Our goal is simple: help you train smarter, recover better, and perform at your peak.
+            </p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🤖</span>
+                    <div class="feature-title">AI Coaching</div>
+                    <div class="feature-description">Personalized recommendations based on your unique patterns and goals</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">📈</span>
+                    <div class="feature-title">Predictive Analytics</div>
+                    <div class="feature-description">Forecast your performance and recovery needs before you feel them</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <div class="feature-title">Goal Optimization</div>
+                    <div class="feature-description">Training periodization based on your multi-platform data</div>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">👥</span>
+                    <div class="feature-title">Community Insights</div>
+                    <div class="feature-description">Anonymous benchmarking against similar athletes (coming soon)</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 60px;">
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

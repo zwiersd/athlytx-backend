@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Athlytx Elite</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* Auth Page Container */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            background-attachment: fixed;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(118, 75, 162, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(240, 147, 251, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(102, 126, 234, 0.1) 0px, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 480px;
+            animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo & Branding */
+        .auth-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .auth-logo-text {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .auth-tagline {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow:
+                0 0 1px rgba(0, 0, 0, 0.1),
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.4s ease-out 0.1s both;
+        }
+
+        /* Form Styles */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-step {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-field:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .input-field:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .input-field:autofill {
+            -webkit-autofill;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.95);
+            -webkit-box-shadow: inset 0 0 0px 1000px rgba(255, 255, 255, 0.08);
+        }
+
+        /* Code Input Grid */
+        .code-input-group {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .code-digit {
+            aspect-ratio: 1 / 1;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            box-shadow:
+                0 4px 15px rgba(102, 126, 234, 0.3),
+                inset 0 1px 0px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow:
+                0 6px 20px rgba(102, 126, 234, 0.4),
+                inset 0 1px 0px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow:
+                0 2px 8px rgba(102, 126, 234, 0.2),
+                inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.95);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-ghost:active:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-ghost:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 16px;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .btn-loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Status Message */
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: fadeInDown 0.3s ease-out;
+            border: 1px solid;
+        }
+
+        .status-message.show {
+            display: flex;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: rgba(16, 185, 129, 0.9);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: rgba(239, 68, 68, 0.9);
+        }
+
+        /* Text Utilities */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-sm {
+            font-size: 14px;
+        }
+
+        .text-xs {
+            font-size: 12px;
+        }
+
+        .mt-6 {
+            margin-top: 24px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Divider Text */
+        .divider-text {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .divider-text::before,
+        .divider-text::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .auth-page {
+                padding: 16px;
+            }
+
+            .auth-card {
+                max-width: 100%;
+            }
+
+            .glass-card {
+                padding: 24px;
+            }
+
+            .auth-logo-text {
+                font-size: 24px;
+            }
+
+            .code-input-group {
+                gap: 6px;
+            }
+
+            .code-digit {
+                font-size: 20px;
+            }
+        }
+
+        /* Dark mode support (system preference) */
+        @media (prefers-color-scheme: dark) {
+            /* Already styled for dark by default */
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <!-- Logo & Branding -->
+            <div class="auth-logo">
+                <div class="auth-logo-text">ATHLYTX ELITE</div>
+                <div class="auth-tagline">Performance Analytics Platform</div>
+            </div>
+
+            <!-- Main Card -->
+            <div class="glass-card">
+                <!-- Status Messages -->
+                <div id="statusMessage" class="status-message"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form">
+                    <!-- Step 1: Email Input -->
+                    <div id="emailStep" class="form-step active">
+                        <div class="input-group">
+                            <label class="input-label" for="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="input-field"
+                                placeholder="athlete@example.com"
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-full" id="sendCodeBtn">
+                            Send Login Code
+                        </button>
+
+                        <p class="text-center text-xs" style="color: rgba(255, 255, 255, 0.6); margin: 0;">
+                            We'll send a 6-digit code to your email
+                        </p>
+                    </div>
+
+                    <!-- Step 2: Code Verification -->
+                    <div id="codeStep" class="form-step">
+                        <div class="input-group">
+                            <label class="input-label">Enter 6-Digit Code</label>
+                            <p class="text-xs mb-4" style="color: rgba(255, 255, 255, 0.6); margin: 0 0 16px 0;">
+                                Code sent to <span id="emailDisplay" style="color: rgba(255, 255, 255, 0.8); font-weight: 500;"></span>
+                            </p>
+                            <div class="code-input-group">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="0" autocomplete="off" inputmode="numeric">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="1" autocomplete="off" inputmode="numeric">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="2" autocomplete="off" inputmode="numeric">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="3" autocomplete="off" inputmode="numeric">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="4" autocomplete="off" inputmode="numeric">
+                                <input type="text" maxlength="1" class="input-field code-digit" data-index="5" autocomplete="off" inputmode="numeric">
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary btn-lg w-full" id="verifyCodeBtn">
+                            Verify & Login
+                        </button>
+
+                        <button type="button" class="btn btn-ghost w-full" id="backToEmailBtn">
+                            Use different email
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer Info -->
+            <p class="text-center mt-6 text-xs" style="color: rgba(255, 255, 255, 0.5); margin: 24px 0 0 0;">
+                Secure passwordless authentication
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentEmail = '';
+        let sessionToken = '';
+
+        // DOM Elements
+        const emailStep = document.getElementById('emailStep');
+        const codeStep = document.getElementById('codeStep');
+        const emailInput = document.getElementById('email');
+        const emailDisplay = document.getElementById('emailDisplay');
+        const sendCodeBtn = document.getElementById('sendCodeBtn');
+        const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+        const backToEmailBtn = document.getElementById('backToEmailBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const codeInputs = document.querySelectorAll('.code-digit');
+
+        // Show status message
+        function showStatus(message, type = 'success') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show status-${type}`;
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Set loading state
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+            }
+        }
+
+        // Step 1: Send magic link
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim().toLowerCase();
+            if (!email) {
+                showStatus('Please enter your email address', 'error');
+                return;
+            }
+
+            currentEmail = email;
+            setLoading(sendCodeBtn, true);
+
+            try {
+                const response = await fetch('/api/auth/magic-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, role: 'athlete' })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Login code sent! Check your email.', 'success');
+                    emailDisplay.textContent = email;
+
+                    // Switch to code step
+                    emailStep.classList.remove('active');
+                    codeStep.classList.add('active');
+
+                    // Focus first code input
+                    codeInputs[0].focus();
+                } else {
+                    showStatus(data.error || 'Failed to send code', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showStatus('Network error. Please try again.', 'error');
+            } finally {
+                setLoading(sendCodeBtn, false);
+            }
+        });
+
+        // Code input handling
+        codeInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+
+                // Only allow digits
+                if (!/^\d*$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Move to next input
+                if (value && index < codeInputs.length - 1) {
+                    codeInputs[index + 1].focus();
+                }
+
+                // Auto-verify when all 6 digits entered
+                const code = Array.from(codeInputs).map(i => i.value).join('');
+                if (code.length === 6) {
+                    verifyCode();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    codeInputs[index - 1].focus();
+                }
+            });
+
+            // Handle paste
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').trim();
+                if (/^\d{6}$/.test(pastedData)) {
+                    pastedData.split('').forEach((digit, i) => {
+                        if (codeInputs[i]) codeInputs[i].value = digit;
+                    });
+                    verifyCode();
+                }
+            });
+        });
+
+        // Step 2: Verify code
+        async function verifyCode() {
+            const code = Array.from(codeInputs).map(i => i.value).join('');
+
+            if (code.length !== 6) {
+                showStatus('Please enter all 6 digits', 'error');
+                return;
+            }
+
+            setLoading(verifyCodeBtn, true);
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Login successful!', 'success');
+
+                    // Store session token
+                    localStorage.setItem('sessionToken', data.sessionToken);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.name);
+                    localStorage.setItem('userRole', data.user.role);
+
+                    // Redirect based on response
+                    setTimeout(() => {
+                        if (data.needsOnboarding) {
+                            window.location.href = '/frontend/athlete-onboarding.html';
+                        } else if (data.pendingInvites && data.pendingInvites.length > 0) {
+                            window.location.href = `/frontend/invite-accept.html?token=${data.pendingInvites[0].inviteToken}`;
+                        } else {
+                            // Redirect based on role
+                            window.location.href = data.redirectTo || (data.user.role === 'coach' ? '/coach/dashboard' : '/athlete/dashboard');
+                        }
+                    }, 1000);
+                } else {
+                    showStatus(data.error || 'Invalid code', 'error');
+                    // Clear code inputs on error
+                    codeInputs.forEach(input => input.value = '');
+                    codeInputs[0].focus();
+                }
+            } catch (error) {
+                console.error('Verify error:', error);
+                showStatus('Network error. Please try again.', 'error');
+            } finally {
+                setLoading(verifyCodeBtn, false);
+            }
+        }
+
+        verifyCodeBtn.addEventListener('click', verifyCode);
+
+        // Back to email
+        backToEmailBtn.addEventListener('click', () => {
+            codeStep.classList.remove('active');
+            emailStep.classList.add('active');
+            codeInputs.forEach(input => input.value = '');
+            emailInput.focus();
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('sessionToken');
+            if (token) {
+                try {
+                    const response = await fetch('/api/auth/session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionToken: token })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Already logged in, redirect
+                        window.location.href = data.redirectTo || '/athlete/dashboard';
+                    }
+                } catch (error) {
+                    console.log('Not logged in or session expired');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

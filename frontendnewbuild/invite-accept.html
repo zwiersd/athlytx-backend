@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accept Invitation - Athlytx Elite</title>
+
+    <!-- Design System Stylesheets -->
+    <link rel="stylesheet" href="/styles/design-tokens.css?v=1731513000">
+    <link rel="stylesheet" href="/styles/components.css?v=1731513000">
+    <link rel="stylesheet" href="/styles/layout.css?v=1731513000">
+
+    <style>
+        /* Invite Page Specific Styles */
+        .invite-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(118, 75, 162, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(240, 147, 251, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(102, 126, 234, 0.1) 0px, transparent 50%);
+            padding: var(--space-6);
+        }
+
+        .invite-container {
+            width: 100%;
+            max-width: 600px;
+            animation: fadeInUp 0.6s var(--ease-spring);
+        }
+
+        .invite-hero {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .invite-title {
+            font-size: var(--text-3xl);
+            font-weight: var(--weight-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+            line-height: var(--leading-tight);
+        }
+
+        .coach-highlight {
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .invite-subtitle {
+            font-size: var(--text-lg);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .connection-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-6);
+            margin: var(--space-8) 0;
+        }
+
+        .connection-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .connection-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-full);
+            background: var(--glass-3);
+            border: 2px solid var(--border-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-2xl);
+            font-weight: var(--weight-bold);
+            color: var(--color-primary);
+        }
+
+        .connection-arrow {
+            font-size: var(--text-3xl);
+            color: var(--color-primary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .connection-label {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wider);
+        }
+
+        .connection-name {
+            font-size: var(--text-base);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+        }
+
+        .invite-details {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-4);
+            background: var(--glass-1);
+            border-radius: var(--radius-lg);
+        }
+
+        .detail-label {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            font-weight: var(--weight-medium);
+        }
+
+        .detail-value {
+            font-size: var(--text-base);
+            color: var(--text-primary);
+            font-weight: var(--weight-medium);
+        }
+
+        .invite-message-box {
+            padding: var(--space-5);
+            background: var(--glass-2);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius-lg);
+            margin-top: var(--space-4);
+        }
+
+        .message-label {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wider);
+            margin-bottom: var(--space-2);
+        }
+
+        .message-text {
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+            font-style: italic;
+        }
+
+        .status-message {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            font-size: var(--text-sm);
+            display: none;
+            animation: fadeInDown 0.3s var(--ease-out);
+            margin-bottom: var(--space-4);
+        }
+
+        .status-message.show {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .status-success {
+            background: var(--color-success-bg);
+            border: 1px solid var(--color-success);
+            color: var(--color-success);
+        }
+
+        .status-error {
+            background: var(--color-error-bg);
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-6);
+            padding: var(--space-12);
+        }
+
+        @media (max-width: 640px) {
+            .invite-title {
+                font-size: var(--text-2xl);
+            }
+
+            .connection-visual {
+                flex-direction: column;
+                gap: var(--space-4);
+            }
+
+            .connection-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invite-page">
+        <div class="invite-container">
+            <!-- Loading State -->
+            <div id="loadingState" class="glass-card loading-container">
+                <div class="spinner"></div>
+                <p style="color: var(--text-secondary);">Loading invitation...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="glass-card" style="display: none;">
+                <div style="text-align: center; padding: var(--space-8);">
+                    <div style="font-size: 4rem; margin-bottom: var(--space-4);">⚠️</div>
+                    <h2 style="font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--text-primary); margin-bottom: var(--space-3);">
+                        Invalid Invitation
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">
+                        This invitation link is invalid or has expired.
+                    </p>
+                    <a href="/frontend/login.html" class="btn btn-primary">
+                        Go to Login
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="inviteContent" style="display: none;">
+                <!-- Hero Section -->
+                <div class="invite-hero">
+                    <h1 class="invite-title">
+                        <span class="coach-highlight" id="coachName">Coach</span> invited you to
+                        <br>Athlytx Elite
+                    </h1>
+                    <p class="invite-subtitle">
+                        Join your coach's elite performance analytics platform
+                    </p>
+                </div>
+
+                <!-- Connection Visual -->
+                <div class="connection-visual">
+                    <div class="connection-node">
+                        <div class="connection-avatar" id="coachAvatar">C</div>
+                        <div class="connection-label">Coach</div>
+                        <div class="connection-name" id="coachNameBottom">Loading...</div>
+                    </div>
+                    <div class="connection-arrow">→</div>
+                    <div class="connection-node">
+                        <div class="connection-avatar" id="athleteAvatar">A</div>
+                        <div class="connection-label">You (Athlete)</div>
+                        <div class="connection-name" id="athleteEmail">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Invitation Card -->
+                <div class="glass-card">
+                    <div id="statusMessage" class="status-message"></div>
+
+                    <div class="invite-details">
+                        <div class="detail-row">
+                            <span class="detail-label">From Coach</span>
+                            <span class="detail-value" id="coachEmailDisplay">Loading...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Your Email</span>
+                            <span class="detail-value" id="athleteEmailDisplay">Loading...</span>
+                        </div>
+                    </div>
+
+                    <!-- Custom Message (if provided) -->
+                    <div id="inviteMessageBox" class="invite-message-box" style="display: none;">
+                        <div class="message-label">Personal Message</div>
+                        <p class="message-text" id="inviteMessageText"></p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="margin-top: var(--space-8); display: flex; flex-direction: column; gap: var(--space-3);">
+                        <!-- Shown if not authenticated -->
+                        <button id="getStartedBtn" class="btn btn-primary btn-xl w-full" style="display: none;">
+                            Get Started
+                        </button>
+
+                        <!-- Shown if authenticated -->
+                        <button id="acceptInviteBtn" class="btn btn-primary btn-xl w-full" style="display: none;">
+                            Accept Invitation
+                        </button>
+
+                        <p class="text-center" style="color: var(--text-tertiary); font-size: var(--text-xs);">
+                            By accepting, you agree to share training data with your coach
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let inviteToken = '';
+        let inviteData = null;
+        let sessionToken = localStorage.getItem('sessionToken');
+        let isAuthenticated = false;
+
+        // DOM Elements
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const inviteContent = document.getElementById('inviteContent');
+        const statusMessage = document.getElementById('statusMessage');
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const acceptInviteBtn = document.getElementById('acceptInviteBtn');
+
+        // Show status message
+        function showStatus(message, type = 'success') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show status-${type}`;
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Set loading state
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+            }
+        }
+
+        // Get invite token from URL
+        function getInviteToken() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('token');
+        }
+
+        // Get initials for avatar
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        // Fetch invitation details
+        async function fetchInvitationDetails() {
+            inviteToken = getInviteToken();
+
+            if (!inviteToken) {
+                showError();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/invite/details?token=${inviteToken}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    inviteData = data;
+                    renderInvitation();
+
+                    // Check if user is authenticated
+                    if (sessionToken) {
+                        await checkAuthentication();
+                    } else {
+                        // Not authenticated - show "Get Started" button
+                        getStartedBtn.style.display = 'block';
+                    }
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error('Error fetching invitation:', error);
+                showError();
+            }
+        }
+
+        // Check if user is authenticated
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    isAuthenticated = true;
+
+                    // Check if logged-in user matches invited athlete email
+                    if (data.user.email.toLowerCase() === inviteData.athlete.email.toLowerCase()) {
+                        acceptInviteBtn.style.display = 'block';
+                    } else {
+                        showStatus('Please log in with the invited email address', 'error');
+                        getStartedBtn.style.display = 'block';
+                    }
+                } else {
+                    // Invalid session - show get started
+                    localStorage.removeItem('sessionToken');
+                    sessionToken = null;
+                    getStartedBtn.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Session check error:', error);
+                getStartedBtn.style.display = 'block';
+            }
+        }
+
+        // Render invitation details
+        function renderInvitation() {
+            // Coach details
+            document.getElementById('coachName').textContent = inviteData.coach.name;
+            document.getElementById('coachNameBottom').textContent = inviteData.coach.name;
+            document.getElementById('coachEmailDisplay').textContent = inviteData.coach.email;
+            document.getElementById('coachAvatar').textContent = getInitials(inviteData.coach.name);
+
+            // Athlete details
+            document.getElementById('athleteEmail').textContent = inviteData.athlete.email;
+            document.getElementById('athleteEmailDisplay').textContent = inviteData.athlete.email;
+            document.getElementById('athleteAvatar').textContent = getInitials(inviteData.athlete.email.split('@')[0]);
+
+            // Custom message
+            if (inviteData.inviteMessage) {
+                document.getElementById('inviteMessageBox').style.display = 'block';
+                document.getElementById('inviteMessageText').textContent = inviteData.inviteMessage;
+            }
+
+            // Show content
+            loadingState.style.display = 'none';
+            inviteContent.style.display = 'block';
+        }
+
+        // Show error state
+        function showError() {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'block';
+        }
+
+        // Get Started (redirect to login)
+        getStartedBtn.addEventListener('click', () => {
+            // Store invite token for after login
+            localStorage.setItem('pendingInviteToken', inviteToken);
+            window.location.href = '/frontend/login.html';
+        });
+
+        // Accept Invitation
+        acceptInviteBtn.addEventListener('click', async () => {
+            setLoading(acceptInviteBtn, true);
+
+            try {
+                const response = await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken })
+                });
+
+                if (!response.ok) {
+                    showStatus('Session expired. Please log in again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/frontend/login.html';
+                    }, 2000);
+                    return;
+                }
+
+                const sessionData = await response.json();
+                const athleteId = sessionData.user.id;
+
+                // Accept the invitation
+                const acceptResponse = await fetch('/api/auth/invite/accept', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        athleteId,
+                        inviteToken,
+                        sessionToken
+                    })
+                });
+
+                const acceptData = await acceptResponse.json();
+
+                if (acceptResponse.ok) {
+                    showStatus('Invitation accepted successfully!', 'success');
+
+                    // Clear pending invite token
+                    localStorage.removeItem('pendingInviteToken');
+
+                    // Redirect after success
+                    setTimeout(() => {
+                        // Check if onboarding needed
+                        if (!sessionData.user.onboarded) {
+                            window.location.href = '/frontend/athlete-onboarding.html';
+                        } else {
+                            window.location.href = '/athlete/dashboard';
+                        }
+                    }, 1500);
+                } else {
+                    showStatus(acceptData.error || 'Failed to accept invitation', 'error');
+                }
+            } catch (error) {
+                console.error('Accept error:', error);
+                showStatus('Network error. Please try again.', 'error');
+            } finally {
+                setLoading(acceptInviteBtn, false);
+            }
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', fetchInvitationDetails);
+    </script>
+</body>
+</html>

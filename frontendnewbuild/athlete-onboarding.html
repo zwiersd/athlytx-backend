@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Onboarding - Athlytx Elite</title>
+
+    <!-- Design System Stylesheets -->
+    <link rel="stylesheet" href="/styles/design-tokens.css?v=1731513000">
+    <link rel="stylesheet" href="/styles/components.css?v=1731513000">
+    <link rel="stylesheet" href="/styles/layout.css?v=1731513000">
+
+    <style>
+        /* Onboarding Page Specific Styles */
+        .onboarding-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(118, 75, 162, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(240, 147, 251, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(102, 126, 234, 0.1) 0px, transparent 50%);
+            padding: var(--space-6);
+        }
+
+        .onboarding-container {
+            width: 100%;
+            max-width: 640px;
+            animation: fadeInUp 0.6s var(--ease-spring);
+        }
+
+        /* Progress Indicator */
+        .progress-section {
+            margin-bottom: var(--space-8);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--glass-3);
+            border: 2px solid var(--border-2);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .step-dot.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            transform: scale(1.3);
+        }
+
+        .step-dot.completed {
+            background: var(--color-success);
+            border-color: var(--color-success);
+        }
+
+        .step-label {
+            text-align: center;
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--glass-2);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-full);
+            transition: width 0.5s var(--ease-out);
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Step Content */
+        .step-content {
+            display: none;
+            animation: fadeInUp 0.4s var(--ease-out);
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .step-title {
+            font-size: var(--text-3xl);
+            font-weight: var(--weight-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+            line-height: var(--leading-tight);
+        }
+
+        .step-subtitle {
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+        }
+
+        .device-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-6);
+            background: var(--glass-2);
+            border: 1px solid var(--border-1);
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .device-card:hover {
+            background: var(--glass-3);
+            border-color: var(--border-2);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .device-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .device-name {
+            font-size: var(--text-base);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+        }
+
+        .terms-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: var(--space-5);
+            background: var(--glass-1);
+            border: 1px solid var(--border-1);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-6);
+        }
+
+        .terms-text {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .terms-text h3 {
+            font-size: var(--text-lg);
+            font-weight: var(--weight-semibold);
+            color: var(--text-primary);
+            margin-top: var(--space-6);
+            margin-bottom: var(--space-3);
+        }
+
+        .terms-text h3:first-child {
+            margin-top: 0;
+        }
+
+        .terms-text p {
+            margin-bottom: var(--space-4);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            padding: var(--space-4);
+            background: var(--glass-2);
+            border: 1px solid var(--border-1);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .checkbox-group:hover {
+            background: var(--glass-3);
+            border-color: var(--border-2);
+        }
+
+        .checkbox-input {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .checkbox-label {
+            flex: 1;
+            font-size: var(--text-base);
+            color: var(--text-primary);
+            line-height: var(--leading-relaxed);
+            cursor: pointer;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+        }
+
+        .status-message {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            font-size: var(--text-sm);
+            display: none;
+            animation: fadeInDown 0.3s var(--ease-out);
+            margin-bottom: var(--space-4);
+        }
+
+        .status-message.show {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .status-error {
+            background: var(--color-error-bg);
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+        }
+
+        @media (max-width: 640px) {
+            .step-title {
+                font-size: var(--text-2xl);
+            }
+
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column-reverse;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-page">
+        <div class="onboarding-container">
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="step-label">Step <span id="currentStepLabel">1</span> of 4</div>
+                <div class="step-indicator">
+                    <div class="step-dot active" data-step="1"></div>
+                    <div class="step-dot" data-step="2"></div>
+                    <div class="step-dot" data-step="3"></div>
+                    <div class="step-dot" data-step="4"></div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" id="progressBar" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <!-- Main Card -->
+            <div class="glass-card">
+                <div id="statusMessage" class="status-message"></div>
+
+                <!-- Step 1: Welcome -->
+                <div id="step1" class="step-content active">
+                    <div class="step-header">
+                        <h1 class="step-title">Welcome to <span class="text-gradient-brand">Athlytx Elite</span></h1>
+                        <p class="step-subtitle">
+                            Let's get you set up with your performance analytics platform. This will only take a few minutes.
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; padding: var(--space-8); background: var(--glass-1); border-radius: var(--radius-xl);">
+                        <div style="font-size: 4rem; margin-bottom: var(--space-4);">🏃</div>
+                        <h3 style="font-size: var(--text-xl); font-weight: var(--weight-semibold); color: var(--text-primary); margin-bottom: var(--space-3);">
+                            You're joining as an Athlete
+                        </h3>
+                        <p style="color: var(--text-secondary); line-height: var(--leading-relaxed);">
+                            Connect with your coach, track your training data, and optimize your performance with advanced analytics.
+                        </p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-primary btn-lg w-full" onclick="nextStep()">
+                            Continue
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Personal Details -->
+                <div id="step2" class="step-content">
+                    <div class="step-header">
+                        <h2 class="step-title">Tell us about yourself</h2>
+                        <p class="step-subtitle">Help us personalize your experience</p>
+                    </div>
+
+                    <form id="personalDetailsForm" class="form-section">
+                        <div class="input-group">
+                            <label class="input-label" for="name">Full Name *</label>
+                            <input
+                                type="text"
+                                id="name"
+                                class="input-field"
+                                placeholder="John Doe"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="dateOfBirth">Date of Birth</label>
+                            <input
+                                type="date"
+                                id="dateOfBirth"
+                                class="input-field"
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="sport">Primary Sport *</label>
+                            <select id="sport" class="input-field" required>
+                                <option value="">Select your sport</option>
+                                <option value="running">Running</option>
+                                <option value="cycling">Cycling</option>
+                                <option value="triathlon">Triathlon</option>
+                                <option value="swimming">Swimming</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="timezone">Timezone</label>
+                            <select id="timezone" class="input-field">
+                                <option value="">Auto-detect</option>
+                                <option value="America/New_York">Eastern Time (ET)</option>
+                                <option value="America/Chicago">Central Time (CT)</option>
+                                <option value="America/Denver">Mountain Time (MT)</option>
+                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                <option value="Europe/London">London (GMT)</option>
+                                <option value="Europe/Paris">Central European Time</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                                <option value="Australia/Sydney">Sydney</option>
+                            </select>
+                        </div>
+                    </form>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-ghost" onclick="prevStep()">
+                            Back
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg" style="flex: 1;" onclick="validateStep2()">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Terms & Conditions -->
+                <div id="step3" class="step-content">
+                    <div class="step-header">
+                        <h2 class="step-title">Terms & Conditions</h2>
+                        <p class="step-subtitle">Please review and accept our terms</p>
+                    </div>
+
+                    <div class="terms-container">
+                        <div class="terms-text">
+                            <h3>Data Sharing & Privacy</h3>
+                            <p>
+                                By using Athlytx Elite, you agree to share your training data with your assigned coach(es).
+                                This includes activity data, health metrics, and performance analytics.
+                            </p>
+
+                            <h3>Coach-Athlete Relationship</h3>
+                            <p>
+                                Your coach will have access to your training data to provide personalized feedback and
+                                guidance. You can revoke this access at any time through your account settings.
+                            </p>
+
+                            <h3>Device Integration</h3>
+                            <p>
+                                When you connect third-party devices (Garmin, Strava, Whoop, Oura), we will access and
+                                store your training data to provide comprehensive analytics. All data is encrypted and
+                                stored securely.
+                            </p>
+
+                            <h3>Data Security</h3>
+                            <p>
+                                We use industry-standard encryption and security measures to protect your personal
+                                information and training data. Your data will never be sold to third parties.
+                            </p>
+
+                            <h3>Account Responsibilities</h3>
+                            <p>
+                                You are responsible for maintaining the confidentiality of your account credentials
+                                and for all activities that occur under your account.
+                            </p>
+
+                            <h3>Service Updates</h3>
+                            <p>
+                                Athlytx Elite reserves the right to modify or discontinue features with or without
+                                notice. We will make reasonable efforts to notify users of significant changes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="acceptTerms" class="checkbox-input">
+                        <span class="checkbox-label">
+                            I have read and accept the Terms & Conditions, including data sharing with my coach(es)
+                        </span>
+                    </label>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-ghost" onclick="prevStep()">
+                            Back
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg" style="flex: 1;" id="acceptTermsBtn" disabled onclick="nextStep()">
+                            Accept & Continue
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Connect Devices -->
+                <div id="step4" class="step-content">
+                    <div class="step-header">
+                        <h2 class="step-title">Connect Your Devices</h2>
+                        <p class="step-subtitle">Link your training devices to start syncing data (optional)</p>
+                    </div>
+
+                    <div class="device-grid">
+                        <div class="device-card" onclick="connectDevice('garmin')">
+                            <div class="device-icon">⌚</div>
+                            <div class="device-name">Garmin</div>
+                            <button type="button" class="btn btn-secondary btn-sm">Connect</button>
+                        </div>
+
+                        <div class="device-card" onclick="connectDevice('strava')">
+                            <div class="device-icon">🏃</div>
+                            <div class="device-name">Strava</div>
+                            <button type="button" class="btn btn-secondary btn-sm">Connect</button>
+                        </div>
+
+                        <div class="device-card" onclick="connectDevice('whoop')">
+                            <div class="device-icon">💪</div>
+                            <div class="device-name">Whoop</div>
+                            <button type="button" class="btn btn-secondary btn-sm">Connect</button>
+                        </div>
+
+                        <div class="device-card" onclick="connectDevice('oura')">
+                            <div class="device-icon">💍</div>
+                            <div class="device-name">Oura Ring</div>
+                            <button type="button" class="btn btn-secondary btn-sm">Connect</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-ghost" onclick="prevStep()">
+                            Back
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg" style="flex: 1;" id="completeBtn" onclick="completeOnboarding()">
+                            Complete Setup
+                        </button>
+                    </div>
+
+                    <p class="text-center mt-6" style="color: var(--text-tertiary); font-size: var(--text-sm);">
+                        You can connect devices later from your dashboard
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentStep = 1;
+        const totalSteps = 4;
+        let sessionToken = localStorage.getItem('sessionToken');
+
+        // Form data
+        const formData = {
+            name: '',
+            dateOfBirth: '',
+            sport: '',
+            timezone: '',
+            acceptedTerms: false,
+            connectedDevices: []
+        };
+
+        // Show status message
+        function showStatus(message, type = 'error') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show status-${type}`;
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Update progress indicators
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('currentStepLabel').textContent = currentStep;
+
+            // Update step dots
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index + 1 === currentStep) {
+                    dot.classList.add('active');
+                } else if (index + 1 < currentStep) {
+                    dot.classList.add('completed');
+                }
+            });
+        }
+
+        // Navigate to next step
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+
+                // Show next step
+                currentStep++;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+
+                // Update progress
+                updateProgress();
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Navigate to previous step
+        function prevStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+
+                // Show previous step
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+
+                // Update progress
+                updateProgress();
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Validate Step 2
+        function validateStep2() {
+            const name = document.getElementById('name').value.trim();
+            const sport = document.getElementById('sport').value;
+
+            if (!name) {
+                showStatus('Please enter your full name', 'error');
+                return;
+            }
+
+            if (!sport) {
+                showStatus('Please select your primary sport', 'error');
+                return;
+            }
+
+            // Save form data
+            formData.name = name;
+            formData.dateOfBirth = document.getElementById('dateOfBirth').value;
+            formData.sport = sport;
+            formData.timezone = document.getElementById('timezone').value || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            nextStep();
+        }
+
+        // Terms checkbox handling
+        document.getElementById('acceptTerms').addEventListener('change', (e) => {
+            const acceptBtn = document.getElementById('acceptTermsBtn');
+            acceptBtn.disabled = !e.target.checked;
+            formData.acceptedTerms = e.target.checked;
+        });
+
+        // Connect device (placeholder)
+        function connectDevice(deviceType) {
+            // In production, this would open OAuth flow
+            showStatus(`Device connection coming soon! (${deviceType})`, 'error');
+            formData.connectedDevices.push(deviceType);
+        }
+
+        // Complete onboarding
+        async function completeOnboarding() {
+            const completeBtn = document.getElementById('completeBtn');
+            completeBtn.classList.add('btn-loading');
+            completeBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/onboarding/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionToken,
+                        name: formData.name,
+                        sport: formData.sport,
+                        dateOfBirth: formData.dateOfBirth || null,
+                        timezone: formData.timezone,
+                        acceptedTerms: formData.acceptedTerms
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update local storage
+                    localStorage.setItem('userName', data.user.name);
+
+                    // Show success and redirect
+                    showStatus('Setup complete! Redirecting...', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = '/athlete/dashboard';
+                    }, 1500);
+                } else {
+                    showStatus(data.error || 'Failed to complete onboarding', 'error');
+                    completeBtn.classList.remove('btn-loading');
+                    completeBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Onboarding error:', error);
+                showStatus('Network error. Please try again.', 'error');
+                completeBtn.classList.remove('btn-loading');
+                completeBtn.disabled = false;
+            }
+        }
+
+        // Check authentication on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!sessionToken) {
+                // Not logged in, redirect to login
+                window.location.href = '/frontend/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken })
+                });
+
+                if (!response.ok) {
+                    // Invalid session
+                    localStorage.removeItem('sessionToken');
+                    window.location.href = '/frontend/login.html';
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Check if already onboarded
+                if (data.user.onboarded) {
+                    window.location.href = '/athlete/dashboard';
+                }
+            } catch (error) {
+                console.error('Session check error:', error);
+                window.location.href = '/frontend/login.html';
+            }
+        });
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
