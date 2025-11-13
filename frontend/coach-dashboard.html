@@ -423,6 +423,7 @@
                             <th>Date</th>
                             <th>Activity</th>
                             <th>Source</th>
+                            <th>Device</th>
                             <th>Duration</th>
                             <th>Avg HR</th>
                             <th>Max HR</th>
@@ -431,7 +432,7 @@
                     </thead>
                     <tbody id="activitiesTableBody">
                         <tr>
-                            <td colspan="7" style="text-align: center; color: #999;">Loading activities...</td>
+                            <td colspan="8" style="text-align: center; color: #999;">Loading activities...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -635,7 +636,7 @@
             const unique = Object.values(uniqueActivities).slice(0, 20);
 
             if (unique.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No activities found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No activities found</td></tr>';
                 return;
             }
 
@@ -657,12 +658,16 @@
                     providerDisplay = provider;
                 }
 
+                // Display device model if available (Garmin only for now)
+                const deviceDisplay = act.deviceModel || '--';
+
                 const duration = act.durationMinutes !== undefined && act.durationMinutes !== null ? `${act.durationMinutes} min` : '--';
                 return `
                     <tr>
                         <td>${act.date}</td>
                         <td class="activity-type">${act.activityType}</td>
                         <td><span class="provider-badge provider-${provider}">${providerDisplay}</span></td>
+                        <td>${deviceDisplay}</td>
                         <td>${duration}</td>
                         <td>${act.hr.avg || '--'} bpm</td>
                         <td>${act.hr.max || '--'} bpm</td>

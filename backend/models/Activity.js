@@ -70,6 +70,13 @@ const Activity = sequelize.define('Activity', {
         allowNull: true
     },
 
+    // Device information
+    deviceModel: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'Device model name (e.g., "Garmin Forerunner 945", "Garmin Fenix 7")'
+    },
+
     // Full data
     rawData: {
         type: DataTypes.JSON,

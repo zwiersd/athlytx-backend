@@ -242,6 +242,21 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
     let stored = 0;
     for (const garminActivity of activities) {
         try {
+            // Extract device model from various possible fields
+            let deviceModel = null;
+            if (garminActivity.deviceModel) {
+                deviceModel = garminActivity.deviceModel;
+            } else if (garminActivity.metadataDTO && garminActivity.metadataDTO.deviceModel) {
+                deviceModel = garminActivity.metadataDTO.deviceModel;
+            } else if (garminActivity.deviceName) {
+                deviceModel = garminActivity.deviceName;
+            } else if (garminActivity.metadataDTO && garminActivity.metadataDTO.deviceName) {
+                deviceModel = garminActivity.metadataDTO.deviceName;
+            } else if (garminActivity.deviceId && garminActivity.manufacturerName) {
+                // Fallback: use manufacturer + deviceId
+                deviceModel = `${garminActivity.manufacturerName} ${garminActivity.deviceId}`;
+            }
+
             // Store activity
             const [activity, created] = await Activity.findOrCreate({
                 where: {
@@ -261,6 +276,7 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
                     calories: garminActivity.activeKilocalories,
                     avgHr: garminActivity.averageHeartRateInBeatsPerMinute,
                     maxHr: garminActivity.maxHeartRateInBeatsPerMinute,
+                    deviceModel: deviceModel,
                     rawData: garminActivity
                 }
             });
