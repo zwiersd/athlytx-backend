@@ -505,10 +505,10 @@
                 }
 
                 // Calculate summary stats
-                updateSummaryStats(zones.data);
+                updateSummaryStats(zones.data || []);
 
                 // Update data sources
-                updateDataSources(zones.data);
+                updateDataSources(zones.data || []);
 
                 // Update zone distribution
                 if (status.weeklySummary) {
@@ -516,7 +516,7 @@
                 }
 
                 // Update activities table
-                updateActivitiesTable(zones.data);
+                updateActivitiesTable(zones.data || []);
 
                 // Create charts
                 createCharts(zones);
