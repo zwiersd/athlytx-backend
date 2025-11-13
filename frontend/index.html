@@ -769,7 +769,7 @@
                     <div class="device-card">
                         <div class="device-header">
                             <div class="device-icon strava">
-                                <img src="/src/images/strava-logo.jpeg" alt="Strava" onerror="this.style.display='none'; this.parentNode.innerHTML='S';">
+                                <img src="/src/images/strava.svg" alt="Strava" onerror="this.style.display='none'; this.parentNode.innerHTML='S';">
                             </div>
                             <div class="device-info">
                                 <h3>Strava</h3>
@@ -777,7 +777,7 @@
                             </div>
                         </div>
                         <button class="connect-btn btn-strava" onclick="connectDevice('strava')">
-                            Connect Strava
+                            Connect with Strava
                         </button>
                         <button class="disconnect-btn btn-strava-disconnect" onclick="disconnectDevice('strava')" style="display: none; margin-top: 8px;">
                             Disconnect
@@ -795,7 +795,7 @@
                             </div>
                         </div>
                         <button class="connect-btn btn-oura" onclick="connectDevice('oura')">
-                            Connect Oura
+                            Connect with Oura
                         </button>
                         <button class="disconnect-btn btn-oura-disconnect" onclick="disconnectDevice('oura')" style="display: none; margin-top: 8px;">
                             Disconnect
@@ -813,7 +813,7 @@
                             </div>
                         </div>
                         <button class="connect-btn btn-garmin" onclick="connectDevice('garmin')">
-                            Connect Garmin Connect
+                            Connect with Garmin
                         </button>
                         <button class="disconnect-btn btn-garmin-disconnect" onclick="disconnectDevice('garmin')" style="display: none; margin-top: 8px;">
                             Disconnect
@@ -831,7 +831,7 @@
                             </div>
                         </div>
                         <button class="connect-btn btn-whoop" onclick="connectDevice('whoop')">
-                            Connect Whoop
+                            Connect with Whoop
                         </button>
                         <button class="disconnect-btn btn-whoop-disconnect" onclick="disconnectDevice('whoop')" style="display: none; margin-top: 8px;">
                             Disconnect
@@ -899,6 +899,12 @@
 
             <!-- Strava Data Tab -->
             <div id="strava" class="tab-content">
+                <!-- Strava Attribution Header -->
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
+                    <img src="/src/images/strava.svg" alt="Strava" style="height: 45px; object-fit: contain;">
+                </div>
+
                 <div class="analytics-card">
                     <h3>🏃 Strava Training Data</h3>
                     <div class="data-summary">
@@ -1285,11 +1291,11 @@
             <!-- Footer -->
             <div class="footer">
                 <div style="text-align: center; margin-bottom: 20px; padding: 25px; background: transparent; border-radius: 12px;">
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Data powered by:</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Powered by Garmin, Strava, Whoop, and Oura</div>
                     <div style="display: flex; justify-content: center; align-items: center; gap: 25px; flex-wrap: wrap;">
                         <img src="src/images/GarminConnect.png" alt="Garmin Connect" style="height: 40px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                         <span style="color: rgba(255,255,255,0.3);">|</span>
-                        <img src="src/images/strava-logo.jpeg" alt="Strava" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        <img src="src/images/strava.svg" alt="Strava" style="height: 35px; object-fit: contain;">
                         <span style="color: rgba(255,255,255,0.3);">|</span>
                         <img src="src/images/whoop-logo.jpeg" alt="Whoop" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                         <span style="color: rgba(255,255,255,0.3);">|</span>
@@ -3762,6 +3768,7 @@
                             <div>
                                 <strong>${act.activityType}</strong>
                                 <div style="font-size: 0.85rem; color: #6b7280;">${act.date}</div>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">${act.deviceModel || '--'}</div>
                             </div>
                             <div style="text-align: right;">
                                 <div>${act.durationMinutes} min</div>
