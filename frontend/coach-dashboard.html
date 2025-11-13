@@ -95,8 +95,8 @@
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 30px;
+            margin-bottom: 30px;
         }
 
         .card {
@@ -608,7 +608,7 @@
                 let displayContent;
 
                 if (providerLower === 'garmin') {
-                    displayContent = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 18px; width: auto; vertical-align: middle;">`;
+                    displayContent = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 24px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'strava') {
                     displayContent = `<img src="/src/images/strava.svg" alt="Strava" style="height: 18px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'whoop') {
@@ -674,13 +674,13 @@
 
                 let providerDisplay;
                 if (providerLower === 'garmin') {
-                    providerDisplay = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 18px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 20px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'strava') {
-                    providerDisplay = `<img src="/src/images/strava.svg" alt="Strava" style="height: 18px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/strava.svg" alt="Strava" style="height: 16px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'whoop') {
-                    providerDisplay = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 18px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 16px; width: auto; vertical-align: middle;">`;
                 } else if (providerLower === 'oura') {
-                    providerDisplay = `<img src="/src/images/oura.png" alt="Oura" style="height: 18px; width: auto; vertical-align: middle;">`;
+                    providerDisplay = `<img src="/src/images/oura.png" alt="Oura" style="height: 16px; width: auto; vertical-align: middle;">`;
                 } else {
                     providerDisplay = provider;
                 }
