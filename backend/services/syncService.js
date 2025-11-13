@@ -214,30 +214,48 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
 
     const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
 
-    // Calculate date range
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysBack);
+    // Garmin API only allows 24-hour windows (86400 seconds max)
+    // So we need to make multiple requests, one for each day
+    const MAX_SECONDS = 86400; // 24 hours
+    const allActivities = [];
 
-    const startTimestamp = Math.floor(startDate.getTime() / 1000);
-    const endTimestamp = Math.floor(endDate.getTime() / 1000);
+    const now = Math.floor(Date.now() / 1000);
 
-    // Fetch activities from Garmin
-    const response = await fetch(
-        `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`,
-        {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
+    // Fetch data day by day, going backwards from now
+    for (let day = 0; day < daysBack; day++) {
+        const endTimestamp = now - (day * MAX_SECONDS);
+        const startTimestamp = now - ((day + 1) * MAX_SECONDS);
+
+        console.log(`  Fetching day ${day + 1}/${daysBack}...`);
+
+        try {
+            const response = await fetch(
+                `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`  ❌ Day ${day + 1} failed: ${response.status} - ${errorText}`);
+                continue; // Skip this day but continue with others
             }
-        }
-    );
 
-    if (!response.ok) {
-        throw new Error(`Garmin API error: ${response.status}`);
+            const activities = await response.json();
+            allActivities.push(...activities);
+            console.log(`  Found ${activities.length} activities on day ${day + 1}`);
+
+        } catch (error) {
+            console.error(`  ❌ Error fetching day ${day + 1}:`, error.message);
+            // Continue with other days
+        }
     }
 
-    const activities = await response.json();
-    console.log(`  Found ${activities.length} Garmin activities`);
+    console.log(`  Found ${allActivities.length} total Garmin activities`);
+    const activities = allActivities;
 
     let stored = 0;
     for (const garminActivity of activities) {
