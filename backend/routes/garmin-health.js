@@ -174,17 +174,53 @@ router.post('/backfill', async (req, res) => {
     try {
         const { userId, startDate, endDate } = req.body;
 
+        if (!userId) {
+            return res.status(400).json({
+                error: 'Missing userId',
+                message: 'userId is required for backfill'
+            });
+        }
+
         console.log('Backfill requested:', { userId, startDate, endDate });
 
-        // Acknowledge receipt immediately
+        // Calculate days back from date range
+        let daysBack = 90; // Default to 90 days (Garmin's data retention policy)
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            daysBack = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            console.log(`Calculated ${daysBack} days from date range`);
+        } else if (startDate) {
+            const start = new Date(startDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - start);
+            daysBack = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            console.log(`Calculated ${daysBack} days from start date to now`);
+        }
+
+        // Cap at 90 days (Garmin's data retention policy)
+        daysBack = Math.min(daysBack, 90);
+
+        // Acknowledge receipt immediately (required by Garmin)
         res.status(200).json({
             status: 'accepted',
             message: 'Backfill request queued',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            daysToSync: daysBack
         });
 
-        // Process backfill asynchronously
-        // You'll implement this to fetch historical data
+        // Process backfill asynchronously using syncService
+        const { syncUserData } = require('../services/syncService');
+
+        syncUserData(userId, daysBack)
+            .then(results => {
+                console.log('✅ Backfill completed:', results);
+            })
+            .catch(error => {
+                console.error('❌ Backfill processing failed:', error);
+            });
 
     } catch (error) {
         console.error('❌ Garmin backfill error:', error);
