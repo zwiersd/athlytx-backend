@@ -80,8 +80,27 @@ app.use('/api/auth', authRoutes);
 app.use('/api/coach', coachRoutes);
 
 // ===== SPECIAL ROUTES =====
+// Temporary basic auth protection for /coach route
 app.get('/coach', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
+    const auth = req.headers.authorization;
+
+    // Check for Basic Auth header
+    if (!auth || !auth.startsWith('Basic ')) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Athlytx Coach Access"');
+        return res.status(401).send('Authentication required');
+    }
+
+    // Decode credentials
+    const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString();
+    const [username, password] = credentials.split(':');
+
+    // Simple hardcoded check (temporary)
+    if (username === 'athlytx' && password === 'temp2024') {
+        res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
+    } else {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Athlytx Coach Access"');
+        res.status(401).send('Invalid credentials');
+    }
 });
 
 app.get('/elite', (req, res) => {
