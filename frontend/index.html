@@ -1018,10 +1018,54 @@
             <!-- Garmin Data Tab -->
             <div id="garmin" class="tab-content">
                 <div class="analytics-card">
-                    <h3>⌚ Garmin Connect Wellness & Performance</h3>
-                    <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">
-                        <h4>Garmin Connect Integration Pending</h4>
-                        <p>Connect your Garmin device to see Body Battery, stress metrics, and training status.</p>
+                    <h3>⌚ Garmin Connect Training & Performance</h3>
+                    <div class="data-summary">
+                        <div class="summary-card">
+                            <span class="summary-value" id="garminActivities">--</span>
+                            <div class="summary-label">Activities (7d)</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value" id="garminDistance">--</span>
+                            <div class="summary-label">Total Distance</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value" id="garminAvgHR">--</span>
+                            <div class="summary-label">Avg HR</div>
+                        </div>
+                        <div class="summary-card">
+                            <span class="summary-value" id="garminTrainingTime">--</span>
+                            <div class="summary-label">Training Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Recent Activities</h3>
+                        <div id="garminActivitiesList" style="max-height: 300px; overflow-y: auto;">
+                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your activities</div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Heart Rate Zones Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="garminZonesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Activity Types (7 Days)</h3>
+                        <div class="chart-container">
+                            <canvas id="garminActivityTypesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Training Volume</h3>
+                        <div class="chart-container">
+                            <canvas id="garminVolumeChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3676,27 +3720,137 @@
         }
 
         // Update Garmin display
-        function updateGarminDisplay() {
-            if (!fitnessData.garmin) return;
-            
-            const { dailySummary, activities, sleep } = fitnessData.garmin;
-            
-            // Update Garmin-specific UI elements
-            const garminTab = document.getElementById('garmin');
-            if (garminTab && dailySummary) {
-                // Display daily wellness metrics
-                const latestDay = dailySummary[dailySummary.length - 1] || {};
-                
-                // Update stats cards if they exist
-                const updateStat = (id, value, unit = '') => {
-                    const element = document.getElementById(id);
-                    if (element) element.textContent = value ? `${value}${unit}` : 'N/A';
+        async function updateGarminDisplay() {
+            try {
+                const userId = localStorage.getItem('userId');
+                if (!userId) return;
+
+                // Fetch Garmin data from backend
+                const response = await fetch(`${API_CONFIG.backend}/api/sync/zones/${userId}?days=7`);
+                const data = await response.json();
+
+                // Filter for Garmin activities only
+                const garminActivities = (data.data || []).filter(act => act.provider === 'garmin');
+
+                if (garminActivities.length === 0) {
+                    console.log('No Garmin activities found');
+                    return;
+                }
+
+                // Calculate summary stats
+                const totalDistance = garminActivities.reduce((sum, act) => sum + (act.distanceMeters || 0), 0);
+                const totalMinutes = garminActivities.reduce((sum, act) => sum + act.durationMinutes, 0);
+                const avgHR = Math.round(garminActivities.reduce((sum, act) => sum + (act.hr.avg || 0), 0) / garminActivities.length);
+
+                // Update summary cards
+                document.getElementById('garminActivities').textContent = garminActivities.length;
+                document.getElementById('garminDistance').textContent = `${(totalDistance / 1000).toFixed(1)} km`;
+                document.getElementById('garminAvgHR').textContent = `${avgHR} bpm`;
+                document.getElementById('garminTrainingTime').textContent = `${totalMinutes} min`;
+
+                // Update activities list
+                const activitiesList = document.getElementById('garminActivitiesList');
+                activitiesList.innerHTML = garminActivities.slice(0, 10).map(act => `
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${act.activityType}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280;">${act.date}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div>${act.durationMinutes} min</div>
+                                <div style="font-size: 0.85rem; color: #6b7280;">${act.hr.avg || '--'} bpm avg</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Aggregate HR zones data
+                const totalZones = {
+                    zone1: garminActivities.reduce((sum, act) => sum + act.zones.zone1, 0),
+                    zone2: garminActivities.reduce((sum, act) => sum + act.zones.zone2, 0),
+                    zone3: garminActivities.reduce((sum, act) => sum + act.zones.zone3, 0),
+                    zone4: garminActivities.reduce((sum, act) => sum + act.zones.zone4, 0),
+                    zone5: garminActivities.reduce((sum, act) => sum + act.zones.zone5, 0)
                 };
-                
-                updateStat('garminSteps', latestDay.totalSteps);
-                updateStat('garminStressLevel', latestDay.averageStressLevel);
-                updateStat('garminBodyBattery', latestDay.maxBodyBattery);
-                updateStat('garminRestingHR', latestDay.restingHeartRateInBeatsPerMinute, ' bpm');
+
+                // Create HR Zones chart
+                const zonesCtx = document.getElementById('garminZonesChart');
+                if (zonesCtx) {
+                    new Chart(zonesCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'],
+                            datasets: [{
+                                label: 'Minutes in Zone',
+                                data: [totalZones.zone1, totalZones.zone2, totalZones.zone3, totalZones.zone4, totalZones.zone5],
+                                backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                }
+
+                // Activity types breakdown
+                const activityTypes = {};
+                garminActivities.forEach(act => {
+                    activityTypes[act.activityType] = (activityTypes[act.activityType] || 0) + act.durationMinutes;
+                });
+
+                const typesCtx = document.getElementById('garminActivityTypesChart');
+                if (typesCtx) {
+                    new Chart(typesCtx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(activityTypes),
+                            datasets: [{
+                                data: Object.values(activityTypes),
+                                backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+
+                // Training volume by date
+                const volumeByDate = {};
+                garminActivities.forEach(act => {
+                    volumeByDate[act.date] = (volumeByDate[act.date] || 0) + act.durationMinutes;
+                });
+
+                const volumeCtx = document.getElementById('garminVolumeChart');
+                if (volumeCtx) {
+                    new Chart(volumeCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: Object.keys(volumeByDate).sort(),
+                            datasets: [{
+                                label: 'Training Minutes',
+                                data: Object.values(volumeByDate),
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error updating Garmin display:', error);
             }
         }
 
@@ -4332,13 +4486,17 @@
 
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-            
+
             if (['overview', 'strava', 'oura', 'garmin', 'whoop', 'insights'].includes(tabName)) {
                 updateAnalytics();
             }
-            
+
             if (tabName === 'running') {
                 updateRunningAnalytics();
+            }
+
+            if (tabName === 'garmin') {
+                updateGarminDisplay();
             }
         }
 

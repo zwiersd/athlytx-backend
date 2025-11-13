@@ -111,7 +111,7 @@ router.get('/zones/:userId', async (req, res) => {
             order: [['date', 'DESC']],
             include: [{
                 model: require('../models').Activity,
-                attributes: ['activityName', 'activityType', 'startTime', 'deviceModel']
+                attributes: ['activityName', 'activityType', 'startTime', 'deviceModel', 'distanceMeters']
             }]
         });
 
@@ -125,6 +125,7 @@ router.get('/zones/:userId', async (req, res) => {
                 durationMinutes: Math.round(z.durationSeconds / 60),
                 provider: z.provider,
                 deviceModel: z.Activity ? z.Activity.deviceModel : null,
+                distanceMeters: z.Activity ? z.Activity.distanceMeters : null,
                 zones: {
                     zone1: Math.round(z.zone1Seconds / 60),
                     zone2: Math.round(z.zone2Seconds / 60),
