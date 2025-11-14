@@ -1475,7 +1475,7 @@
                     // Fallback: manual OAuth flow with proper state storage
                     const codeVerifier = generateCodeVerifier();
                     const codeChallenge = await generateCodeChallenge(codeVerifier);
-                    const state = 'garmin_' + Math.random().toString(36).substring(2, 15);
+                    const state = 'garmin_auth';
 
                     // Store both verifier AND state for token exchange
                     localStorage.setItem('garmin_code_verifier', codeVerifier);
