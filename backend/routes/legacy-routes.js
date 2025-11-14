@@ -442,6 +442,13 @@ app.post('/api/garmin/token', async (req, res) => {
         }
 
         console.log('✅ Garmin token exchange successful');
+        console.log('📝 Token exchange response:', {
+            hasAccessToken: !!data.access_token,
+            hasRefreshToken: !!data.refresh_token,
+            tokenType: data.token_type,
+            expiresIn: data.expires_in,
+            refreshToken: data.refresh_token ? data.refresh_token.substring(0, 20) + '...' : 'NOT PROVIDED'
+        });
 
         // IMPORTANT: Register user with Garmin Wellness API after OAuth 2.0
         // This step is required to enable data pulling with the access token
