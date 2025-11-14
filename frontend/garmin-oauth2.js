@@ -1,8 +1,8 @@
 // Garmin OAuth 2.0 with PKCE Implementation
 class GarminOAuth2 {
     constructor(config = {}) {
-        // PRODUCTION Garmin app (not evaluation)
-        this.clientId = config.clientId || 'ee6809d5-abc0-4a33-b38a-d433e5045987';
+        // PRODUCTION Garmin app (correct ID)
+        this.clientId = config.clientId || '4af31e5c-d758-442d-a007-809ea45f444a';
         this.clientSecret = config.clientSecret;
         this.redirectUri = config.redirectUri || 'https://www.athlytx.com/auth/garmin/callback';
         this.scope = config.scope || 'WELLNESS_READ';
@@ -300,7 +300,7 @@ class GarminOAuth2 {
 // Usage example for browser environment
 async function initializeGarminAuth() {
     const garminAuth = new GarminOAuth2({
-        clientId: 'ee6809d5-abc0-4a33-b38a-d433e5045987',
+        clientId: '4af31e5c-d758-442d-a007-809ea45f444a',
         clientSecret: 'YOUR_CLIENT_SECRET', // Should be handled server-side in production
         redirectUri: 'https://www.athlytx.com',
         scope: 'WELLNESS_READ'
