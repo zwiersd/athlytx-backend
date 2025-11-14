@@ -707,6 +707,204 @@
             border-color: rgba(255,255,255,0.25);
             transform: translateY(-1px);
         }
+
+        /* ============================================
+           MOBILE RESPONSIVE STYLES
+           ============================================ */
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+                padding-bottom: 200px;
+            }
+
+            .header-content {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .logo h1 {
+                font-size: 20px;
+            }
+
+            .badge-elite {
+                font-size: 10px;
+                padding: 3px 10px;
+            }
+
+            .athlete-selector {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .athlete-dropdown,
+            .athlete-selector button,
+            .athlete-selector span {
+                width: 100%;
+            }
+
+            .athlete-current {
+                padding: 10px;
+            }
+
+            .athlete-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .athlete-name {
+                font-size: 14px;
+            }
+
+            .athlete-status {
+                font-size: 11px;
+            }
+
+            .btn {
+                font-size: 11px;
+                padding: 8px 12px;
+            }
+
+            .dashboard-content {
+                padding: 15px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .card-title {
+                font-size: 16px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .athlete-table {
+                font-size: 12px;
+            }
+
+            .athlete-table th,
+            .athlete-table td {
+                padding: 8px 6px;
+            }
+
+            .auth-card {
+                padding: 30px;
+            }
+
+            .auth-logo img {
+                height: 60px;
+            }
+
+            .auth-logo h1 {
+                font-size: 28px;
+            }
+
+            .auth-logo p {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 60px;
+                padding-bottom: 220px;
+            }
+
+            .header-content {
+                padding: 10px;
+            }
+
+            .logo h1 {
+                font-size: 18px;
+            }
+
+            .badge-elite {
+                font-size: 9px;
+                padding: 2px 8px;
+            }
+
+            .athlete-name {
+                font-size: 13px;
+            }
+
+            .athlete-status {
+                font-size: 10px;
+            }
+
+            .btn {
+                font-size: 10px;
+                padding: 6px 10px;
+            }
+
+            .dashboard-content {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            .card-title {
+                font-size: 14px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .athlete-table {
+                font-size: 11px;
+            }
+
+            .athlete-table th,
+            .athlete-table td {
+                padding: 6px 4px;
+            }
+
+            .auth-card {
+                padding: 25px;
+            }
+
+            .auth-logo img {
+                height: 50px;
+            }
+
+            .auth-logo h1 {
+                font-size: 24px;
+            }
+
+            .auth-logo p {
+                font-size: 13px;
+            }
+
+            .form-input {
+                font-size: 14px;
+                padding: 12px 14px;
+            }
+        }
     </style>
 </head>
 <body>
