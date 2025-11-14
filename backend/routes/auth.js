@@ -184,7 +184,7 @@ router.post('/magic-link', async (req, res) => {
         console.log('[AUTH] Magic link record created');
 
         // Send magic link email
-        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?token=${token}`;
+        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/login.html?token=${token}`;
 
         // Send email via Resend
         try {
@@ -321,7 +321,8 @@ router.post('/verify', async (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
+                onboarded: user.onboarded || false
             },
             sessionToken,
             sessionExpiry,
@@ -360,7 +361,7 @@ router.post('/session', async (req, res) => {
                 sessionToken,
                 sessionExpiry: { [Op.gt]: new Date() }
             },
-            attributes: ['id', 'email', 'name', 'role']
+            attributes: ['id', 'email', 'name', 'role', 'onboarded']
         });
 
         if (!user) {
@@ -400,7 +401,8 @@ router.post('/session', async (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
+                onboarded: user.onboarded || false
             },
             relationships: relationships.map(r => ({
                 id: user.role === 'coach' ? r.Athlete?.id : r.Coach?.id,

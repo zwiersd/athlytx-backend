@@ -54,7 +54,7 @@ async function sendMagicLink(email, magicLinkUrl, code) {
             <!-- Security Notice -->
             <div style="background: linear-gradient(135deg, #f7fafc, #edf2f7); border-left: 4px solid #667eea; padding: 20px 24px; border-radius: 8px; margin: 0 0 20px 0;">
                 <p style="color: #2d3748; font-size: 14px; line-height: 1.7; margin: 0;">
-                    <strong style="color: #1a202c;">🔒 Security Notice:</strong> This code expires in 15 minutes. If you didn't request this login, you can safely ignore this email.
+                    <strong style="color: #1a202c;">🔒 Security Notice:</strong> This link expires in 15 minutes. If you didn't request this login, you can safely ignore this email.
                 </p>
             </div>
         </div>

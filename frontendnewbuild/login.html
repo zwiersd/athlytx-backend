@@ -445,34 +445,28 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-lg w-full" id="sendCodeBtn">
-                            Send Login Code
+                            Send Magic Link
                         </button>
 
                         <p class="text-center text-xs" style="color: rgba(255, 255, 255, 0.6); margin: 0;">
-                            We'll send a 6-digit code to your email
+                            We'll send a magic link to your email
                         </p>
                     </div>
 
-                    <!-- Step 2: Code Verification -->
+                    <!-- Step 2: Magic Link Sent -->
                     <div id="codeStep" class="form-step">
-                        <div class="input-group">
-                            <label class="input-label">Enter 6-Digit Code</label>
-                            <p class="text-xs mb-4" style="color: rgba(255, 255, 255, 0.6); margin: 0 0 16px 0;">
-                                Code sent to <span id="emailDisplay" style="color: rgba(255, 255, 255, 0.8); font-weight: 500;"></span>
+                        <div style="text-align: center; padding: 40px 0;">
+                            <div style="font-size: 64px; margin-bottom: 24px;">📧</div>
+                            <h2 style="color: #fff; font-size: 24px; margin-bottom: 12px;">Check Your Email</h2>
+                            <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">
+                                We've sent a magic link to:
                             </p>
-                            <div class="code-input-group">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="0" autocomplete="off" inputmode="numeric">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="1" autocomplete="off" inputmode="numeric">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="2" autocomplete="off" inputmode="numeric">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="3" autocomplete="off" inputmode="numeric">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="4" autocomplete="off" inputmode="numeric">
-                                <input type="text" maxlength="1" class="input-field code-digit" data-index="5" autocomplete="off" inputmode="numeric">
-                            </div>
+                            <p id="emailDisplay" style="color: #667EEA; font-weight: 600; font-size: 16px; margin-bottom: 32px;"></p>
+                            <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; line-height: 1.6;">
+                                Click the link in your email to log in instantly.<br>
+                                No code required!
+                            </p>
                         </div>
-
-                        <button type="button" class="btn btn-primary btn-lg w-full" id="verifyCodeBtn">
-                            Verify & Login
-                        </button>
 
                         <button type="button" class="btn btn-ghost w-full" id="backToEmailBtn">
                             Use different email
@@ -499,10 +493,8 @@
         const emailInput = document.getElementById('email');
         const emailDisplay = document.getElementById('emailDisplay');
         const sendCodeBtn = document.getElementById('sendCodeBtn');
-        const verifyCodeBtn = document.getElementById('verifyCodeBtn');
         const backToEmailBtn = document.getElementById('backToEmailBtn');
         const statusMessage = document.getElementById('statusMessage');
-        const codeInputs = document.querySelectorAll('.code-digit');
 
         // Show status message
         function showStatus(message, type = 'success') {
@@ -550,24 +542,9 @@
                     showStatus('Magic link sent! Check your email to complete login.', 'success');
                     emailDisplay.textContent = email;
 
-                    // Show waiting message instead of code input
+                    // Show magic link sent message
                     emailStep.classList.remove('active');
                     codeStep.classList.add('active');
-
-                    // Hide code inputs and show magic link message
-                    document.querySelector('.code-inputs').style.display = 'none';
-                    verifyCodeBtn.style.display = 'none';
-
-                    const waitingMsg = document.createElement('div');
-                    waitingMsg.id = 'magicLinkWaiting';
-                    waitingMsg.style.cssText = 'text-align: center; padding: 32px; color: rgba(255,255,255,0.7);';
-                    waitingMsg.innerHTML = `
-                        <div style="font-size: 48px; margin-bottom: 16px;">📧</div>
-                        <h3 style="color: #fff; margin-bottom: 8px;">Check Your Email</h3>
-                        <p>We've sent a magic link to <strong>${email}</strong></p>
-                        <p style="margin-top: 16px; font-size: 14px;">Click the link in your email to log in instantly</p>
-                    `;
-                    codeStep.querySelector('.card-body').insertBefore(waitingMsg, codeStep.querySelector('.code-inputs'));
                 } else {
                     showStatus(data.error || 'Failed to send magic link', 'error');
                 }
@@ -579,110 +556,10 @@
             }
         });
 
-        // Code input handling
-        codeInputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                const value = e.target.value;
-
-                // Only allow digits
-                if (!/^\d*$/.test(value)) {
-                    e.target.value = '';
-                    return;
-                }
-
-                // Move to next input
-                if (value && index < codeInputs.length - 1) {
-                    codeInputs[index + 1].focus();
-                }
-
-                // Auto-verify when all 6 digits entered
-                const code = Array.from(codeInputs).map(i => i.value).join('');
-                if (code.length === 6) {
-                    verifyCode();
-                }
-            });
-
-            // Handle backspace
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                    codeInputs[index - 1].focus();
-                }
-            });
-
-            // Handle paste
-            input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedData = e.clipboardData.getData('text').trim();
-                if (/^\d{6}$/.test(pastedData)) {
-                    pastedData.split('').forEach((digit, i) => {
-                        if (codeInputs[i]) codeInputs[i].value = digit;
-                    });
-                    verifyCode();
-                }
-            });
-        });
-
-        // Step 2: Verify code
-        async function verifyCode() {
-            const code = Array.from(codeInputs).map(i => i.value).join('');
-
-            if (code.length !== 6) {
-                showStatus('Please enter all 6 digits', 'error');
-                return;
-            }
-
-            setLoading(verifyCodeBtn, true);
-
-            try {
-                const response = await fetch('/api/auth/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showStatus('Login successful!', 'success');
-
-                    // Store session token
-                    localStorage.setItem('sessionToken', data.sessionToken);
-                    localStorage.setItem('userEmail', data.user.email);
-                    localStorage.setItem('userName', data.user.name);
-                    localStorage.setItem('userRole', data.user.role);
-
-                    // Redirect based on response
-                    setTimeout(() => {
-                        if (data.needsOnboarding) {
-                            window.location.href = '/frontend/athlete-onboarding.html';
-                        } else if (data.pendingInvites && data.pendingInvites.length > 0) {
-                            window.location.href = `/frontend/invite-accept.html?token=${data.pendingInvites[0].inviteToken}`;
-                        } else {
-                            // Redirect based on role
-                            window.location.href = data.redirectTo || (data.user.role === 'coach' ? '/coach/dashboard' : '/athlete/dashboard');
-                        }
-                    }, 1000);
-                } else {
-                    showStatus(data.error || 'Invalid code', 'error');
-                    // Clear code inputs on error
-                    codeInputs.forEach(input => input.value = '');
-                    codeInputs[0].focus();
-                }
-            } catch (error) {
-                console.error('Verify error:', error);
-                showStatus('Network error. Please try again.', 'error');
-            } finally {
-                setLoading(verifyCodeBtn, false);
-            }
-        }
-
-        verifyCodeBtn.addEventListener('click', verifyCode);
-
-        // Back to email
+        // Back to email - allow user to try different email
         backToEmailBtn.addEventListener('click', () => {
             codeStep.classList.remove('active');
             emailStep.classList.add('active');
-            codeInputs.forEach(input => input.value = '');
             emailInput.focus();
         });
 
