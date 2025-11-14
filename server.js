@@ -87,6 +87,10 @@ app.use('/api/devices', deviceRoutes);
 const agentRoutes = require('./backend/routes/agent');
 app.use('/api/agent', agentRoutes);
 
+// Import contact form routes
+const contactRoutes = require('./backend/routes/contact');
+app.use('/api/contact', contactRoutes);
+
 // OAuth callback handlers (server-side processing)
 app.get('/auth/garmin/callback', async (req, res) => {
     const { code, state, error } = req.query;

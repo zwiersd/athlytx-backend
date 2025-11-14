@@ -63,6 +63,9 @@
                 <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
                     AI Insights
                 </button>
+                <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
+                    📧 Contact
+                </button>
             </nav>
 
             <!-- Tab Content Wrapper -->
@@ -601,6 +604,72 @@
                             <canvas id="sleepLoadChart"></canvas>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Contact Tab -->
+            <div id="contact" class="tab-panel" role="tabpanel" aria-labelledby="contact-tab">
+                <div class="analytics-card glass-card" style="max-width: 600px; margin: 0 auto;">
+                    <h3>📧 Get in Touch</h3>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 30px;">
+                        Have questions or feedback? We'd love to hear from you!
+                    </p>
+
+                    <form id="contactForm" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div>
+                            <label for="contactName" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">Name</label>
+                            <input
+                                type="text"
+                                id="contactName"
+                                required
+                                style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px;"
+                                placeholder="Your name"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="contactEmail" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">Email</label>
+                            <input
+                                type="email"
+                                id="contactEmail"
+                                required
+                                style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px;"
+                                placeholder="your.email@example.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="contactSubject" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">Subject</label>
+                            <input
+                                type="text"
+                                id="contactSubject"
+                                required
+                                style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px;"
+                                placeholder="What's this about?"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="contactMessage" style="display: block; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">Message</label>
+                            <textarea
+                                id="contactMessage"
+                                required
+                                rows="6"
+                                style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 14px; resize: vertical; font-family: inherit;"
+                                placeholder="Tell us what's on your mind..."
+                            ></textarea>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="refresh-btn"
+                            style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 14px 28px; font-size: 16px; font-weight: 600; cursor: pointer; align-self: flex-start;"
+                        >
+                            Send Message
+                        </button>
+
+                        <div id="contactFormStatus" style="display: none; padding: 12px; border-radius: 8px; margin-top: 10px;"></div>
+                    </form>
                 </div>
             </div>
             </div> <!-- End tab-content-wrapper -->
@@ -4292,6 +4361,72 @@
             }
 
             // Removed dummy Garmin data - using real data only
+
+            // Contact form handler
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const statusDiv = document.getElementById('contactFormStatus');
+                    const submitButton = contactForm.querySelector('button[type="submit"]');
+
+                    // Get form data
+                    const formData = {
+                        name: document.getElementById('contactName').value.trim(),
+                        email: document.getElementById('contactEmail').value.trim(),
+                        subject: document.getElementById('contactSubject').value.trim(),
+                        message: document.getElementById('contactMessage').value.trim()
+                    };
+
+                    // Disable submit button
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Sending...';
+
+                    try {
+                        const response = await fetch('/api/contact', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Success
+                            statusDiv.style.display = 'block';
+                            statusDiv.style.background = 'rgba(16, 185, 129, 0.2)';
+                            statusDiv.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+                            statusDiv.style.color = 'rgba(255, 255, 255, 0.95)';
+                            statusDiv.textContent = data.message;
+
+                            // Clear form
+                            contactForm.reset();
+                        } else {
+                            // Error
+                            throw new Error(data.message || 'Failed to send message');
+                        }
+                    } catch (error) {
+                        console.error('Contact form error:', error);
+                        statusDiv.style.display = 'block';
+                        statusDiv.style.background = 'rgba(220, 38, 38, 0.2)';
+                        statusDiv.style.border = '1px solid rgba(220, 38, 38, 0.4)';
+                        statusDiv.style.color = 'rgba(255, 255, 255, 0.95)';
+                        statusDiv.textContent = error.message || 'Failed to send message. Please try again or email us directly at info@athlytx.com';
+                    } finally {
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Send Message';
+
+                        // Hide status after 5 seconds
+                        setTimeout(() => {
+                            statusDiv.style.display = 'none';
+                        }, 5000);
+                    }
+                });
+            }
         });
     </script>
 
