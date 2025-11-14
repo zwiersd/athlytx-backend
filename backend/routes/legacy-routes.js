@@ -453,16 +453,26 @@ app.get('/api/garmin/v2/permissions', async (req, res) => {
     try {
         const { token } = req.query;
 
+        console.log('🔐 Checking Garmin permissions with token:', token ? token.substring(0, 20) + '...' : 'missing');
+
         const response = await fetch('https://apis.garmin.com/wellness-api/rest/user/permissions', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('🔐 Garmin permissions response:', { status: response.status, body: responseText.substring(0, 200) });
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            data = { raw: responseText };
+        }
 
         if (!response.ok) {
-            throw new Error(`Garmin permissions check failed: ${data.message}`);
+            throw new Error(`Garmin permissions check failed: ${data.errorMessage || data.message || responseText}`);
         }
 
         res.json(data);
@@ -476,13 +486,25 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
         const url = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
-        console.log('📊 Garmin dailies request:', { url, hasToken: !!token, start, end, startTimestamp, endTimestamp });
+        console.log('📊 Garmin dailies request:', {
+            url,
+            hasToken: !!token,
+            tokenPrefix: token.substring(0, 20) + '...',
+            start,
+            end,
+            startTimestamp,
+            endTimestamp
+        });
 
         const response = await fetch(url, {
             headers: {
@@ -490,21 +512,32 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('📊 Garmin dailies raw response:', {
+            status: response.status,
+            body: responseText.substring(0, 500)
+        });
 
-        console.log('📊 Garmin dailies response:', {
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+        }
+
+        console.log('📊 Garmin dailies parsed response:', {
             status: response.status,
             dataLength: Array.isArray(data) ? data.length : 'not array',
-            sample: data
+            hasError: !!(data.errorMessage || data.error)
         });
 
         if (!response.ok) {
-            throw new Error(`Garmin dailies fetch failed: ${data.message || JSON.stringify(data)}`);
+            throw new Error(`Garmin dailies fetch failed (${response.status}): ${data.errorMessage || data.message || JSON.stringify(data)}`);
         }
 
         res.json(data);
     } catch (error) {
-        console.error('Garmin dailies error:', error);
+        console.error('❌ Garmin dailies error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
@@ -513,11 +546,23 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
         const url = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+
+        console.log('🏃 Garmin activities request:', {
+            url,
+            hasToken: !!token,
+            tokenPrefix: token.substring(0, 20) + '...',
+            start,
+            end
+        });
 
         const response = await fetch(url, {
             headers: {
@@ -525,15 +570,26 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+        }
+
+        console.log('🏃 Garmin activities response:', {
+            status: response.status,
+            dataLength: Array.isArray(data) ? data.length : 'not array'
+        });
 
         if (!response.ok) {
-            throw new Error(`Garmin activities fetch failed: ${data.message}`);
+            throw new Error(`Garmin activities fetch failed (${response.status}): ${data.errorMessage || data.message || JSON.stringify(data)}`);
         }
 
         res.json(data);
     } catch (error) {
-        console.error('Garmin activities error:', error);
+        console.error('❌ Garmin activities error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
@@ -542,11 +598,23 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
         const url = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+
+        console.log('😴 Garmin sleep request:', {
+            url,
+            hasToken: !!token,
+            tokenPrefix: token.substring(0, 20) + '...',
+            start,
+            end
+        });
 
         const response = await fetch(url, {
             headers: {
@@ -554,15 +622,26 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
             }
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+        }
+
+        console.log('😴 Garmin sleep response:', {
+            status: response.status,
+            dataLength: Array.isArray(data) ? data.length : 'not array'
+        });
 
         if (!response.ok) {
-            throw new Error(`Garmin sleep fetch failed: ${data.message}`);
+            throw new Error(`Garmin sleep fetch failed (${response.status}): ${data.errorMessage || data.message || JSON.stringify(data)}`);
         }
 
         res.json(data);
     } catch (error) {
-        console.error('Garmin sleep error:', error);
+        console.error('❌ Garmin sleep error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });

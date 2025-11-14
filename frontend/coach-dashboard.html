@@ -14,9 +14,10 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #0f1e3d;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%) !important;
             min-height: 100vh;
             padding: 20px;
+            color: white;
         }
 
         .container {
@@ -25,71 +26,110 @@
         }
 
         .header {
-            background: white;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
             padding: 20px 30px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s, border 0.3s;
+        }
+
+        .header:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
 
         .header h1 {
-            color: #667eea;
+            color: rgba(255, 255, 255, 0.95);
             font-size: 28px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .header-info {
             text-align: right;
-            color: #666;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .controls {
-            background: white;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
             padding: 20px 30px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             display: flex;
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s, border 0.3s;
+        }
+
+        .controls:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
 
         .controls label {
             font-weight: 600;
-            color: #333;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         .controls select,
         .controls input {
             padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         .controls select:focus,
         .controls input:focus {
-            border-color: #667eea;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .controls select option {
+            background: #1e2659;
+            color: white;
         }
 
         .controls button {
             padding: 8px 20px;
-            background: #667eea;
+            background: rgba(102, 126, 234, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: white;
-            border: none;
-            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .controls button:hover {
-            background: #5568d3;
+            background: rgba(102, 126, 234, 1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
         .dashboard-grid {
@@ -100,18 +140,29 @@
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             margin-bottom: 30px;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s, border 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
 
         .card h2 {
             font-size: 18px;
-            color: #333;
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 15px;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.6);
             padding-bottom: 10px;
         }
 
@@ -124,8 +175,18 @@
         .stat {
             text-align: center;
             padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .stat:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         .stat-value {
@@ -137,7 +198,7 @@
 
         .stat-label {
             font-size: 12px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -156,11 +217,15 @@
             margin-bottom: 5px;
             font-size: 14px;
             font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .zone-progress {
             height: 30px;
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             overflow: hidden;
             position: relative;
@@ -190,23 +255,26 @@
         }
 
         .activities-table th {
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 12px;
             text-align: left;
             font-size: 12px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
         }
 
         .activities-table td {
             padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .activities-table tr:hover {
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .activity-type {
@@ -255,14 +323,22 @@
         .loading {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .error {
-            background: #ffebee;
-            color: #c62828;
+            background: rgba(220, 38, 38, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: rgba(255, 100, 100, 1);
+            border: 1px solid rgba(220, 38, 38, 0.4);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 20px;
         }
 
@@ -282,11 +358,11 @@
         <div class="header">
             <div>
                 <h1>Coach Dashboard</h1>
-                <p style="color: #666; margin-top: 5px;">Heart Rate Zone Analysis</p>
+                <p style="color: rgba(255, 255, 255, 0.7); margin-top: 5px;">Heart Rate Zone Analysis</p>
             </div>
             <div class="header-info">
                 <div id="athleteName" style="font-size: 18px; font-weight: 600; color: #667eea;">Athlete</div>
-                <div id="lastSync" style="font-size: 12px; margin-top: 3px;">Last sync: --</div>
+                <div id="lastSync" style="font-size: 12px; margin-top: 3px; color: rgba(255, 255, 255, 0.7);">Last sync: --</div>
             </div>
         </div>
 
@@ -330,8 +406,8 @@
                             <div class="stat-label">Max HR</div>
                         </div>
                     </div>
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                        <div style="font-size: 12px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Data Sources</div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Data Sources</div>
                         <div id="dataSources" style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <!-- Data sources populated dynamically -->
                         </div>
@@ -441,7 +517,7 @@
 
         <!-- Footer with Data Attribution -->
         <footer style="background: transparent; border-radius: 12px; padding: 25px; margin-top: 20px; text-align: center;">
-            <div style="font-size: 12px; color: #666; margin-bottom: 15px;">Powered by Garmin, Strava, Whoop, and Oura</div>
+            <div style="font-size: 12px; color: white; margin-bottom: 15px;">Powered by Garmin, Strava, Whoop, and Oura</div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 25px; flex-wrap: wrap;">
                 <img src="src/images/GarminConnect.png" alt="Garmin Connect" style="height: 40px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <span style="color: #ddd;">|</span>
@@ -577,7 +653,7 @@
 
             const container = document.getElementById('dataSources');
             if (providers.size === 0) {
-                container.innerHTML = '<span style="color: #999; font-size: 12px;">No data sources</span>';
+                container.innerHTML = '<span style="color: rgba(255, 255, 255, 0.5); font-size: 12px;">No data sources</span>';
                 return;
             }
 
@@ -646,7 +722,7 @@
             const unique = Object.values(uniqueActivities).slice(0, 20);
 
             if (unique.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No activities found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: rgba(255, 255, 255, 0.5);">No activities found</td></tr>';
                 return;
             }
 
