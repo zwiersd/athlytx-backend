@@ -3,7 +3,7 @@ class GarminOAuth2 {
     constructor(config = {}) {
         this.clientId = config.clientId || 'ee6809d5-abc0-4a33-b38a-d433e5045987';
         this.clientSecret = config.clientSecret;
-        this.redirectUri = config.redirectUri || 'https://www.athlytx.com';
+        this.redirectUri = config.redirectUri || 'https://www.athlytx.com/auth/garmin/callback';
         this.scope = config.scope || 'WELLNESS_READ';
 
         // Storage for PKCE values
@@ -301,7 +301,7 @@ async function initializeGarminAuth() {
     const garminAuth = new GarminOAuth2({
         clientId: 'ee6809d5-abc0-4a33-b38a-d433e5045987',
         clientSecret: 'YOUR_CLIENT_SECRET', // Should be handled server-side in production
-        redirectUri: 'https://www.athlytx.com',
+        redirectUri: 'https://www.athlytx.com/auth/garmin/callback',
         scope: 'WELLNESS_READ'
     });
 

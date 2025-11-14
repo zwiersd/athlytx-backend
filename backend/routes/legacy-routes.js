@@ -399,7 +399,7 @@ app.post('/api/garmin/token', async (req, res) => {
             code_verifier: code_verifier ? code_verifier.substring(0, 10) + '...' : 'missing',
             has_consumer_key: !!process.env.GARMIN_CONSUMER_KEY,
             has_consumer_secret: !!process.env.GARMIN_CONSUMER_SECRET,
-            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com',
+            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com/auth/garmin/callback',
             consumer_key: process.env.GARMIN_CONSUMER_KEY ? process.env.GARMIN_CONSUMER_KEY.substring(0, 10) + '...' : 'missing'
         });
 
@@ -411,7 +411,7 @@ app.post('/api/garmin/token', async (req, res) => {
             grant_type: 'authorization_code',
             code: code,
             code_verifier: code_verifier,
-            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com'
+            redirect_uri: process.env.GARMIN_REDIRECT_URI || 'https://www.athlytx.com/auth/garmin/callback'
         });
 
         console.log('🔐 Token exchange params:', tokenParams.toString());
