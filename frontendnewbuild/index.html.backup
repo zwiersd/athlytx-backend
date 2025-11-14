@@ -13,15 +13,15 @@
 <body>
     <!-- Top navigation -->
     <div class="top-nav">
-        <a href="/about.html" class="nav-link btn-scale-click">📖 About</a>
-        <a href="/privacy.html" class="nav-link btn-scale-click">🔒 Privacy Policy</a>
+        <a href="/about.html" class="nav-link">📖 About</a>
+        <a href="/privacy.html" class="nav-link">🔒 Privacy Policy</a>
     </div>
 
     <div id="dashboard" class="dashboard">
         <div style="position: fixed; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 1000; flex-wrap: wrap; align-items:center;">
-            <span id="readinessPill" class="pulse-ring" style="display:inline-block; padding:6px 10px; border-radius:999px; background: var(--glass-white-90); color:#111827; font-size:0.9rem; font-weight:600;">🏁 Readiness: --</span>
-            <button onclick="refreshAllData()" class="refresh-btn btn-scale-click icon-rotate-hover">🔄 Refresh</button>
-            <button onclick="clearAllData()" class="refresh-btn btn-scale-click">🗑️ Clear</button>
+            <span id="readinessPill" style="display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.7); color:#111827; font-size:0.9rem; font-weight:600;">🏁 Readiness: --</span>
+            <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh</button>
+            <button onclick="clearAllData()" class="refresh-btn">🗑️ Clear</button>
         </div>
         
         <div class="container">
@@ -32,20 +32,20 @@
 
             <!-- Elite Coach Dashboard Button -->
             <div style="text-align: right; margin: -10px 0 20px 0;">
-                <a href="/elite" style="display: inline-block; background: var(--gradient-primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px; box-shadow: var(--glow-primary); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='var(--glow-brand)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--glow-primary)'"
+                <a href="/elite" style="display: inline-block; background: linear-gradient(135deg, #667eea, #5a67d8); color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; font-size: 14px; box-shadow: 0 2px 6px rgba(102, 126, 234, 0.25); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(102, 126, 234, 0.35)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(102, 126, 234, 0.25)'">
                     Elite Dashboard →
                 </a>
             </div>
 
             <nav class="tab-nav">
-                <button class="tab-button btn-scale-click active" data-tab="connections">Connections</button>
-                <button class="tab-button btn-scale-click" data-tab="overview">Overview</button>
-                <button class="tab-button btn-scale-click" data-tab="strava">Strava Data</button>
-                <button class="tab-button btn-scale-click" data-tab="oura">Oura Data</button>
-                <button class="tab-button btn-scale-click" data-tab="garmin">Garmin Connect Data</button>
-                <button class="tab-button btn-scale-click" data-tab="whoop">Whoop Data</button>
-                <button class="tab-button btn-scale-click" data-tab="running">🏃 Running</button>
-                <button class="tab-button btn-scale-click" data-tab="insights">AI Insights</button>
+                <button class="tab-button active" data-tab="connections">Connections</button>
+                <button class="tab-button" data-tab="overview">Overview</button>
+                <button class="tab-button" data-tab="strava">Strava Data</button>
+                <button class="tab-button" data-tab="oura">Oura Data</button>
+                <button class="tab-button" data-tab="garmin">Garmin Connect Data</button>
+                <button class="tab-button" data-tab="whoop">Whoop Data</button>
+                <button class="tab-button" data-tab="running">🏃 Running</button>
+                <button class="tab-button" data-tab="insights">AI Insights</button>
             </nav>
 
             <!-- Connections Tab -->
@@ -55,7 +55,7 @@
                     <p>Link your fitness platforms to unlock comprehensive analytics</p>
                 </div>
                 <div class="devices-grid stagger-children">
-                    <div class="glass-card device-card stagger-item card-tilt">
+                    <div class="glass-card device-card stagger-item">
                         <div class="device-header">
                             <div class="device-icon strava">
                                 <img src="/src/images/strava-logo.jpeg" alt="Strava" onerror="this.style.display='none'; this.parentNode.innerHTML='S';">
@@ -65,15 +65,15 @@
                                 <p>Activities and performance data</p>
                             </div>
                         </div>
-                        <button class="connect-btn btn-strava btn-scale-click ripple-container" onclick="connectDevice('strava')">
+                        <button class="connect-btn btn-strava" onclick="connectDevice('strava')">
                             Connect Strava
                         </button>
-                        <button class="disconnect-btn btn-strava-disconnect btn-scale-click" onclick="disconnectDevice('strava')" style="display: none; margin-top: 8px;">
+                        <button class="disconnect-btn btn-strava-disconnect" onclick="disconnectDevice('strava')" style="display: none; margin-top: 8px;">
                             Disconnect
                         </button>
                     </div>
 
-                    <div class="glass-card device-card stagger-item card-tilt">
+                    <div class="glass-card device-card stagger-item">
                         <div class="device-header">
                             <div class="device-icon oura">
                                 <img src="/src/images/oura-logo.jpeg" alt="Oura" onerror="this.style.display='none'; this.parentNode.innerHTML='O';">
@@ -83,15 +83,15 @@
                                 <p>Readiness, activity, and sleep insights</p>
                             </div>
                         </div>
-                        <button class="connect-btn btn-oura btn-scale-click ripple-container" onclick="connectDevice('oura')">
+                        <button class="connect-btn btn-oura" onclick="connectDevice('oura')">
                             Connect Oura
                         </button>
-                        <button class="disconnect-btn btn-oura-disconnect btn-scale-click" onclick="disconnectDevice('oura')" style="display: none; margin-top: 8px;">
+                        <button class="disconnect-btn btn-oura-disconnect" onclick="disconnectDevice('oura')" style="display: none; margin-top: 8px;">
                             Disconnect
                         </button>
                     </div>
 
-                    <div class="glass-card device-card stagger-item card-tilt">
+                    <div class="glass-card device-card stagger-item">
                         <div class="device-header">
                             <div class="device-icon garmin">
                                 <img src="/src/images/GarminConnect.png" alt="Garmin Connect" onerror="this.style.display='none'; this.parentNode.innerHTML='G';">
@@ -101,15 +101,15 @@
                                 <p>Activities, body battery, and wellness</p>
                             </div>
                         </div>
-                        <button class="connect-btn btn-garmin btn-scale-click ripple-container" onclick="connectDevice('garmin')">
+                        <button class="connect-btn btn-garmin" onclick="connectDevice('garmin')">
                             Connect Garmin Connect
                         </button>
-                        <button class="disconnect-btn btn-garmin-disconnect btn-scale-click" onclick="disconnectDevice('garmin')" style="display: none; margin-top: 8px;">
+                        <button class="disconnect-btn btn-garmin-disconnect" onclick="disconnectDevice('garmin')" style="display: none; margin-top: 8px;">
                             Disconnect
                         </button>
                     </div>
 
-                    <div class="glass-card device-card stagger-item card-tilt">
+                    <div class="glass-card device-card stagger-item">
                         <div class="device-header">
                             <div class="device-icon whoop">
                                 <img src="/src/images/whoop-logo.jpeg" alt="Whoop" onerror="this.style.display='none'; this.parentNode.innerHTML='W';">
@@ -119,10 +119,10 @@
                                 <p>Recovery, strain, and sleep data</p>
                             </div>
                         </div>
-                        <button class="connect-btn btn-whoop btn-scale-click ripple-container" onclick="connectDevice('whoop')">
+                        <button class="connect-btn btn-whoop" onclick="connectDevice('whoop')">
                             Connect Whoop
                         </button>
-                        <button class="disconnect-btn btn-whoop-disconnect btn-scale-click" onclick="disconnectDevice('whoop')" style="display: none; margin-top: 8px;">
+                        <button class="disconnect-btn btn-whoop-disconnect" onclick="disconnectDevice('whoop')" style="display: none; margin-top: 8px;">
                             Disconnect
                         </button>
                     </div>
@@ -132,17 +132,17 @@
             <!-- Overview Tab -->
             <div id="overview" class="tab-panel">
                 <div class="section-group">
-                    <div class="glass-card analytics-card card-elevated" style="background: var(--gradient-primary); color: white; margin-bottom: 0;">
+                    <div class="glass-card analytics-card card-elevated" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 0;">
                         <div style="text-align: center;">
                             <h2 style="color: white; margin-bottom: 20px;">⚡ Athlytx Score</h2>
                             <div style="font-size: 4rem; font-weight: bold; margin: 20px 0;" id="athlytxScore">--</div>
                             <div style="font-size: 1.2rem; margin-bottom: 10px;" id="scoreStatus">Connect devices to calculate your score</div>
-                            <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.9rem; padding: 6px 10px; border-radius: 999px; background: var(--glass-5); margin-bottom: 14px;">Confidence: --</div>
-                            <div style="background: var(--glass-4); padding: 15px; border-radius: 10px; margin-top: 6px;">
+                            <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.9rem; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.15); margin-bottom: 14px;">Confidence: --</div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 6px;">
                                 <p id="scoreInsight" style="margin: 0;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
                                 <p id="scoreSources" style="margin: 8px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Sources — Recovery: --, Strain: --, Sleep: --, HRV: --</p>
                                 <p id="deviceGuidance" style="margin: 6px 0 0 0; font-size: 0.85rem; opacity: 0.85;">Tip: Connect Strava, Oura, and Whoop for highest confidence.</p>
-                                <div id="readinessBanner" style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: var(--glass-4); font-weight: 600;">
+                                <div id="readinessBanner" style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.12); font-weight: 600;">
                                     🏁 Today's Readiness: --
                                 </div>
                             </div>
@@ -178,15 +178,15 @@
                     <p>Track your progress and score components over time</p>
                 </div>
 
-                <div class="card-grid-asymmetric mt-6 stagger-charts">
-                    <div class="glass-card analytics-card elevated-hover">
+                <div class="card-grid-asymmetric mt-6">
+                    <div class="glass-card analytics-card">
                         <h3>Athlytx Score Trend</h3>
                         <div class="chart-container">
                             <canvas id="scoreTrendChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card analytics-card card-elevated elevated-hover">
+                    <div class="glass-card analytics-card card-elevated">
                         <h3>Score Breakdown</h3>
                         <div class="chart-container">
                             <canvas id="scoreBreakdownChart"></canvas>
@@ -265,13 +265,9 @@
 
             <!-- Oura Data Tab -->
             <div id="oura" class="tab-panel">
-                <div class="section-header">
-                    <h2>💍 Oura Recovery & Sleep</h2>
-                    <p>Your recovery metrics and sleep insights</p>
-                </div>
-
-                <div class="section-group">
-                    <div class="hero-stats">
+                <div class="glass-card analytics-card">
+                    <h3>💍 Oura Recovery & Sleep</h3>
+                    <div class="data-summary">
                         <div class="glass-card summary-card">
                             <span class="summary-value" id="ouraReadiness">--</span>
                             <div class="summary-label">Readiness Score</div>
@@ -291,44 +287,36 @@
                     </div>
                 </div>
 
-                <div class="section-divider"></div>
-
-                <div class="section-header">
-                    <h2>Sleep & Recovery Trends</h2>
-                </div>
-
-                <div class="card-grid-asymmetric stagger-children mt-6">
-                    <div class="glass-card analytics-card card-elevated stagger-item">
+                <div class="analytics-grid">
+                    <div class="glass-card analytics-card">
                         <h3>Sleep Stages (Last 7 Days)</h3>
                         <div class="chart-container">
                             <canvas id="ouraSleepStagesChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card analytics-card stagger-item">
+                    <div class="glass-card analytics-card">
                         <h3>Readiness vs HRV</h3>
                         <div class="chart-container">
                             <canvas id="ouraCorrelationChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card analytics-card stagger-item">
+                    <div class="glass-card analytics-card">
                         <h3>Readiness & Sleep Score</h3>
                         <div class="chart-container">
                             <canvas id="ouraTrendRS"></canvas>
                         </div>
                     </div>
-                </div>
 
-                <div class="card-grid-2 mt-8 stagger-children">
-                    <div class="glass-card analytics-card stagger-item">
+                    <div class="glass-card analytics-card">
                         <h3>HRV & Resting HR</h3>
                         <div class="chart-container">
                             <canvas id="ouraTrendHRVHR"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card analytics-card card-elevated stagger-item">
+                    <div class="glass-card analytics-card">
                         <h3>Sleep Consistency</h3>
                         <div class="glass-card insight-card" id="ouraConsistencyCard">
                             <p id="ouraConsistencyText">—</p>
@@ -341,7 +329,7 @@
             <div id="garmin" class="tab-panel">
                 <div class="glass-card analytics-card">
                     <h3>⌚ Garmin Connect Wellness & Performance</h3>
-                    <div style="text-align: center; padding: 40px; color: var(--text-tertiary);">
+                    <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7);">
                         <h4>Garmin Connect Integration Pending</h4>
                         <p>Connect your Garmin Connect device to see Body Battery, stress metrics, and training status.</p>
                     </div>
@@ -350,13 +338,9 @@
 
             <!-- Whoop Data Tab -->
             <div id="whoop" class="tab-panel">
-                <div class="section-header">
-                    <h2>💪 Whoop Strain & Recovery</h2>
-                    <p>Your strain and recovery analytics</p>
-                </div>
-
-                <div class="section-group">
-                    <div class="hero-stats">
+                <div class="glass-card analytics-card">
+                    <h3>💪 Whoop Strain & Recovery</h3>
+                    <div class="data-summary">
                         <div class="glass-card summary-card">
                             <span class="summary-value" id="whoopRecovery">--</span>
                             <div class="summary-label">Recovery %</div>
@@ -376,13 +360,7 @@
                     </div>
                 </div>
 
-                <div class="section-divider"></div>
-
-                <div class="section-header">
-                    <h2>Strain & Recovery Insights</h2>
-                </div>
-
-                <div class="card-grid-asymmetric stagger-children mt-6">
+                <div class="analytics-grid">
                     <div class="glass-card analytics-card">
                         <h3>Recent Activities</h3>
                         <div id="whoopActivitiesList" style="max-height: 300px; overflow-y: auto;">
@@ -415,14 +393,8 @@
 
             <!-- Running Tab -->
             <div id="running" class="tab-panel">
-                <div class="section-header">
-                    <h2>🏃 Running Analytics</h2>
-                    <p>Comprehensive running performance metrics</p>
-                </div>
-
                 <!-- Running Volume Cards -->
-                <div class="section-group">
-                    <div class="hero-stats">
+                <div class="data-summary" style="margin-bottom: 30px;">
                     <div class="glass-card summary-card">
                         <span class="summary-value" id="runningDistance">--</span>
                         <div class="summary-label">Total Distance (4w)</div>
@@ -444,9 +416,6 @@
                         <span class="trend-arrow" id="runningElevationTrend"></span>
                     </div>
                 </div>
-                </div>
-
-                <div class="section-divider"></div>
 
                 <!-- Training Load Analysis -->
                 <div class="glass-card analytics-card">
@@ -493,7 +462,7 @@
                         <div id="runningProgressTable" style="overflow-x: auto;">
                             <table style="width: 100%; font-size: 0.9rem;">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid var(--border-2);">
+                                    <tr style="border-bottom: 2px solid rgba(0,0,0,0.2);">
                                         <th style="text-align: left; padding: 12px; color: #374151; font-weight: 600;">Metric</th>
                                         <th style="text-align: center; padding: 12px; color: #374151; font-weight: 600;">4 Weeks Ago</th>
                                         <th style="text-align: center; padding: 12px; color: #374151; font-weight: 600;">This Week</th>
@@ -514,7 +483,7 @@
                     <div class="glass-card analytics-card">
                         <h3>🏅 Personal Records</h3>
                         <div id="runningRecords" style="max-height: 300px; overflow-y: auto;">
-                            <div class="record-item" style="padding: 10px; border-bottom: 1px solid var(--border-1);">
+                            <div class="record-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                 <span style="color: #6B7280;">Connect Strava to see your records</span>
                             </div>
                         </div>
@@ -535,13 +504,8 @@
 
             <!-- AI Insights Tab -->
             <div id="insights" class="tab-panel">
-                <div class="section-header">
-                    <h2>🤖 AI-Powered Insights</h2>
-                    <p>Data-driven insights from across your fitness platforms</p>
-                </div>
-
-                <div class="card-grid-asymmetric stagger-children mt-6">
-                    <div class="glass-card analytics-card card-elevated stagger-item" style="background: linear-gradient(135deg, #3210b9 0%, #059669 100%); color: white;">
+                <div class="analytics-grid">
+                    <div class="glass-card analytics-card" style="background: linear-gradient(135deg, #3210b9 0%, #059669 100%); color: white;">
                         <h3 style="color: white;">🤖 AI-Powered Insights</h3>
                         <div id="aiInsights">
                             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
@@ -549,7 +513,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="glass-card analytics-card stagger-item">
+                    <div class="glass-card analytics-card">
                         <h3>Cross-Device Correlations</h3>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                             <label for="correlationWindow" style="font-size:0.9rem; color:#6b7280;">Window:</label>
@@ -581,15 +545,15 @@
             <!-- Footer -->
             <div class="footer">
                 <div style="text-align: center; margin-bottom: 20px; padding: 25px; background: transparent; border-radius: 12px;">
-                    <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Data powered by:</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Data powered by:</div>
                     <div style="display: flex; justify-content: center; align-items: center; gap: 25px; flex-wrap: wrap;">
-                        <img src="src/images/GarminConnect.png" alt="Garmin Connect" style="height: 40px; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm);">
-                        <span style="color: var(--text-disabled);">|</span>
-                        <img src="src/images/strava-logo.jpeg" alt="Strava" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm);">
-                        <span style="color: var(--text-disabled);">|</span>
-                        <img src="src/images/whoop-logo.jpeg" alt="Whoop" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm);">
-                        <span style="color: var(--text-disabled);">|</span>
-                        <img src="src/images/oura-logo.jpeg" alt="Oura" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm);">
+                        <img src="src/images/GarminConnect.png" alt="Garmin Connect" style="height: 40px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        <span style="color: rgba(255,255,255,0.3);">|</span>
+                        <img src="src/images/strava-logo.jpeg" alt="Strava" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        <span style="color: rgba(255,255,255,0.3);">|</span>
+                        <img src="src/images/whoop-logo.jpeg" alt="Whoop" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        <span style="color: rgba(255,255,255,0.3);">|</span>
+                        <img src="src/images/oura-logo.jpeg" alt="Oura" style="height: 35px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                     </div>
                 </div>
                 <div class="footer-links">
@@ -1624,7 +1588,7 @@
                 const confEl = document.getElementById('scoreConfidenceBadge');
                 if (confEl) {
                     confEl.textContent = `Confidence: ${confidence}`;
-                    confEl.style.background = confidence === 'High' ? 'var(--status-fresh-dim)' : (confidence === 'Medium' ? 'var(--status-fatigued-dim)' : 'var(--status-danger-dim)');
+                    confEl.style.background = confidence === 'High' ? 'rgba(16,185,129,0.25)' : (confidence === 'Medium' ? 'rgba(245,158,11,0.25)' : 'rgba(220,38,38,0.25)');
                 }
                 const sourcesEl = document.getElementById('scoreSources');
                 if (sourcesEl && dataSources) {
@@ -1646,14 +1610,14 @@
                 if (readinessBanner && typeof computeReadiness === 'function') {
                     const readiness = computeReadiness(components);
                     readinessBanner.textContent = `🏁 Today’s Readiness: ${readiness.type} — ${readiness.message}`;
-                    readinessBanner.style.background = readiness.type === 'Push' ? 'var(--status-fresh-dim)' : (readiness.type === 'Maintain' ? 'var(--status-fatigued-dim)' : 'var(--status-danger-dim)');
+                    readinessBanner.style.background = readiness.type === 'Push' ? 'rgba(16,185,129,0.25)' : (readiness.type === 'Maintain' ? 'rgba(245,158,11,0.25)' : 'rgba(220,38,38,0.25)');
                 }
                 // Update compact Readiness pill
                 const readinessPill = document.getElementById('readinessPill');
                 if (readinessPill && typeof computeReadiness === 'function') {
                     const readiness = computeReadiness(components);
                     readinessPill.textContent = `🏁 Readiness: ${readiness.type}`;
-                    readinessPill.style.background = readiness.type === 'Push' ? 'var(--status-fresh)' : (readiness.type === 'Maintain' ? 'var(--status-fatigued)' : 'var(--status-danger)');
+                    readinessPill.style.background = readiness.type === 'Push' ? 'rgba(16,185,129,0.85)' : (readiness.type === 'Maintain' ? 'rgba(245,158,11,0.85)' : 'rgba(220,38,38,0.85)');
                     readinessPill.style.color = '#fff';
                 }
             } else {
@@ -3999,8 +3963,5 @@
     <script src="garmin-oauth2.js"></script>
     <script src="whoop-oauth2.js"></script>
     <script src="oauth-handler.js"></script>
-
-    <!-- Micro-Interactions & Animations -->
-    <script src="micro-interactions.js"></script>
 </body>
 </html>

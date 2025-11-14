@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accept Coach Invitation - Athlytx Elite</title>
+    <link rel="stylesheet" href="/styles/design-tokens.css">
+    <link rel="stylesheet" href="/styles/components.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            padding: 24px;
+        }
+
+        .invite-card {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .coach-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .coach-name {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .coach-email {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .invite-message {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667EEA;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #667EEA;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .expires-info {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="invite-card">
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Loading invitation...</p>
+        </div>
+
+        <div id="inviteContent" style="display: none;">
+            <h1>Coach Invitation</h1>
+            <p class="subtitle">You've been invited to share your training data</p>
+
+            <div class="coach-info">
+                <div class="coach-name" id="coachName"></div>
+                <div class="coach-email" id="coachEmail"></div>
+            </div>
+
+            <div id="inviteMessageContainer" style="display: none;">
+                <div class="invite-message" id="inviteMessage"></div>
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            <button id="acceptBtn" class="btn btn-primary">Accept Invitation</button>
+            <button id="getStartedBtn" class="btn btn-primary" style="display: none;">Get Started</button>
+            <button onclick="window.location.href='/'" class="btn btn-secondary">Decline</button>
+
+            <div class="expires-info" id="expiresInfo"></div>
+        </div>
+
+        <div id="errorState" style="display: none;">
+            <h1 style="color: #EF4444;">⚠️ Invalid Invitation</h1>
+            <div class="error-message" id="errorStateMessage"></div>
+            <button onclick="window.location.href='/'" class="btn btn-secondary">Go to Homepage</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function loadInvitationDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            if (!token) {
+                showError('No invitation token provided');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/invite/details?token=${token}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'Failed to load invitation');
+                    return;
+                }
+
+                // Show invitation details
+                document.getElementById('coachName').textContent = data.coachName;
+                document.getElementById('coachEmail').textContent = data.coachEmail;
+
+                if (data.inviteMessage) {
+                    document.getElementById('inviteMessage').textContent = data.inviteMessage;
+                    document.getElementById('inviteMessageContainer').style.display = 'block';
+                }
+
+                // Show expiry info
+                if (data.expiresAt) {
+                    const expiryDate = new Date(data.expiresAt);
+                    const daysLeft = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+                    document.getElementById('expiresInfo').textContent =
+                        `This invitation expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
+                }
+
+                // Check if user is already logged in
+                const session = localStorage.getItem('athlytx_session');
+                if (session) {
+                    // User is logged in - show accept button
+                    document.getElementById('acceptBtn').style.display = 'block';
+                    document.getElementById('getStartedBtn').style.display = 'none';
+                } else {
+                    // User not logged in - show get started button
+                    document.getElementById('acceptBtn').style.display = 'none';
+                    document.getElementById('getStartedBtn').style.display = 'block';
+                }
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('inviteContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading invitation:', error);
+                showError('Failed to load invitation details');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('inviteContent').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorStateMessage').textContent = message;
+        }
+
+        // Accept invitation
+        document.getElementById('acceptBtn').addEventListener('click', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/accept-invite`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').style.display = 'block';
+                    return;
+                }
+
+                // Check if user needs onboarding
+                const session = JSON.parse(localStorage.getItem('athlytx_session') || '{}');
+                if (!session.user?.onboarded) {
+                    window.location.href = '/athlete-onboarding.html?fromInvite=true';
+                } else {
+                    window.location.href = '/dashboard.html';
+                }
+
+            } catch (error) {
+                console.error('Error accepting invitation:', error);
+                document.getElementById('errorMessage').textContent = 'Failed to accept invitation';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+
+        // Get started (redirect to login with return URL)
+        document.getElementById('getStartedBtn').addEventListener('click', () => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            window.location.href = `/login.html?returnUrl=${encodeURIComponent(`/athlete-accept-invite?token=${token}`)}`;
+        });
+
+        // Load invitation on page load
+        loadInvitationDetails();
+    </script>
+</body>
+</html>

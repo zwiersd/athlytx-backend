@@ -109,6 +109,13 @@ async function initializeDatabase() {
             console.warn('⚠️  Migration warning:', migrationError.message);
         }
 
+        try {
+            const { addCoachAthleteOnboardingFields } = require('../migrations/add-coach-athlete-onboarding-fields');
+            await addCoachAthleteOnboardingFields(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration warning:', migrationError.message);
+        }
+
         return true;
     } catch (error) {
         console.error('❌ Database initialization failed:', error);

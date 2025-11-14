@@ -29,12 +29,33 @@ const CoachAthlete = sequelize.define('CoachAthlete', {
         allowNull: true,
         unique: true
     },
+    status: {
+        type: DataTypes.ENUM('pending', 'active', 'revoked', 'cancelled'),
+        defaultValue: 'pending',
+        allowNull: false
+    },
+    inviteMessage: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     invitedAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
     },
+    expiresAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     acceptedAt: {
         type: DataTypes.DATE,
+        allowNull: true
+    },
+    revokedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    revokedBy: {
+        type: DataTypes.UUID,
         allowNull: true
     }
 }, {

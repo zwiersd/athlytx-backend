@@ -547,17 +547,29 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showStatus('Login code sent! Check your email.', 'success');
+                    showStatus('Magic link sent! Check your email to complete login.', 'success');
                     emailDisplay.textContent = email;
 
-                    // Switch to code step
+                    // Show waiting message instead of code input
                     emailStep.classList.remove('active');
                     codeStep.classList.add('active');
 
-                    // Focus first code input
-                    codeInputs[0].focus();
+                    // Hide code inputs and show magic link message
+                    document.querySelector('.code-inputs').style.display = 'none';
+                    verifyCodeBtn.style.display = 'none';
+
+                    const waitingMsg = document.createElement('div');
+                    waitingMsg.id = 'magicLinkWaiting';
+                    waitingMsg.style.cssText = 'text-align: center; padding: 32px; color: rgba(255,255,255,0.7);';
+                    waitingMsg.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 16px;">📧</div>
+                        <h3 style="color: #fff; margin-bottom: 8px;">Check Your Email</h3>
+                        <p>We've sent a magic link to <strong>${email}</strong></p>
+                        <p style="margin-top: 16px; font-size: 14px;">Click the link in your email to log in instantly</p>
+                    `;
+                    codeStep.querySelector('.card-body').insertBefore(waitingMsg, codeStep.querySelector('.code-inputs'));
                 } else {
-                    showStatus(data.error || 'Failed to send code', 'error');
+                    showStatus(data.error || 'Failed to send magic link', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -674,24 +686,109 @@
             emailInput.focus();
         });
 
+        // Check for magic link token in URL
+        async function handleMagicLinkToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const returnUrl = params.get('returnUrl');
+
+            if (token) {
+                showStatus('Verifying magic link...', 'success');
+
+                try {
+                    const response = await fetch('/api/auth/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showStatus('Login successful!', 'success');
+
+                        // Store session - use consistent key and full session object
+                        const sessionData = {
+                            sessionToken: data.sessionToken,
+                            user: {
+                                id: data.user.id,
+                                email: data.user.email,
+                                name: data.user.name,
+                                role: data.user.role,
+                                onboarded: data.user.onboarded
+                            }
+                        };
+
+                        localStorage.setItem('athlytx_session', JSON.stringify(sessionData));
+                        localStorage.setItem('sessionToken', data.sessionToken);
+                        localStorage.setItem('userEmail', data.user.email);
+                        localStorage.setItem('userName', data.user.name || '');
+                        localStorage.setItem('userRole', data.user.role);
+
+                        // Redirect logic with priority:
+                        // 1. Return URL from invitation
+                        // 2. Onboarding if not completed
+                        // 3. Role-based redirect
+                        setTimeout(() => {
+                            if (returnUrl) {
+                                window.location.href = decodeURIComponent(returnUrl);
+                            } else if (!data.user.onboarded && data.user.role === 'athlete') {
+                                window.location.href = '/athlete-onboarding.html';
+                            } else if (data.user.role === 'coach') {
+                                window.location.href = '/coach-elite.html';
+                            } else {
+                                window.location.href = '/dashboard.html';
+                            }
+                        }, 1000);
+                    } else {
+                        showStatus(data.error || 'Invalid or expired magic link', 'error');
+                    }
+                } catch (error) {
+                    console.error('Magic link verify error:', error);
+                    showStatus('Network error. Please try again.', 'error');
+                }
+            }
+        }
+
         // Check if user is already logged in
         window.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('sessionToken');
-            if (token) {
+            // First check for magic link token
+            await handleMagicLinkToken();
+
+            // Then check existing session
+            const sessionData = localStorage.getItem('athlytx_session');
+            if (sessionData) {
                 try {
+                    const session = JSON.parse(sessionData);
                     const response = await fetch('/api/auth/session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sessionToken: token })
+                        body: JSON.stringify({ sessionToken: session.sessionToken })
                     });
 
                     if (response.ok) {
                         const data = await response.json();
-                        // Already logged in, redirect
-                        window.location.href = data.redirectTo || '/athlete/dashboard';
+
+                        // Update session with latest user data
+                        const updatedSession = {
+                            sessionToken: session.sessionToken,
+                            user: data.user
+                        };
+                        localStorage.setItem('athlytx_session', JSON.stringify(updatedSession));
+
+                        // Redirect based on onboarding status and role
+                        if (!data.user.onboarded && data.user.role === 'athlete') {
+                            window.location.href = '/athlete-onboarding.html';
+                        } else if (data.user.role === 'coach') {
+                            window.location.href = '/coach-elite.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
                     }
                 } catch (error) {
                     console.log('Not logged in or session expired');
+                    localStorage.removeItem('athlytx_session');
+                    localStorage.removeItem('sessionToken');
                 }
             }
         });

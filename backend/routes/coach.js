@@ -458,4 +458,177 @@ async function generateAthleteReport(athleteId, startDate, endDate) {
     };
 }
 
+/**
+ * GET /api/coach/invitations
+ * Get all pending invitations for a coach
+ */
+router.get('/invitations', async (req, res) => {
+    try {
+        const { coachId } = req.query;
+
+        if (!coachId) {
+            return res.status(400).json({ error: 'coachId required' });
+        }
+
+        // Verify coach exists and has valid session
+        const coach = await User.findOne({
+            where: { id: coachId, role: 'coach' }
+        });
+
+        if (!coach) {
+            return res.status(404).json({ error: 'Coach not found' });
+        }
+
+        // Get all pending invitations
+        const invitations = await CoachAthlete.findAll({
+            where: {
+                coachId,
+                status: 'pending'
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'Athlete',
+                    attributes: ['email', 'name']
+                }
+            ],
+            order: [['invitedAt', 'DESC']]
+        });
+
+        const formattedInvitations = invitations.map(inv => ({
+            id: inv.id,
+            athleteEmail: inv.Athlete.email,
+            athleteName: inv.Athlete.name,
+            inviteMessage: inv.inviteMessage,
+            invitedAt: inv.invitedAt,
+            expiresAt: inv.expiresAt,
+            isExpired: inv.expiresAt && new Date(inv.expiresAt) < new Date(),
+            inviteToken: inv.inviteToken
+        }));
+
+        res.json({ invitations: formattedInvitations });
+
+    } catch (error) {
+        console.error('Get invitations error:', error);
+        res.status(500).json({ error: 'Failed to fetch invitations' });
+    }
+});
+
+/**
+ * POST /api/coach/resend-invite/:relationshipId
+ * Resend invitation email to athlete
+ */
+router.post('/resend-invite/:relationshipId', async (req, res) => {
+    try {
+        const { relationshipId } = req.params;
+        const { coachId } = req.body;
+
+        if (!coachId) {
+            return res.status(400).json({ error: 'coachId required' });
+        }
+
+        // Find the relationship
+        const relationship = await CoachAthlete.findOne({
+            where: { id: relationshipId, coachId },
+            include: [
+                { model: User, as: 'Coach', attributes: ['name', 'email'] },
+                { model: User, as: 'Athlete', attributes: ['email'] }
+            ]
+        });
+
+        if (!relationship) {
+            return res.status(404).json({ error: 'Invitation not found or access denied' });
+        }
+
+        if (relationship.status !== 'pending') {
+            return res.status(400).json({ error: 'Can only resend pending invitations' });
+        }
+
+        // Generate new token and expiry
+        const crypto = require('crypto');
+        const newToken = crypto.randomBytes(32).toString('hex');
+        const newExpiresAt = new Date();
+        newExpiresAt.setDate(newExpiresAt.getDate() + 7);
+
+        relationship.inviteToken = newToken;
+        relationship.expiresAt = newExpiresAt;
+        relationship.invitedAt = new Date();
+        await relationship.save();
+
+        // Send invitation email
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete/accept-invite?token=${newToken}`;
+
+        const { sendAthleteInvite } = require('../utils/email');
+        try {
+            await sendAthleteInvite(
+                relationship.Athlete.email,
+                relationship.Coach.name || relationship.Coach.email.split('@')[0],
+                relationship.Coach.email,
+                inviteUrl,
+                relationship.inviteMessage
+            );
+            console.log(`✅ Invitation resent to ${relationship.Athlete.email}`);
+        } catch (emailError) {
+            console.error('❌ Email failed:', emailError.message);
+            // Continue even if email fails
+        }
+
+        res.json({
+            success: true,
+            message: 'Invitation resent',
+            invitation: {
+                id: relationship.id,
+                athleteEmail: relationship.Athlete.email,
+                invitedAt: relationship.invitedAt,
+                expiresAt: relationship.expiresAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Resend invite error:', error);
+        res.status(500).json({ error: 'Failed to resend invitation' });
+    }
+});
+
+/**
+ * DELETE /api/coach/cancel-invite/:relationshipId
+ * Cancel a pending invitation
+ */
+router.delete('/cancel-invite/:relationshipId', async (req, res) => {
+    try {
+        const { relationshipId } = req.params;
+        const { coachId } = req.query;
+
+        if (!coachId) {
+            return res.status(400).json({ error: 'coachId required' });
+        }
+
+        // Find the relationship
+        const relationship = await CoachAthlete.findOne({
+            where: { id: relationshipId, coachId }
+        });
+
+        if (!relationship) {
+            return res.status(404).json({ error: 'Invitation not found or access denied' });
+        }
+
+        if (relationship.status !== 'pending') {
+            return res.status(400).json({ error: 'Can only cancel pending invitations' });
+        }
+
+        // Update status to cancelled
+        relationship.status = 'cancelled';
+        await relationship.save();
+
+        res.json({
+            success: true,
+            message: 'Invitation cancelled'
+        });
+
+    } catch (error) {
+        console.error('Cancel invite error:', error);
+        res.status(500).json({ error: 'Failed to cancel invitation' });
+    }
+});
+
 module.exports = router;

@@ -75,11 +75,17 @@ app.use('/api/test', testRoutes);
 app.use('/api/garmin', garminHealthRoutes);
 app.use('/api/garmin/test', garminOAuthTestRoutes);
 
-// Import authentication and coach routes
+// Import authentication, coach, and device routes
 const authRoutes = require('./backend/routes/auth');
 const coachRoutes = require('./backend/routes/coach');
+const deviceRoutes = require('./backend/routes/devices');
 app.use('/api/auth', authRoutes);
 app.use('/api/coach', coachRoutes);
+app.use('/api/devices', deviceRoutes);
+
+// Import AI agent routes
+const agentRoutes = require('./backend/routes/agent');
+app.use('/api/agent', agentRoutes);
 
 // OAuth callback handlers (server-side processing)
 app.get('/auth/garmin/callback', async (req, res) => {
@@ -166,7 +172,20 @@ async function startServer() {
         console.log(`📡 Server running on port ${PORT}`);
         console.log(`🌐 Frontend: http://localhost:${PORT}`);
         console.log(`🔌 API: http://localhost:${PORT}/api`);
-        console.log(`💾 Database: ${dbReady ? 'Ready ✅' : 'Not configured ⚠️'}\n`);
+        console.log(`💾 Database: ${dbReady ? 'Ready ✅' : 'Not configured ⚠️'}`);
+
+        // Start AI Agent scheduled monitoring (if API key is configured)
+        if (process.env.ANTHROPIC_API_KEY) {
+            try {
+                const scheduledMonitor = require('./backend/agents/scheduled-monitor');
+                scheduledMonitor.start();
+                console.log('🤖 AI Agent monitoring: Enabled ✅\n');
+            } catch (error) {
+                console.log('⚠️  AI Agent monitoring: Disabled (not configured)\n');
+            }
+        } else {
+            console.log('⚠️  AI Agent monitoring: Disabled (ANTHROPIC_API_KEY not set)\n');
+        }
     });
 }
 

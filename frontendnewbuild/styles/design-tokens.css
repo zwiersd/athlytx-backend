@@ -66,6 +66,21 @@
   --zone-4: #ff9f0a;  /* Threshold */
   --zone-5: #ff453a;  /* Max */
 
+  /* Device Brand Colors */
+  --brand-whoop: #FF6B35;
+  --brand-garmin: #007CC3;
+  --brand-oura: #B45CF3;
+  --brand-strava: #FC4C02;
+
+  /* Additional Glass Surfaces */
+  --glass-white-95: rgba(255, 255, 255, 0.95);
+  --glass-white-90: rgba(255, 255, 255, 0.9);
+  --glass-white-98: rgba(255, 255, 255, 0.98);
+
+  /* Dark Glass Surfaces */
+  --glass-dark-90: rgba(10, 14, 39, 0.9);
+  --glass-dark-80: rgba(10, 14, 39, 0.8);
+
   /* Semantic Colors */
   --color-success: #34c759;
   --color-success-bg: rgba(52, 199, 89, 0.12);

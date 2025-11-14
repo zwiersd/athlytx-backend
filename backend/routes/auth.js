@@ -481,16 +481,23 @@ router.post('/invite-athlete', async (req, res) => {
             return res.status(400).json({ error: 'Relationship already exists' });
         }
 
+        // Generate invite token and expiry (7 days)
+        const inviteToken = generateToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
         // Create coach-athlete relationship (pending)
         const relationship = await CoachAthlete.create({
             coachId,
             athleteId: athlete.id,
             status: 'pending',
-            inviteMessage: message
+            inviteMessage: message,
+            inviteToken,
+            expiresAt
         });
 
-        // Create invite URL - athlete can use the elite page to log in and accept
-        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?invite=${coachId}-${athlete.id}`;
+        // Create invite URL - athlete accepts via dedicated page
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete/accept-invite?token=${inviteToken}`;
 
         // Send invite email
         try {
@@ -575,21 +582,159 @@ router.post('/update-profile', async (req, res) => {
 });
 
 /**
+ * GET /api/auth/invite/details
+ * Get invitation details by token
+ */
+router.get('/invite/details', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({ error: 'Token required' });
+        }
+
+        // Find the invitation by token
+        const relationship = await CoachAthlete.findOne({
+            where: { inviteToken: token },
+            include: [
+                { model: User, as: 'Coach', attributes: ['id', 'name', 'email'] },
+                { model: User, as: 'Athlete', attributes: ['id', 'email'] }
+            ]
+        });
+
+        if (!relationship) {
+            return res.status(404).json({ error: 'Invitation not found' });
+        }
+
+        // Check if already accepted
+        if (relationship.status === 'active') {
+            return res.status(400).json({ error: 'Invitation already accepted' });
+        }
+
+        // Check if revoked or cancelled
+        if (relationship.status === 'revoked' || relationship.status === 'cancelled') {
+            return res.status(400).json({ error: 'Invitation is no longer valid' });
+        }
+
+        // Check if expired
+        if (relationship.expiresAt && new Date(relationship.expiresAt) < new Date()) {
+            return res.status(400).json({ error: 'Invitation has expired' });
+        }
+
+        // Return invitation details
+        res.json({
+            coachName: relationship.Coach.name || relationship.Coach.email.split('@')[0],
+            coachEmail: relationship.Coach.email,
+            athleteEmail: relationship.Athlete.email,
+            inviteMessage: relationship.inviteMessage,
+            invitedAt: relationship.invitedAt,
+            expiresAt: relationship.expiresAt,
+            status: relationship.status
+        });
+
+    } catch (error) {
+        console.error('Invite details error:', error);
+        res.status(500).json({ error: 'Failed to fetch invitation details' });
+    }
+});
+
+/**
+ * POST /api/auth/onboarding/complete
+ * Complete athlete onboarding with profile data
+ */
+router.post('/onboarding/complete', async (req, res) => {
+    try {
+        const { userId, sessionToken, name, dateOfBirth, sport, timezone } = req.body;
+
+        if (!userId && !sessionToken) {
+            return res.status(400).json({ error: 'userId or sessionToken required' });
+        }
+
+        // Find user by ID or session token
+        let user;
+        if (sessionToken) {
+            user = await User.findOne({
+                where: {
+                    sessionToken,
+                    sessionExpiry: { [Op.gt]: new Date() }
+                }
+            });
+        } else {
+            user = await User.findByPk(userId);
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found or session expired' });
+        }
+
+        // Update user with onboarding data
+        if (name) user.name = name.trim();
+        if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+        if (sport) user.sport = sport;
+        if (timezone) user.timezone = timezone;
+        user.onboarded = true;
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Onboarding completed',
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                onboarded: user.onboarded,
+                dateOfBirth: user.dateOfBirth,
+                sport: user.sport,
+                timezone: user.timezone
+            }
+        });
+
+    } catch (error) {
+        console.error('Onboarding complete error:', error);
+        res.status(500).json({ error: 'Failed to complete onboarding' });
+    }
+});
+
+/**
  * POST /api/auth/accept-invite
  * Athlete accepts coach invitation
  */
 router.post('/accept-invite', async (req, res) => {
     try {
-        const { athleteId, coachId } = req.body;
+        const { token, athleteId, coachId } = req.body;
 
-        const relationship = await CoachAthlete.findOne({
-            where: { athleteId, coachId, status: 'pending' }
-        });
+        let relationship;
 
-        if (!relationship) {
-            return res.status(404).json({ error: 'No pending invitation found' });
+        // Support both token-based (new) and ID-based (legacy) invitation acceptance
+        if (token) {
+            relationship = await CoachAthlete.findOne({
+                where: { inviteToken: token, status: 'pending' }
+            });
+
+            if (!relationship) {
+                return res.status(404).json({ error: 'No pending invitation found' });
+            }
+
+            // Check if expired
+            if (relationship.expiresAt && new Date(relationship.expiresAt) < new Date()) {
+                return res.status(400).json({ error: 'Invitation has expired' });
+            }
+        } else if (athleteId && coachId) {
+            // Legacy support for ID-based acceptance
+            relationship = await CoachAthlete.findOne({
+                where: { athleteId, coachId, status: 'pending' }
+            });
+
+            if (!relationship) {
+                return res.status(404).json({ error: 'No pending invitation found' });
+            }
+        } else {
+            return res.status(400).json({ error: 'Either token or athleteId+coachId required' });
         }
 
+        // Accept the invitation
         relationship.status = 'active';
         relationship.acceptedAt = new Date();
         await relationship.save();
@@ -597,13 +742,19 @@ router.post('/accept-invite', async (req, res) => {
         // Activate athlete account if needed
         await User.update(
             { isActive: true },
-            { where: { id: athleteId, isActive: false } }
+            { where: { id: relationship.athleteId, isActive: false } }
         );
 
         res.json({
             success: true,
             message: 'Invitation accepted',
-            relationship
+            relationship: {
+                id: relationship.id,
+                coachId: relationship.coachId,
+                athleteId: relationship.athleteId,
+                status: relationship.status,
+                acceptedAt: relationship.acceptedAt
+            }
         });
 
     } catch (error) {

@@ -107,13 +107,13 @@
   background: var(--gradient-primary);
   color: var(--text-primary);
   box-shadow: var(--shadow-md), var(--glow-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-1);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg), var(--glow-brand);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--border-2);
 }
 
 .btn-primary:active {
@@ -458,7 +458,7 @@
   background: var(--gradient-brand);
   color: var(--text-primary);
   box-shadow: var(--glow-primary);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-2);
 }
 
 /* Free Tier Badge */
@@ -1065,4 +1065,385 @@
   top: 50%;
   transform: translateY(-50%);
   border-right-color: var(--bg-layer-3);
+}
+
+/* ============================================
+   TAB NAVIGATION SYSTEM
+   ============================================ */
+
+/**
+ * Tab Navigation Container
+ * Horizontal scrolling layout with glassmorphism aesthetic
+ * Mobile-first with centered desktop alignment
+ */
+.tab-nav {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-xl);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  position: relative;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.tab-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* Centered layout on desktop */
+@media (min-width: 768px) {
+  .tab-nav {
+    justify-content: center;
+    overflow-x: visible;
+  }
+}
+
+/* Tablet layout */
+@media (min-width: 640px) and (max-width: 767px) {
+  .tab-nav {
+    justify-content: flex-start;
+    padding-right: var(--space-6);
+  }
+}
+
+/**
+ * Tab Button Component
+ * Pill-shaped buttons with glassmorphism states
+ * Smooth transitions and hover effects
+ */
+.tab-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  color: var(--text-secondary);
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 300ms var(--ease-default);
+  flex-shrink: 0;
+}
+
+/* Tab button hover state */
+.tab-button:hover {
+  color: var(--text-primary);
+  background: var(--glass-3);
+  border-color: var(--border-2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Tab button active/selected state */
+.tab-button.active,
+.tab-button[aria-selected="true"] {
+  color: var(--color-primary);
+  background: var(--glass-5);
+  border-color: var(--border-3);
+  box-shadow: var(--shadow-md),
+              0 0 20px rgba(102, 126, 234, 0.15),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle glow effect for active tab */
+.tab-button.active::before,
+.tab-button[aria-selected="true"]::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-full);
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.3),
+    rgba(118, 75, 162, 0.2)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms var(--ease-default);
+}
+
+.tab-button.active::before,
+.tab-button[aria-selected="true"]::before {
+  opacity: 1;
+}
+
+/* Focus state for accessibility */
+.tab-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+/* Disabled state */
+.tab-button:disabled,
+.tab-button[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Tab button with icon */
+.tab-button-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Tab button sizes */
+.tab-button-sm {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  gap: var(--space-1);
+}
+
+.tab-button-lg {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--text-base);
+  gap: var(--space-3);
+}
+
+/**
+ * Tab Content Wrapper
+ * Container for all tab panels with proper spacing
+ */
+.tab-content-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  margin-top: var(--space-6);
+}
+
+/**
+ * Tab Panel Component
+ * Individual content panels with fade-in animation
+ */
+.tab-panel {
+  display: none;
+  width: 100%;
+  opacity: 0;
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-default);
+  animation-fill-mode: forwards;
+}
+
+/* Active tab panel */
+.tab-panel.active,
+.tab-panel[aria-hidden="false"] {
+  display: block;
+  animation-name: fadeInUp;
+}
+
+/* Fade-in-up animation for tab panels */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Alternative fade-in animation (no transform) */
+.tab-panel.fade-in {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Tab panel with custom animation class */
+.fade-in-up {
+  animation: fadeInUp 300ms var(--ease-default) forwards;
+}
+
+/**
+ * Tab Navigation Variants
+ */
+
+/* Compact tab navigation */
+.tab-nav-compact {
+  padding: var(--space-1);
+  gap: var(--space-1);
+}
+
+.tab-nav-compact .tab-button {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+}
+
+/* Full-width tab navigation on mobile */
+.tab-nav-fullwidth .tab-button {
+  flex: 1;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .tab-nav-fullwidth .tab-button {
+    flex: initial;
+  }
+}
+
+/* Vertical tab navigation for sidebar layouts */
+.tab-nav-vertical {
+  flex-direction: column;
+  overflow-x: visible;
+  overflow-y: auto;
+  max-height: none;
+}
+
+.tab-nav-vertical .tab-button {
+  justify-content: flex-start;
+  border-radius: var(--radius-lg);
+}
+
+/* Tab navigation with scroll indicators */
+.tab-nav-scrollable {
+  position: relative;
+}
+
+.tab-nav-scrollable::before,
+.tab-nav-scrollable::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  z-index: var(--z-raised);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-default);
+}
+
+.tab-nav-scrollable::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    var(--glass-2),
+    transparent
+  );
+}
+
+.tab-nav-scrollable::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    var(--glass-2),
+    transparent
+  );
+}
+
+.tab-nav-scrollable.scroll-left::before {
+  opacity: 1;
+}
+
+.tab-nav-scrollable.scroll-right::after {
+  opacity: 1;
+}
+
+/**
+ * Tab Badge Indicator
+ * Small count or notification badge on tab buttons
+ */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  line-height: 1;
+}
+
+.tab-button .tab-badge {
+  margin-left: var(--space-1);
+}
+
+/* Badge color variants */
+.tab-badge-success {
+  background: var(--color-success);
+}
+
+.tab-badge-warning {
+  background: var(--color-warning);
+}
+
+.tab-badge-error {
+  background: var(--color-error);
+}
+
+/**
+ * Responsive Adjustments
+ */
+@media (max-width: 639px) {
+  /* Stack tabs vertically on very small screens if needed */
+  .tab-nav-stack-mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tab-nav-stack-mobile .tab-button {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Reduce padding on mobile */
+  .tab-content-wrapper {
+    margin-top: var(--space-4);
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tab-button {
+    padding: var(--space-3) var(--space-5);
+  }
+}
+
+/* Desktop enhancements */
+@media (min-width: 1024px) {
+  .tab-button {
+    padding: var(--space-3) var(--space-8);
+  }
+
+  /* Smoother hover effects on larger screens */
+  .tab-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 }

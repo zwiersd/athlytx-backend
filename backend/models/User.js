@@ -43,6 +43,18 @@ const User = sequelize.define('User', {
     isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
+    },
+    onboarded: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    dateOfBirth: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    sport: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: true,

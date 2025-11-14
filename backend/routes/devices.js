@@ -1,0 +1,362 @@
+const express = require('express');
+const router = express.Router();
+const { User, OAuthToken } = require('../models');
+const { encrypt, decrypt } = require('../utils/encryption');
+const { Op } = require('sequelize');
+const fetch = require('node-fetch');
+const crypto = require('crypto');
+
+/**
+ * Helper: Generate PKCE code verifier and challenge
+ */
+function generatePKCE() {
+    const verifier = crypto.randomBytes(32).toString('base64url');
+    const challenge = crypto
+        .createHash('sha256')
+        .update(verifier)
+        .digest('base64url');
+    return { verifier, challenge };
+}
+
+/**
+ * Helper: Get user from session token
+ */
+async function getUserFromSession(req) {
+    const sessionToken = req.headers.authorization?.replace('Bearer ', '') || req.query.sessionToken;
+
+    if (!sessionToken) {
+        return null;
+    }
+
+    const user = await User.findOne({
+        where: {
+            sessionToken,
+            sessionExpiry: { [Op.gt]: new Date() }
+        }
+    });
+
+    return user;
+}
+
+/**
+ * GET /api/devices/connect/:provider
+ * Initiate OAuth flow for a device provider
+ */
+router.get('/connect/:provider', async (req, res) => {
+    try {
+        const { provider } = req.params;
+        const user = await getUserFromSession(req);
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const supportedProviders = ['strava', 'oura', 'garmin', 'whoop'];
+        if (!supportedProviders.includes(provider)) {
+            return res.status(400).json({ error: 'Unsupported provider' });
+        }
+
+        // Generate state for CSRF protection
+        const state = crypto.randomBytes(16).toString('hex');
+
+        // Store state in session (or cache) for validation
+        // For simplicity, we'll encode userId in state
+        const stateData = Buffer.from(JSON.stringify({ userId: user.id, provider, timestamp: Date.now() })).toString('base64');
+
+        let authUrl;
+
+        switch (provider) {
+            case 'strava':
+                authUrl = `https://www.strava.com/oauth/authorize?` +
+                    `client_id=${process.env.STRAVA_CLIENT_ID}` +
+                    `&redirect_uri=${encodeURIComponent(process.env.STRAVA_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/strava`)}` +
+                    `&response_type=code` +
+                    `&scope=read,activity:read_all,profile:read_all` +
+                    `&state=${stateData}`;
+                break;
+
+            case 'oura':
+                authUrl = `https://cloud.ouraring.com/oauth/authorize?` +
+                    `client_id=${process.env.OURA_CLIENT_ID}` +
+                    `&redirect_uri=${encodeURIComponent(process.env.OURA_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/oura`)}` +
+                    `&response_type=code` +
+                    `&scope=daily+sleep+personal` +
+                    `&state=${stateData}`;
+                break;
+
+            case 'garmin':
+                // Garmin uses OAuth 2.0 with PKCE
+                const { verifier, challenge } = generatePKCE();
+                // Store verifier temporarily (in production, use Redis or session)
+                global.pkceVerifiers = global.pkceVerifiers || {};
+                global.pkceVerifiers[user.id] = verifier;
+
+                authUrl = `https://connect.garmin.com/oauthConfirm?` +
+                    `oauth_consumer_key=${process.env.GARMIN_CONSUMER_KEY}` +
+                    `&oauth_callback=${encodeURIComponent(process.env.GARMIN_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/garmin`)}`;
+                break;
+
+            case 'whoop':
+                // Whoop uses OAuth 2.0 with PKCE
+                const whoopPKCE = generatePKCE();
+                global.pkceVerifiers = global.pkceVerifiers || {};
+                global.pkceVerifiers[user.id] = whoopPKCE.verifier;
+
+                authUrl = `https://api.prod.whoop.com/oauth/oauth2/auth?` +
+                    `client_id=${process.env.WHOOP_CLIENT_ID}` +
+                    `&redirect_uri=${encodeURIComponent(process.env.WHOOP_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/whoop`)}` +
+                    `&response_type=code` +
+                    `&scope=read:profile read:recovery read:cycles read:sleep read:workout` +
+                    `&code_challenge=${whoopPKCE.challenge}` +
+                    `&code_challenge_method=S256` +
+                    `&state=${stateData}`;
+                break;
+        }
+
+        res.json({ authUrl });
+
+    } catch (error) {
+        console.error('Connect device error:', error);
+        res.status(500).json({ error: 'Failed to initiate OAuth flow' });
+    }
+});
+
+/**
+ * GET /api/devices/callback/:provider
+ * OAuth callback handler
+ */
+router.get('/callback/:provider', async (req, res) => {
+    try {
+        const { provider } = req.params;
+        const { code, state } = req.query;
+
+        if (!code || !state) {
+            return res.status(400).json({ error: 'Missing code or state' });
+        }
+
+        // Decode and validate state
+        let stateData;
+        try {
+            stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid state parameter' });
+        }
+
+        const { userId, provider: stateProvider } = stateData;
+
+        if (provider !== stateProvider) {
+            return res.status(400).json({ error: 'Provider mismatch' });
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        let tokenData;
+
+        switch (provider) {
+            case 'strava':
+                tokenData = await exchangeStravaCode(code);
+                break;
+            case 'oura':
+                tokenData = await exchangeOuraCode(code);
+                break;
+            case 'garmin':
+                tokenData = await exchangeGarminCode(code, userId);
+                break;
+            case 'whoop':
+                tokenData = await exchangeWhoopCode(code, userId);
+                break;
+            default:
+                return res.status(400).json({ error: 'Unsupported provider' });
+        }
+
+        // Store encrypted tokens
+        await OAuthToken.upsert({
+            userId: user.id,
+            provider,
+            accessTokenEncrypted: encrypt(tokenData.accessToken),
+            refreshTokenEncrypted: tokenData.refreshToken ? encrypt(tokenData.refreshToken) : null,
+            expiresAt: tokenData.expiresAt,
+            scope: tokenData.scope,
+            connectedAt: new Date()
+        });
+
+        // Redirect back to frontend with success
+        const redirectUrl = `${process.env.FRONTEND_URL}/device-callback?provider=${provider}&status=success`;
+        res.redirect(redirectUrl);
+
+    } catch (error) {
+        console.error('OAuth callback error:', error);
+        const redirectUrl = `${process.env.FRONTEND_URL}/device-callback?provider=${req.params.provider}&status=error&message=${encodeURIComponent(error.message)}`;
+        res.redirect(redirectUrl);
+    }
+});
+
+/**
+ * GET /api/devices/status
+ * Get list of connected devices for user
+ */
+router.get('/status', async (req, res) => {
+    try {
+        const user = await getUserFromSession(req);
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const tokens = await OAuthToken.findAll({
+            where: { userId: user.id },
+            attributes: ['provider', 'connectedAt', 'lastSyncAt', 'expiresAt']
+        });
+
+        const devices = tokens.map(token => ({
+            provider: token.provider,
+            connected: true,
+            connectedAt: token.connectedAt,
+            lastSyncAt: token.lastSyncAt,
+            expiresAt: token.expiresAt,
+            isExpired: token.expiresAt ? new Date(token.expiresAt) < new Date() : false
+        }));
+
+        res.json({ devices });
+
+    } catch (error) {
+        console.error('Get device status error:', error);
+        res.status(500).json({ error: 'Failed to fetch device status' });
+    }
+});
+
+/**
+ * DELETE /api/devices/disconnect/:provider
+ * Disconnect a device
+ */
+router.delete('/disconnect/:provider', async (req, res) => {
+    try {
+        const { provider } = req.params;
+        const user = await getUserFromSession(req);
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const token = await OAuthToken.findOne({
+            where: { userId: user.id, provider }
+        });
+
+        if (!token) {
+            return res.status(404).json({ error: 'Device not connected' });
+        }
+
+        // Remove token from database
+        await token.destroy();
+
+        res.json({ success: true, message: `${provider} disconnected` });
+
+    } catch (error) {
+        console.error('Disconnect device error:', error);
+        res.status(500).json({ error: 'Failed to disconnect device' });
+    }
+});
+
+// ===== OAUTH TOKEN EXCHANGE FUNCTIONS =====
+
+async function exchangeStravaCode(code) {
+    const response = await fetch('https://www.strava.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            client_id: process.env.STRAVA_CLIENT_ID,
+            client_secret: process.env.STRAVA_CLIENT_SECRET,
+            code,
+            grant_type: 'authorization_code'
+        })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`Strava token exchange failed: ${data.message || JSON.stringify(data)}`);
+    }
+
+    return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt: new Date(data.expires_at * 1000),
+        scope: data.scope
+    };
+}
+
+async function exchangeOuraCode(code) {
+    const credentials = Buffer.from(`${process.env.OURA_CLIENT_ID}:${process.env.OURA_CLIENT_SECRET}`).toString('base64');
+
+    const response = await fetch('https://api.ouraring.com/oauth/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${credentials}`
+        },
+        body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri: process.env.OURA_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/oura`
+        })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`Oura token exchange failed: ${data.error_description || JSON.stringify(data)}`);
+    }
+
+    return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt: new Date(Date.now() + data.expires_in * 1000),
+        scope: data.scope
+    };
+}
+
+async function exchangeGarminCode(code, userId) {
+    // Garmin uses OAuth 1.0a - simplified for now
+    // In production, use the full OAuth 1.0a flow from garmin-oauth1-hybrid.js
+
+    // For now, return a placeholder - full implementation would use the hybrid approach
+    throw new Error('Garmin OAuth implementation pending - use garmin-health.js endpoints');
+}
+
+async function exchangeWhoopCode(code, userId) {
+    const verifier = global.pkceVerifiers?.[userId];
+    if (!verifier) {
+        throw new Error('PKCE verifier not found - please restart OAuth flow');
+    }
+
+    const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            client_id: process.env.WHOOP_CLIENT_ID,
+            client_secret: process.env.WHOOP_CLIENT_SECRET,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: process.env.WHOOP_REDIRECT_URI || `${process.env.FRONTEND_URL}/device-callback/whoop`,
+            code_verifier: verifier
+        })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`Whoop token exchange failed: ${data.error_description || JSON.stringify(data)}`);
+    }
+
+    // Clean up verifier
+    delete global.pkceVerifiers[userId];
+
+    return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt: new Date(Date.now() + data.expires_in * 1000),
+        scope: data.scope
+    };
+}
+
+module.exports = router;

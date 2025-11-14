@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connecting Device - Athlytx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+        }
+
+        .callback-container {
+            text-align: center;
+            padding: 48px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #667EEA;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .success-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+
+        .error-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div id="loadingState">
+            <div class="spinner"></div>
+            <h1>Connecting Device</h1>
+            <p>Please wait while we complete the connection...</p>
+        </div>
+
+        <div id="successState" style="display: none;">
+            <div class="success-icon">✅</div>
+            <h1>Device Connected!</h1>
+            <p>Successfully connected. Closing window...</p>
+        </div>
+
+        <div id="errorState" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h1>Connection Failed</h1>
+            <p>There was a problem connecting your device</p>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        function handleCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const status = params.get('status');
+            const provider = params.get('provider');
+            const message = params.get('message');
+
+            if (status === 'success') {
+                // Show success state
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+
+                // Notify parent window
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'DEVICE_CONNECTED',
+                        provider: provider,
+                        success: true
+                    }, window.location.origin);
+                }
+
+                // Close window after 2 seconds
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+
+            } else if (status === 'error') {
+                // Show error state
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = message || 'Unknown error occurred';
+
+                // Notify parent window
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'DEVICE_CONNECTED',
+                        provider: provider,
+                        success: false,
+                        error: message
+                    }, window.location.origin);
+                }
+
+                // Close window after 5 seconds
+                setTimeout(() => {
+                    window.close();
+                }, 5000);
+
+            } else {
+                // No status parameter - still processing
+                // This page might have been opened directly or the OAuth flow is still in progress
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="spinner"></div>
+                    <h1>Processing...</h1>
+                    <p>Completing OAuth flow</p>
+                `;
+            }
+        }
+
+        // Handle callback on page load
+        handleCallback();
+
+        // Allow parent to close this window
+        window.addEventListener('message', (event) => {
+            if (event.origin === window.location.origin && event.data.type === 'CLOSE_POPUP') {
+                window.close();
+            }
+        });
+    </script>
+</body>
+</html>

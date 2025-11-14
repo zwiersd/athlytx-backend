@@ -35,6 +35,14 @@ const OAuthToken = sequelize.define('OAuthToken', {
     scope: {
         type: DataTypes.TEXT,
         allowNull: true
+    },
+    connectedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    lastSyncAt: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     timestamps: true,

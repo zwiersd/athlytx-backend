@@ -454,7 +454,10 @@
                 <div id="step4" class="step-content">
                     <div class="step-header">
                         <h2 class="step-title">Connect Your Devices</h2>
-                        <p class="step-subtitle">Link your training devices to start syncing data (optional)</p>
+                        <p class="step-subtitle">Link your training devices to start syncing data</p>
+                        <p id="deviceRequirement" style="color: #EF4444; font-size: 14px; margin-top: 8px; font-weight: 600;">
+                            Connect at least one device to continue (required)
+                        </p>
                     </div>
 
                     <div class="device-grid">
@@ -487,7 +490,7 @@
                         <button type="button" class="btn btn-ghost" onclick="prevStep()">
                             Back
                         </button>
-                        <button type="button" class="btn btn-primary btn-lg" style="flex: 1;" id="completeBtn" onclick="completeOnboarding()">
+                        <button type="button" class="btn btn-primary btn-lg" style="flex: 1;" id="completeBtn" onclick="if(validateStep3()) completeOnboarding()">
                             Complete Setup
                         </button>
                     </div>
@@ -610,11 +613,98 @@
             formData.acceptedTerms = e.target.checked;
         });
 
-        // Connect device (placeholder)
-        function connectDevice(deviceType) {
-            // In production, this would open OAuth flow
-            showStatus(`Device connection coming soon! (${deviceType})`, 'error');
-            formData.connectedDevices.push(deviceType);
+        // Track connected devices
+        let connectedDevices = new Set();
+
+        // Connect device via OAuth
+        async function connectDevice(provider) {
+            try {
+                const session = JSON.parse(localStorage.getItem('athlytx_session') || '{}');
+                if (!session.sessionToken) {
+                    showStatus('Please log in first', 'error');
+                    return;
+                }
+
+                // Get OAuth URL from backend
+                const response = await fetch(`/api/devices/connect/${provider}?sessionToken=${session.sessionToken}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showStatus(data.error || 'Failed to initiate device connection', 'error');
+                    return;
+                }
+
+                // Open OAuth flow in popup
+                const width = 600;
+                const height = 700;
+                const left = (screen.width - width) / 2;
+                const top = (screen.height - height) / 2;
+
+                const popup = window.open(
+                    data.authUrl,
+                    `${provider}-oauth`,
+                    `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
+                );
+
+                // Listen for callback message
+                window.addEventListener('message', function handleDeviceCallback(event) {
+                    if (event.origin !== window.location.origin) return;
+
+                    if (event.data.type === 'DEVICE_CONNECTED' && event.data.provider === provider) {
+                        if (event.data.success) {
+                            connectedDevices.add(provider);
+                            formData.connectedDevices.push(provider);
+
+                            // Update UI to show device as connected
+                            const deviceCard = document.querySelector(`[onclick*="${provider}"]`);
+                            if (deviceCard) {
+                                deviceCard.innerHTML += ' <span style="color: #10B981;">✓ Connected</span>';
+                                deviceCard.style.pointerEvents = 'none';
+                                deviceCard.style.opacity = '0.7';
+                            }
+
+                            showStatus(`${provider.charAt(0).toUpperCase() + provider.slice(1)} connected successfully!`, 'success');
+
+                            // Update device requirement message
+                            updateDeviceRequirement();
+                        } else {
+                            showStatus(`Failed to connect ${provider}: ${event.data.error || 'Unknown error'}`, 'error');
+                        }
+
+                        window.removeEventListener('message', handleDeviceCallback);
+                    }
+                });
+
+                // Check if popup was blocked
+                if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                    showStatus('Popup blocked. Please allow popups to connect devices.', 'error');
+                }
+
+            } catch (error) {
+                console.error('Device connection error:', error);
+                showStatus('Failed to connect device', 'error');
+            }
+        }
+
+        // Update device requirement message
+        function updateDeviceRequirement() {
+            const requirementMsg = document.getElementById('deviceRequirement');
+            if (connectedDevices.size > 0) {
+                requirementMsg.textContent = `${connectedDevices.size} device(s) connected ✓`;
+                requirementMsg.style.color = '#10B981';
+            } else {
+                requirementMsg.textContent = 'Connect at least one device to continue (required)';
+                requirementMsg.style.color = '#EF4444';
+            }
+        }
+
+        // Validate Step 3 (Devices) - Require at least one device
+        function validateStep3() {
+            if (connectedDevices.size === 0) {
+                showStatus('Please connect at least one device to continue', 'error');
+                return false;
+            }
+            return true;
         }
 
         // Complete onboarding
@@ -624,11 +714,13 @@
             completeBtn.disabled = true;
 
             try {
+                const session = JSON.parse(localStorage.getItem('athlytx_session') || '{}');
+
                 const response = await fetch('/api/auth/onboarding/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sessionToken,
+                        sessionToken: session.sessionToken,
                         name: formData.name,
                         sport: formData.sport,
                         dateOfBirth: formData.dateOfBirth || null,
@@ -640,14 +732,16 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Update local storage
+                    // Update session with onboarded status
+                    session.user = data.user;
+                    localStorage.setItem('athlytx_session', JSON.stringify(session));
                     localStorage.setItem('userName', data.user.name);
 
                     // Show success and redirect
                     showStatus('Setup complete! Redirecting...', 'success');
 
                     setTimeout(() => {
-                        window.location.href = '/athlete/dashboard';
+                        window.location.href = '/dashboard.html';
                     }, 1500);
                 } else {
                     showStatus(data.error || 'Failed to complete onboarding', 'error');
