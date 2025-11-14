@@ -1,5 +1,4 @@
 const fetch = require('node-fetch');
-const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
 
 // This module exports all existing OAuth routes
 module.exports = function(app) {
@@ -449,20 +448,12 @@ app.post('/api/garmin/token', async (req, res) => {
         console.log('📝 Registering user with Garmin Wellness API...');
 
         try {
-            // Use OAuth 1.0a signature for the registration endpoint
-            const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-            const oauth1 = new GarminOAuth1Hybrid(
-                process.env.GARMIN_CONSUMER_KEY,
-                process.env.GARMIN_CONSUMER_SECRET
-            );
-
             const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
-            const authHeader = oauth1.generateAuthHeader('POST', registrationUrl, {}, data.access_token);
 
             const registrationResponse = await fetch(registrationUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': authHeader,
+                    'Authorization': `Bearer ${data.access_token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({}) // Empty body for registration
@@ -508,22 +499,12 @@ app.post('/api/garmin/v2/register', async (req, res) => {
         console.log('📝 Manual user registration request for Garmin Wellness API');
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
-        // Use OAuth 1.0a signature for the registration endpoint
-        const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-        const oauth1 = new GarminOAuth1Hybrid(
-            process.env.GARMIN_CONSUMER_KEY,
-            process.env.GARMIN_CONSUMER_SECRET
-        );
-
         const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
-        const authHeader = oauth1.generateAuthHeader('POST', registrationUrl, {}, token);
-
-        console.log('🔐 OAuth 1.0a header for registration:', authHeader.substring(0, 100) + '...');
 
         const response = await fetch(registrationUrl, {
             method: 'POST',
             headers: {
-                'Authorization': authHeader,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({}) // Empty body for registration
@@ -580,21 +561,14 @@ app.get('/api/garmin/v2/permissions', async (req, res) => {
         console.log('🔐 Checking Garmin permissions with OAuth 1.0a signature + OAuth 2.0 token');
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
-        // Garmin Wellness API requires OAuth 1.0a signatures with OAuth 2.0 tokens
-        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
-        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
-
-        const oauth1 = new GarminOAuth1Hybrid(consumerKey, consumerSecret);
+        // Try simple Bearer token authentication
         const url = 'https://apis.garmin.com/wellness-api/rest/user/permissions';
 
-        // Generate OAuth 1.0a header with OAuth 2.0 token
-        const authHeader = oauth1.generateAuthHeader('GET', url, {}, token);
-
-        console.log('🔐 OAuth 1.0a header:', authHeader.substring(0, 100) + '...');
+        console.log('🔐 Using Bearer token authentication');
 
         const response = await fetch(url, {
             headers: {
-                'Authorization': authHeader,
+                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
@@ -650,25 +624,14 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Garmin Wellness API requires OAuth 1.0a signatures with OAuth 2.0 tokens
-        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
-        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+        // Use Bearer token authentication
+        const apiUrl = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
-        const oauth1 = new GarminOAuth1Hybrid(consumerKey, consumerSecret);
-        const baseUrl = 'https://apis.garmin.com/wellness-api/rest/dailies';
-        const queryParams = {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        };
-
-        // Generate OAuth 1.0a header with OAuth 2.0 token
-        const authHeader = oauth1.generateAuthHeader('GET', baseUrl, queryParams, token);
-
-        const apiUrl = `${baseUrl}?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('🔐 Using Bearer token for dailies');
 
         const response = await fetch(apiUrl, {
             headers: {
-                'Authorization': authHeader,
+                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
@@ -724,25 +687,14 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Garmin Wellness API requires OAuth 1.0a signatures with OAuth 2.0 tokens
-        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
-        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+        // Use Bearer token authentication
+        const apiUrl = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
-        const oauth1 = new GarminOAuth1Hybrid(consumerKey, consumerSecret);
-        const baseUrl = 'https://apis.garmin.com/wellness-api/rest/activities';
-        const queryParams = {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        };
-
-        // Generate OAuth 1.0a header with OAuth 2.0 token
-        const authHeader = oauth1.generateAuthHeader('GET', baseUrl, queryParams, token);
-
-        const apiUrl = `${baseUrl}?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('🔐 Using Bearer token for activities');
 
         const response = await fetch(apiUrl, {
             headers: {
-                'Authorization': authHeader,
+                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
@@ -798,25 +750,14 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Garmin Wellness API requires OAuth 1.0a signatures with OAuth 2.0 tokens
-        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
-        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+        // Use Bearer token authentication
+        const apiUrl = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
-        const oauth1 = new GarminOAuth1Hybrid(consumerKey, consumerSecret);
-        const baseUrl = 'https://apis.garmin.com/wellness-api/rest/sleeps';
-        const queryParams = {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        };
-
-        // Generate OAuth 1.0a header with OAuth 2.0 token
-        const authHeader = oauth1.generateAuthHeader('GET', baseUrl, queryParams, token);
-
-        const apiUrl = `${baseUrl}?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
+        console.log('🔐 Using Bearer token for sleep');
 
         const response = await fetch(apiUrl, {
             headers: {
-                'Authorization': authHeader,
+                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
             }
         });
