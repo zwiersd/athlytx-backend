@@ -81,6 +81,40 @@ const coachRoutes = require('./backend/routes/coach');
 app.use('/api/auth', authRoutes);
 app.use('/api/coach', coachRoutes);
 
+// OAuth callback handlers (server-side processing)
+app.get('/auth/garmin/callback', async (req, res) => {
+    const { code, state, error } = req.query;
+
+    console.log('🔐 Garmin OAuth callback received:', {
+        hasCode: !!code,
+        hasState: !!state,
+        error
+    });
+
+    // If there's an error from Garmin
+    if (error) {
+        console.error('❌ Garmin OAuth error:', error);
+        return res.redirect(`/?error=garmin_auth_failed&message=${encodeURIComponent(error)}`);
+    }
+
+    // If we have a code, redirect to frontend with the OAuth params
+    // The frontend will handle the token exchange
+    if (code && state) {
+        // Preserve the OAuth parameters but use a clean URL structure
+        const params = new URLSearchParams({
+            garmin_code: code,
+            garmin_state: state,
+            provider: 'garmin'
+        });
+
+        // Redirect to clean URL with parameters
+        return res.redirect(`/?${params.toString()}#garmin-callback`);
+    }
+
+    // No code or error - something went wrong
+    res.redirect('/?error=garmin_auth_invalid');
+});
+
 // ===== SPECIAL ROUTES =====
 // Coach dashboard route (basic auth removed)
 app.get('/coach', (req, res) => {

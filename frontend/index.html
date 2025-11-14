@@ -1591,11 +1591,31 @@
                 handleOuraCallback(code);
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else if (code && state === 'garmin_auth') {
-                // Handle Garmin OAuth 2.0 callback
+                // Handle Garmin OAuth 2.0 callback (legacy direct callback)
                 console.log('Processing Garmin callback with code:', code);
                 sessionStorage.setItem('processed_oauth_code', code);
                 handleGarminCallback(code);
                 window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Handle clean URL Garmin callback (from server-side redirect)
+            const garminCode = urlParams.get('garmin_code');
+            const garminState = urlParams.get('garmin_state');
+            const provider = urlParams.get('provider');
+
+            if (provider === 'garmin' && garminCode && garminState) {
+                console.log('Processing Garmin callback (clean URL) with code:', garminCode);
+                sessionStorage.setItem('processed_oauth_code', garminCode);
+
+                // Call handleGarminCallback with the code
+                // We need to temporarily set the state for validation
+                const originalState = sessionStorage.getItem('garmin_oauth_state') || garminState;
+                sessionStorage.setItem('garmin_oauth_state', originalState);
+
+                handleGarminCallback(garminCode);
+
+                // Clean up URL completely
+                window.history.replaceState({}, document.title, '/');
             }
 
             // Add small delay to ensure Chart.js is loaded
