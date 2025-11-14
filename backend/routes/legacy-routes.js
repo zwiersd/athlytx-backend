@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const GarminOAuth1 = require('../utils/garmin-oauth1');
 
 // This module exports all existing OAuth routes
 module.exports = function(app) {
@@ -451,15 +452,33 @@ app.post('/api/garmin/token', async (req, res) => {
 
 app.get('/api/garmin/v2/permissions', async (req, res) => {
     try {
-        const { token } = req.query;
+        const { token, tokenSecret } = req.query;
 
-        console.log('🔐 Checking Garmin permissions with token:', token ? token.substring(0, 20) + '...' : 'missing');
+        // Garmin Wellness API uses OAuth 1.0a, not OAuth 2.0
+        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
+        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
 
-        const response = await fetch('https://apis.garmin.com/wellness-api/rest/user/permissions', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        console.log('🔐 Checking Garmin permissions with OAuth 1.0a');
+        console.log('🔐 Consumer Key:', consumerKey ? 'Set (' + consumerKey.substring(0, 8) + '...)' : 'Missing');
+        console.log('🔐 Consumer Secret:', consumerSecret ? 'Set' : 'Missing');
+
+        if (!consumerKey || !consumerSecret) {
+            console.error('❌ Garmin Consumer Key/Secret not configured');
+            return res.status(500).json({
+                error: 'Garmin API not configured',
+                message: 'Please set GARMIN_CONSUMER_KEY and GARMIN_CONSUMER_SECRET environment variables.',
+                details: 'Garmin Wellness API requires OAuth 1.0a with Consumer Key/Secret, not OAuth 2.0 tokens.'
+            });
+        }
+
+        const oauth1 = new GarminOAuth1(consumerKey, consumerSecret);
+
+        // Make OAuth 1.0a request (2-legged OAuth - no user token needed for Wellness API)
+        const response = await oauth1.makeRequest(
+            'GET',
+            '/wellness-api/rest/user/permissions',
+            {} // No query parameters for permissions endpoint
+        );
 
         const responseText = await response.text();
         console.log('🔐 Garmin permissions response:', { status: response.status, body: responseText.substring(0, 200) });
@@ -486,31 +505,39 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        if (!token) {
-            return res.status(400).json({ error: 'Token is required' });
+        // Garmin Wellness API uses OAuth 1.0a
+        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
+        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+
+        if (!consumerKey || !consumerSecret) {
+            return res.status(500).json({
+                error: 'Garmin API not configured',
+                message: 'Please set GARMIN_CONSUMER_KEY and GARMIN_CONSUMER_SECRET environment variables.'
+            });
         }
 
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        const url = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('📊 Garmin dailies request:', {
-            url,
-            hasToken: !!token,
-            tokenPrefix: token.substring(0, 20) + '...',
+        console.log('📊 Garmin dailies request (OAuth 1.0a):', {
             start,
             end,
             startTimestamp,
             endTimestamp
         });
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
+        const oauth1 = new GarminOAuth1(consumerKey, consumerSecret);
+
+        // Make OAuth 1.0a request with query parameters
+        const response = await oauth1.makeRequest(
+            'GET',
+            '/wellness-api/rest/dailies',
+            {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
             }
-        });
+        );
 
         const responseText = await response.text();
         console.log('📊 Garmin dailies raw response:', {
@@ -546,29 +573,39 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        if (!token) {
-            return res.status(400).json({ error: 'Token is required' });
+        // Garmin Wellness API uses OAuth 1.0a
+        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
+        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+
+        if (!consumerKey || !consumerSecret) {
+            return res.status(500).json({
+                error: 'Garmin API not configured',
+                message: 'Please set GARMIN_CONSUMER_KEY and GARMIN_CONSUMER_SECRET environment variables.'
+            });
         }
 
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        const url = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('🏃 Garmin activities request:', {
-            url,
-            hasToken: !!token,
-            tokenPrefix: token.substring(0, 20) + '...',
+        console.log('🏃 Garmin activities request (OAuth 1.0a):', {
             start,
-            end
+            end,
+            startTimestamp,
+            endTimestamp
         });
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
+        const oauth1 = new GarminOAuth1(consumerKey, consumerSecret);
+
+        // Make OAuth 1.0a request with query parameters
+        const response = await oauth1.makeRequest(
+            'GET',
+            '/wellness-api/rest/activities',
+            {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
             }
-        });
+        );
 
         const responseText = await response.text();
         let data;
@@ -598,29 +635,39 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        if (!token) {
-            return res.status(400).json({ error: 'Token is required' });
+        // Garmin Wellness API uses OAuth 1.0a
+        const consumerKey = process.env.GARMIN_CONSUMER_KEY;
+        const consumerSecret = process.env.GARMIN_CONSUMER_SECRET;
+
+        if (!consumerKey || !consumerSecret) {
+            return res.status(500).json({
+                error: 'Garmin API not configured',
+                message: 'Please set GARMIN_CONSUMER_KEY and GARMIN_CONSUMER_SECRET environment variables.'
+            });
         }
 
         // Convert date strings to Unix timestamps
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        const url = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('😴 Garmin sleep request:', {
-            url,
-            hasToken: !!token,
-            tokenPrefix: token.substring(0, 20) + '...',
+        console.log('😴 Garmin sleep request (OAuth 1.0a):', {
             start,
-            end
+            end,
+            startTimestamp,
+            endTimestamp
         });
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
+        const oauth1 = new GarminOAuth1(consumerKey, consumerSecret);
+
+        // Make OAuth 1.0a request with query parameters
+        const response = await oauth1.makeRequest(
+            'GET',
+            '/wellness-api/rest/sleeps',
+            {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
             }
-        });
+        );
 
         const responseText = await response.text();
         let data;
