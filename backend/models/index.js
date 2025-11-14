@@ -6,6 +6,7 @@ const CoachAthlete = require('./CoachAthlete');
 const DailyMetric = require('./DailyMetric');
 const Activity = require('./Activity');
 const HeartRateZone = require('./HeartRateZone');
+const PowerZone = require('./PowerZone');
 const TrainingSummary = require('./TrainingSummary');
 
 // Define associations
@@ -93,6 +94,7 @@ async function initializeDatabase() {
             await DailyMetric.sync();
             await Activity.sync();
             await HeartRateZone.sync();
+            await PowerZone.sync();
             await TrainingSummary.sync();
             console.log('✅ Database models synchronized');
         } catch (syncError) {
@@ -123,6 +125,7 @@ module.exports = {
     DailyMetric,
     Activity,
     HeartRateZone,
+    PowerZone,
     TrainingSummary,
     initializeDatabase
 };

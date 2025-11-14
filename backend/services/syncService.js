@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const { User, OAuthToken, Activity, HeartRateZone, TrainingSummary } = require('../models');
+const { User, OAuthToken, Activity, HeartRateZone, PowerZone, TrainingSummary } = require('../models');
 const { decrypt } = require('../utils/encryption');
 
 // HR Zone configuration (based on your zones)
@@ -150,6 +150,16 @@ async function syncStravaActivities(userId, tokenRecord, daysBack) {
                 );
             }
 
+            // Fetch and store power zones if activity has power data
+            if (stravaActivity.device_watts || stravaActivity.average_watts) {
+                await fetchStravaActivityZones(
+                    userId,
+                    activity.id,
+                    stravaActivity.id,
+                    accessToken
+                );
+            }
+
             if (created) stored++;
         } catch (error) {
             console.error(`  ❌ Failed to store Strava activity:`, error.message);
@@ -158,6 +168,115 @@ async function syncStravaActivities(userId, tokenRecord, daysBack) {
 
     console.log(`  ✅ Stored ${stored} new Strava activities`);
     return { activitiesFetched: activities.length, activitiesStored: stored };
+}
+
+/**
+ * Fetch detailed power zones from Strava activity zones endpoint
+ */
+async function fetchStravaActivityZones(userId, activityId, stravaActivityId, accessToken) {
+    try {
+        const response = await fetch(
+            `https://www.strava.com/api/v3/activities/${stravaActivityId}/zones`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            console.log(`  ⚠️  Could not fetch zones for activity ${stravaActivityId}: ${response.status}`);
+            return;
+        }
+
+        const zonesData = await response.json();
+
+        // Look for power zones in the response
+        const powerZones = zonesData.find(z => z.type === 'power');
+
+        if (powerZones && powerZones.distribution_buckets) {
+            await storeStravaPowerZones(userId, activityId, powerZones, stravaActivityId);
+        }
+    } catch (error) {
+        console.error(`  ❌ Failed to fetch zones for activity ${stravaActivityId}:`, error.message);
+    }
+}
+
+/**
+ * Store power zones data from Strava
+ */
+async function storeStravaPowerZones(userId, activityId, powerZones, stravaActivityId) {
+    const activity = await Activity.findByPk(activityId);
+    if (!activity) return;
+
+    // Parse distribution buckets into 7 zones based on FTP
+    // Strava provides buckets, we need to map them to zones
+    const buckets = powerZones.distribution_buckets;
+
+    // Initialize zone data
+    const zoneData = {
+        zone1Seconds: 0, // <55% FTP
+        zone2Seconds: 0, // 56-75% FTP
+        zone3Seconds: 0, // 76-90% FTP
+        zone4Seconds: 0, // 91-105% FTP
+        zone5Seconds: 0, // 106-120% FTP
+        zone6Seconds: 0, // 121-150% FTP
+        zone7Seconds: 0  // >150% FTP
+    };
+
+    // Map Strava buckets to zones
+    // Strava typically provides buckets like: {min: 0, max: 50, time: 120}
+    for (const bucket of buckets) {
+        const time = bucket.time || 0;
+
+        // Strava zones are typically indexed 1-7
+        if (bucket.zone !== undefined) {
+            const zone = bucket.zone;
+            if (zone >= 1 && zone <= 7) {
+                zoneData[`zone${zone}Seconds`] = time;
+            }
+        }
+    }
+
+    // Extract FTP if available
+    const ftpWatts = powerZones.sensor_based ? null : (powerZones.custom_zones ? null : null);
+
+    // Calculate energy system contributions based on Matt Roberts' notes
+    const totalTime = Object.values(zoneData).reduce((sum, val) => sum + val, 0);
+    let atpPcSystem = 0;
+    let glycolyticSystem = 0;
+    let aerobicSystem = 0;
+
+    if (totalTime > 0) {
+        // ATP-PC system: zones 6-7 (anaerobic/neuromuscular)
+        atpPcSystem = ((zoneData.zone6Seconds + zoneData.zone7Seconds) / totalTime) * 100;
+
+        // Glycolytic system: zones 4-5 (lactate threshold, VO2 max)
+        glycolyticSystem = ((zoneData.zone4Seconds + zoneData.zone5Seconds) / totalTime) * 100;
+
+        // Aerobic system: zones 1-3 (recovery, endurance, tempo)
+        aerobicSystem = ((zoneData.zone1Seconds + zoneData.zone2Seconds + zoneData.zone3Seconds) / totalTime) * 100;
+    }
+
+    await PowerZone.upsert({
+        userId,
+        activityId,
+        date: activity.startTime.toISOString().split('T')[0],
+        activityType: activity.activityType,
+        durationSeconds: activity.durationSeconds,
+        distanceMeters: activity.distanceMeters,
+        ...zoneData,
+        avgPower: activity.rawData?.average_watts || null,
+        maxPower: activity.rawData?.max_watts || null,
+        normalizedPower: activity.rawData?.weighted_average_watts || null,
+        ftpWatts: ftpWatts,
+        atpPcSystem: atpPcSystem.toFixed(2),
+        glycolyticSystem: glycolyticSystem.toFixed(2),
+        aerobicSystem: aerobicSystem.toFixed(2),
+        provider: 'strava'
+    });
+
+    console.log(`  ✅ Stored power zones for activity ${stravaActivityId}`);
 }
 
 /**
@@ -309,6 +428,15 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
                 );
             }
 
+            // Parse and store power zone data
+            if (garminActivity.averagePowerInWatts || garminActivity.timeInPowerZonesInSeconds) {
+                await storeGarminPowerZones(
+                    userId,
+                    activity.id,
+                    garminActivity
+                );
+            }
+
             if (created) stored++;
         } catch (error) {
             console.error(`  ❌ Failed to store activity:`, error.message);
@@ -348,6 +476,82 @@ function parseGarminZones(garminActivity) {
     }
 
     return zones;
+}
+
+/**
+ * Store power zones data from Garmin
+ */
+async function storeGarminPowerZones(userId, activityId, garminActivity) {
+    const activity = await Activity.findByPk(activityId);
+    if (!activity) return;
+
+    // Initialize zone data
+    const zoneData = {
+        zone1Seconds: 0,
+        zone2Seconds: 0,
+        zone3Seconds: 0,
+        zone4Seconds: 0,
+        zone5Seconds: 0,
+        zone6Seconds: 0,
+        zone7Seconds: 0
+    };
+
+    // Garmin provides power zones similar to HR zones
+    if (garminActivity.timeInPowerZonesInSeconds && Array.isArray(garminActivity.timeInPowerZonesInSeconds)) {
+        const zones = garminActivity.timeInPowerZonesInSeconds;
+
+        // Garmin typically provides 7 power zones
+        zoneData.zone1Seconds = zones[0] || 0;
+        zoneData.zone2Seconds = zones[1] || 0;
+        zoneData.zone3Seconds = zones[2] || 0;
+        zoneData.zone4Seconds = zones[3] || 0;
+        zoneData.zone5Seconds = zones[4] || 0;
+        zoneData.zone6Seconds = zones[5] || 0;
+        zoneData.zone7Seconds = zones[6] || 0;
+    }
+
+    // Calculate energy system contributions
+    const totalTime = Object.values(zoneData).reduce((sum, val) => sum + val, 0);
+    let atpPcSystem = 0;
+    let glycolyticSystem = 0;
+    let aerobicSystem = 0;
+
+    if (totalTime > 0) {
+        // ATP-PC system: zones 6-7 (anaerobic/neuromuscular)
+        atpPcSystem = ((zoneData.zone6Seconds + zoneData.zone7Seconds) / totalTime) * 100;
+
+        // Glycolytic system: zones 4-5 (lactate threshold, VO2 max)
+        glycolyticSystem = ((zoneData.zone4Seconds + zoneData.zone5Seconds) / totalTime) * 100;
+
+        // Aerobic system: zones 1-3 (recovery, endurance, tempo)
+        aerobicSystem = ((zoneData.zone1Seconds + zoneData.zone2Seconds + zoneData.zone3Seconds) / totalTime) * 100;
+    }
+
+    const activityDate = new Date(garminActivity.startTimeInSeconds * 1000);
+
+    await PowerZone.upsert({
+        userId,
+        activityId,
+        date: activityDate.toISOString().split('T')[0],
+        activityType: garminActivity.activityType,
+        durationSeconds: garminActivity.durationInSeconds,
+        distanceMeters: garminActivity.distanceInMeters,
+        elevationGainMeters: garminActivity.elevationGainInMeters,
+        ...zoneData,
+        avgPower: garminActivity.averagePowerInWatts || null,
+        maxPower: garminActivity.maxPowerInWatts || null,
+        normalizedPower: garminActivity.normalizedPowerInWatts || null,
+        ftpWatts: garminActivity.functionalThresholdPower || null,
+        intensityFactor: garminActivity.intensityFactor || null,
+        tss: garminActivity.trainingStressScore || null,
+        variabilityIndex: garminActivity.variabilityIndex || null,
+        atpPcSystem: atpPcSystem.toFixed(2),
+        glycolyticSystem: glycolyticSystem.toFixed(2),
+        aerobicSystem: aerobicSystem.toFixed(2),
+        provider: 'garmin'
+    });
+
+    console.log(`  ✅ Stored power zones for Garmin activity`);
 }
 
 /**

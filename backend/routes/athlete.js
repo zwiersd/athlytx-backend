@@ -7,6 +7,7 @@ const {
     Activity,
     DailyMetric,
     HeartRateZone,
+    PowerZone,
     TrainingSummary
 } = require('../models');
 
@@ -81,8 +82,34 @@ router.get('/dashboard', async (req, res) => {
 
         console.log('[ATHLETE-DASHBOARD] Found', trainingSummaries.length, 'training summaries');
 
+        // Fetch heart rate zones
+        const hrZoneData = await HeartRateZone.findAll({
+            where: {
+                userId: athleteId,
+                date: { [Op.gte]: startDate }
+            },
+            order: [['date', 'DESC']]
+        });
+
+        // Fetch power zones
+        const powerZoneData = await PowerZone.findAll({
+            where: {
+                userId: athleteId,
+                date: { [Op.gte]: startDate }
+            },
+            order: [['date', 'DESC']]
+        });
+
+        console.log('[ATHLETE-DASHBOARD] Found', powerZoneData.length, 'power zone records');
+
         // Calculate HR zone distribution
-        const hrZones = calculateHRZoneDistribution(activities);
+        const hrZones = calculateHRZoneDistribution(hrZoneData);
+
+        // Calculate power zone distribution
+        const powerZones = calculatePowerZoneDistribution(powerZoneData);
+
+        // Calculate energy system contributions
+        const energySystems = calculateEnergySystemContributions(powerZoneData);
 
         // Calculate aggregate stats
         const summaries = calculateDashboardSummaries(activities, dailyMetrics, trainingSummaries);
@@ -92,6 +119,8 @@ router.get('/dashboard', async (req, res) => {
             activities: activities.map(formatActivity),
             metrics: dailyMetrics.map(formatDailyMetric),
             hrZones,
+            powerZones,
+            energySystems,
             summaries,
             trainingSummaries: trainingSummaries.map(formatTrainingSummary)
         });
@@ -245,9 +274,9 @@ router.post('/revoke-coach', async (req, res) => {
 // Helper Functions
 
 /**
- * Calculate HR zone distribution from activities
+ * Calculate HR zone distribution from HR zone data
  */
-function calculateHRZoneDistribution(activities) {
+function calculateHRZoneDistribution(hrZoneData) {
     const zones = {
         zone1: 0,
         zone2: 0,
@@ -258,20 +287,15 @@ function calculateHRZoneDistribution(activities) {
 
     let totalTime = 0;
 
-    activities.forEach(activity => {
-        if (activity.rawData && activity.rawData.hrZones) {
-            const hrZones = activity.rawData.hrZones;
-
-            zones.zone1 += hrZones.zone1 || 0;
-            zones.zone2 += hrZones.zone2 || 0;
-            zones.zone3 += hrZones.zone3 || 0;
-            zones.zone4 += hrZones.zone4 || 0;
-            zones.zone5 += hrZones.zone5 || 0;
-
-            totalTime += (hrZones.zone1 || 0) + (hrZones.zone2 || 0) +
-                        (hrZones.zone3 || 0) + (hrZones.zone4 || 0) + (hrZones.zone5 || 0);
-        }
+    hrZoneData.forEach(record => {
+        zones.zone1 += record.zone1Seconds || 0;
+        zones.zone2 += record.zone2Seconds || 0;
+        zones.zone3 += record.zone3Seconds || 0;
+        zones.zone4 += record.zone4Seconds || 0;
+        zones.zone5 += record.zone5Seconds || 0;
     });
+
+    totalTime = zones.zone1 + zones.zone2 + zones.zone3 + zones.zone4 + zones.zone5;
 
     // Calculate percentages
     if (totalTime > 0) {
@@ -292,6 +316,121 @@ function calculateHRZoneDistribution(activities) {
         zone4: 0,
         zone5: 0,
         totalMinutes: 0
+    };
+}
+
+/**
+ * Calculate power zone distribution from power zone data
+ */
+function calculatePowerZoneDistribution(powerZoneData) {
+    const zones = {
+        zone1: 0, // Active Recovery: <55% FTP
+        zone2: 0, // Endurance: 56-75% FTP
+        zone3: 0, // Tempo: 76-90% FTP
+        zone4: 0, // Lactate Threshold: 91-105% FTP
+        zone5: 0, // VO2 Max: 106-120% FTP
+        zone6: 0, // Anaerobic Capacity: 121-150% FTP
+        zone7: 0  // Neuromuscular Power: >150% FTP
+    };
+
+    let totalTime = 0;
+    let totalPowerRecords = 0;
+    let sumAvgPower = 0;
+    let sumMaxPower = 0;
+    let sumNormalizedPower = 0;
+
+    powerZoneData.forEach(record => {
+        zones.zone1 += record.zone1Seconds || 0;
+        zones.zone2 += record.zone2Seconds || 0;
+        zones.zone3 += record.zone3Seconds || 0;
+        zones.zone4 += record.zone4Seconds || 0;
+        zones.zone5 += record.zone5Seconds || 0;
+        zones.zone6 += record.zone6Seconds || 0;
+        zones.zone7 += record.zone7Seconds || 0;
+
+        if (record.avgPower) {
+            sumAvgPower += record.avgPower;
+            totalPowerRecords++;
+        }
+        if (record.maxPower) {
+            sumMaxPower = Math.max(sumMaxPower, record.maxPower);
+        }
+        if (record.normalizedPower) {
+            sumNormalizedPower += record.normalizedPower;
+        }
+    });
+
+    totalTime = zones.zone1 + zones.zone2 + zones.zone3 + zones.zone4 +
+                zones.zone5 + zones.zone6 + zones.zone7;
+
+    // Calculate percentages
+    if (totalTime > 0) {
+        return {
+            zone1: Math.round((zones.zone1 / totalTime) * 100),
+            zone2: Math.round((zones.zone2 / totalTime) * 100),
+            zone3: Math.round((zones.zone3 / totalTime) * 100),
+            zone4: Math.round((zones.zone4 / totalTime) * 100),
+            zone5: Math.round((zones.zone5 / totalTime) * 100),
+            zone6: Math.round((zones.zone6 / totalTime) * 100),
+            zone7: Math.round((zones.zone7 / totalTime) * 100),
+            totalMinutes: Math.round(totalTime / 60),
+            avgPower: totalPowerRecords > 0 ? Math.round(sumAvgPower / totalPowerRecords) : 0,
+            maxPower: Math.round(sumMaxPower),
+            avgNormalizedPower: totalPowerRecords > 0 ? Math.round(sumNormalizedPower / totalPowerRecords) : 0
+        };
+    }
+
+    return {
+        zone1: 0, zone2: 0, zone3: 0, zone4: 0,
+        zone5: 0, zone6: 0, zone7: 0,
+        totalMinutes: 0,
+        avgPower: 0,
+        maxPower: 0,
+        avgNormalizedPower: 0
+    };
+}
+
+/**
+ * Calculate energy system contributions based on Matt Roberts' coaching notes
+ * This shows the correlation between power zones and energy systems
+ */
+function calculateEnergySystemContributions(powerZoneData) {
+    let totalAtpPc = 0;
+    let totalGlycolytic = 0;
+    let totalAerobic = 0;
+    let recordCount = 0;
+
+    powerZoneData.forEach(record => {
+        if (record.atpPcSystem !== null && record.atpPcSystem !== undefined) {
+            totalAtpPc += parseFloat(record.atpPcSystem);
+            totalGlycolytic += parseFloat(record.glycolyticSystem);
+            totalAerobic += parseFloat(record.aerobicSystem);
+            recordCount++;
+        }
+    });
+
+    if (recordCount > 0) {
+        return {
+            atpPcSystem: (totalAtpPc / recordCount).toFixed(1),
+            glycolyticSystem: (totalGlycolytic / recordCount).toFixed(1),
+            aerobicSystem: (totalAerobic / recordCount).toFixed(1),
+            description: {
+                atpPc: 'Anaerobic ATP-PC (Zones 6-7): Short bursts, explosive power',
+                glycolytic: 'Glycolytic/Lactate System (Zones 4-5): High intensity, VO2 max work',
+                aerobic: 'Aerobic System (Zones 1-3): Endurance, zone 2 conditioning'
+            }
+        };
+    }
+
+    return {
+        atpPcSystem: 0,
+        glycolyticSystem: 0,
+        aerobicSystem: 0,
+        description: {
+            atpPc: 'Anaerobic ATP-PC (Zones 6-7): Short bursts, explosive power',
+            glycolytic: 'Glycolytic/Lactate System (Zones 4-5): High intensity, VO2 max work',
+            aerobic: 'Aerobic System (Zones 1-3): Endurance, zone 2 conditioning'
+        }
     };
 }
 
