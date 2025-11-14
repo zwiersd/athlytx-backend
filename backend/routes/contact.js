@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_dev');
 
 /**
  * POST /api/contact

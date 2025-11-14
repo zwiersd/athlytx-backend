@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const { User, MagicLink, CoachAthlete } = require('../models');
-const { sendMagicLink, sendAthleteInvite } = require('../utils/email');
+const { sendMagicLink, sendAthleteInvite, sendAdminNotification } = require('../utils/email');
 const { Op } = require('sequelize');
 
 /**
@@ -142,6 +142,7 @@ router.post('/magic-link', async (req, res) => {
         console.log('[AUTH] Finding user...');
         let user = await User.findOne({ where: { email: normalizedEmail } });
 
+        let isNewUser = false;
         if (!user) {
             console.log('[AUTH] User not found, creating new user...');
             user = await User.create({
@@ -151,6 +152,20 @@ router.post('/magic-link', async (req, res) => {
                 isActive: true
             });
             console.log('[AUTH] User created:', user.id);
+            isNewUser = true;
+
+            // Send admin notification for new sign-up
+            try {
+                await sendAdminNotification(
+                    user.email,
+                    user.name,
+                    user.role,
+                    user.id
+                );
+            } catch (notificationError) {
+                // Silent failure - don't block user registration
+                console.warn('[AUTH] Admin notification failed:', notificationError.message);
+            }
         } else {
             console.log('[AUTH] User found:', user.id);
         }

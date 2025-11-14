@@ -215,7 +215,134 @@ What happens next?
     }
 }
 
+/**
+ * Send admin notification when new user signs up
+ * @param {string} userEmail - New user's email address
+ * @param {string} userName - New user's name
+ * @param {string} userRole - User's role (coach or athlete)
+ * @param {string} userId - User's UUID
+ */
+async function sendAdminNotification(userEmail, userName, userRole, userId) {
+    try {
+        const adminEmail = 'connect@athlytx.com';
+        const roleEmoji = userRole === 'coach' ? '👔' : '🏃';
+        const roleLabel = userRole === 'coach' ? 'Coach' : 'Athlete';
+
+        const { data, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'Athlytx <noreply@athlytx.com>',
+            to: [adminEmail],
+            subject: `${roleEmoji} New ${roleLabel} Sign-Up: ${userEmail}`,
+            html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7fafc; padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, ${userRole === 'coach' ? '#667eea, #5a67d8' : '#48bb78, #38a169'}); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">
+                ${roleEmoji} New ${roleLabel} Sign-Up
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">
+                ${new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}
+            </p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 30px;">
+            <h2 style="color: #2d3748; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">User Details</h2>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #718096; font-size: 14px; font-weight: 600;">
+                        Email:
+                    </td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-size: 14px; text-align: right;">
+                        ${userEmail}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #718096; font-size: 14px; font-weight: 600;">
+                        Name:
+                    </td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-size: 14px; text-align: right;">
+                        ${userName}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #718096; font-size: 14px; font-weight: 600;">
+                        Role:
+                    </td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-size: 14px; text-align: right;">
+                        ${roleEmoji} ${roleLabel}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0; color: #718096; font-size: 14px; font-weight: 600;">
+                        User ID:
+                    </td>
+                    <td style="padding: 12px 0; color: #718096; font-size: 12px; text-align: right; font-family: monospace;">
+                        ${userId}
+                    </td>
+                </tr>
+            </table>
+
+            <div style="background: #f7fafc; border-left: 4px solid ${userRole === 'coach' ? '#667eea' : '#48bb78'}; padding: 16px; border-radius: 8px; margin: 24px 0 0 0;">
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin: 0;">
+                    <strong>Action Required:</strong> A new ${roleLabel.toLowerCase()} has registered and will be logging into the platform.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="color: #718096; font-size: 12px; margin: 0;">
+                Athlytx Elite - Admin Notification System
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+            `,
+            text: `
+New ${roleLabel} Sign-Up
+
+User Details:
+- Email: ${userEmail}
+- Name: ${userName}
+- Role: ${roleLabel}
+- User ID: ${userId}
+- Signed up: ${new Date().toLocaleString()}
+
+A new ${roleLabel.toLowerCase()} has registered and will be logging into the platform.
+
+---
+Athlytx Elite - Admin Notification System
+            `
+        });
+
+        if (error) {
+            console.error('❌ Admin notification email error:', error);
+            // Don't throw - we don't want to block user registration if admin email fails
+            return false;
+        }
+
+        console.log('✅ Admin notification sent for new', roleLabel, ':', userEmail);
+        return data;
+
+    } catch (error) {
+        console.error('❌ Failed to send admin notification email:', error);
+        // Don't throw - silent failure for admin notifications
+        return false;
+    }
+}
+
 module.exports = {
     sendMagicLink,
-    sendAthleteInvite
+    sendAthleteInvite,
+    sendAdminNotification
 };
