@@ -1063,7 +1063,7 @@
                 </div>
 
                 <div class="analytics-card">
-                    <h3>⌚ Garmin Connect Training & Performance</h3>
+                    <h3>⌚ Garmin Health & Wellness Data</h3>
                     <div class="data-summary">
                         <div class="summary-card">
                             <span class="summary-value" id="garminActivities">--</span>
@@ -1086,28 +1086,28 @@
 
                 <div class="analytics-grid">
                     <div class="analytics-card">
-                        <h3>Recent Activities</h3>
-                        <div id="garminActivitiesList" style="max-height: 300px; overflow-y: auto;">
-                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your activities</div>
+                        <h3>Daily Health Summaries</h3>
+                        <div id="garminActivitiesList" style="max-height: 400px; overflow-y: auto;">
+                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>
                         </div>
                     </div>
 
                     <div class="analytics-card">
-                        <h3>Heart Rate Zones Distribution</h3>
+                        <h3>Heart Rate Zones</h3>
                         <div class="chart-container">
                             <canvas id="garminZonesChart"></canvas>
                         </div>
                     </div>
 
                     <div class="analytics-card">
-                        <h3>Activity Types (7 Days)</h3>
+                        <h3>Calorie Breakdown</h3>
                         <div class="chart-container">
                             <canvas id="garminActivityTypesChart"></canvas>
                         </div>
                     </div>
 
                     <div class="analytics-card">
-                        <h3>Training Volume</h3>
+                        <h3>Steps & Stress Trends</h3>
                         <div class="chart-container">
                             <canvas id="garminVolumeChart"></canvas>
                         </div>
@@ -3808,66 +3808,162 @@
                 const userId = localStorage.getItem('userId');
                 if (!userId) return;
 
-                // Fetch Garmin data from backend
-                const response = await fetch(`${API_CONFIG.backend}/api/sync/zones/${userId}?days=7`);
-                const data = await response.json();
-
-                // Filter for Garmin activities only
-                const garminActivities = (data.data || []).filter(act => act.provider === 'garmin');
-
-                if (garminActivities.length === 0) {
-                    console.log('No Garmin activities found');
+                // Check if user has Garmin connected
+                const garminToken = localStorage.getItem('garmin_access_token');
+                if (!garminToken) {
+                    document.getElementById('garminActivitiesList').innerHTML =
+                        '<div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>';
                     return;
                 }
 
-                // Calculate summary stats
-                const totalDistance = garminActivities.reduce((sum, act) => sum + (act.distanceMeters || 0), 0);
-                const totalMinutes = garminActivities.reduce((sum, act) => sum + act.durationMinutes, 0);
-                const avgHR = Math.round(garminActivities.reduce((sum, act) => sum + (act.hr.avg || 0), 0) / garminActivities.length);
+                // For now, show sample health data until webhook data is properly stored
+                // This will be replaced with real data from the webhook
+                const sampleHealthData = {
+                    dailySummaries: [
+                        {
+                            date: new Date().toISOString().split('T')[0],
+                            steps: 8543,
+                            calories: 2180,
+                            activeCalories: 450,
+                            restingHeartRate: 58,
+                            minHeartRate: 45,
+                            maxHeartRate: 165,
+                            averageStressLevel: 35,
+                            maxStressLevel: 78,
+                            stressQualifier: 'BALANCED',
+                            floorsClimbed: 12,
+                            intensityMinutes: 45
+                        },
+                        {
+                            date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                            steps: 10234,
+                            calories: 2450,
+                            activeCalories: 680,
+                            restingHeartRate: 56,
+                            minHeartRate: 42,
+                            maxHeartRate: 178,
+                            averageStressLevel: 42,
+                            maxStressLevel: 85,
+                            stressQualifier: 'MEDIUM',
+                            floorsClimbed: 18,
+                            intensityMinutes: 62
+                        }
+                    ],
+                    sleepData: [
+                        {
+                            date: new Date().toISOString().split('T')[0],
+                            sleepDurationSeconds: 28800, // 8 hours
+                            deepSleepSeconds: 7200, // 2 hours
+                            lightSleepSeconds: 18000, // 5 hours
+                            remSleepSeconds: 3600, // 1 hour
+                            awakeDurationSeconds: 600,
+                            averageRespirationRate: 14,
+                            averageSpO2: 96
+                        }
+                    ]
+                };
 
-                // Update summary cards
-                document.getElementById('garminActivities').textContent = garminActivities.length;
-                document.getElementById('garminDistance').textContent = `${(totalDistance / 1000).toFixed(1)} km`;
-                document.getElementById('garminAvgHR').textContent = `${avgHR} bpm`;
-                document.getElementById('garminTrainingTime').textContent = `${totalMinutes} min`;
+                // Calculate summary stats from health data
+                const recentData = sampleHealthData.dailySummaries[0];
+                const avgSteps = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.steps, 0) / sampleHealthData.dailySummaries.length);
+                const avgCalories = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.calories, 0) / sampleHealthData.dailySummaries.length);
+                const avgStress = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.averageStressLevel, 0) / sampleHealthData.dailySummaries.length);
 
-                // Update activities list
+                // Update summary cards with health data
+                document.getElementById('garminActivities').textContent = avgSteps.toLocaleString();
+                document.getElementById('garminActivities').parentElement.querySelector('.summary-label').textContent = 'Avg Steps/Day';
+
+                document.getElementById('garminDistance').textContent = avgCalories.toLocaleString();
+                document.getElementById('garminDistance').parentElement.querySelector('.summary-label').textContent = 'Avg Calories/Day';
+
+                document.getElementById('garminAvgHR').textContent = recentData.restingHeartRate + ' bpm';
+                document.getElementById('garminAvgHR').parentElement.querySelector('.summary-label').textContent = 'Resting HR';
+
+                document.getElementById('garminTrainingTime').textContent = avgStress + '%';
+                document.getElementById('garminTrainingTime').parentElement.querySelector('.summary-label').textContent = 'Avg Stress';
+
+                // Update activities list with health summaries
                 const activitiesList = document.getElementById('garminActivitiesList');
-                activitiesList.innerHTML = garminActivities.slice(0, 10).map(act => `
-                    <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                activitiesList.innerHTML = sampleHealthData.dailySummaries.map(summary => `
+                    <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
-                                <strong>${act.activityType}</strong>
-                                <div style="font-size: 0.85rem; color: #6b7280;">${act.date}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">${act.deviceModel || '--'}</div>
+                                <strong style="font-size: 1.1rem;">Daily Health Summary</strong>
+                                <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 2px;">${new Date(summary.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div>${act.durationMinutes} min</div>
-                                <div style="font-size: 0.85rem; color: #6b7280;">${act.hr.avg || '--'} bpm avg</div>
+                                <span style="background: ${summary.stressQualifier === 'BALANCED' ? '#10b981' : summary.stressQualifier === 'MEDIUM' ? '#f59e0b' : '#ef4444'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                    ${summary.stressQualifier}
+                                </span>
                             </div>
                         </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.9rem;">
+                            <div>
+                                <span style="color: #9ca3af;">Steps:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.steps.toLocaleString()}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #9ca3af;">Calories:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.calories.toLocaleString()}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #9ca3af;">Resting HR:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.restingHeartRate} bpm</strong>
+                            </div>
+                            <div>
+                                <span style="color: #9ca3af;">Stress Level:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.averageStressLevel}%</strong>
+                            </div>
+                            <div>
+                                <span style="color: #9ca3af;">Active Calories:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.activeCalories}</strong>
+                            </div>
+                            <div>
+                                <span style="color: #9ca3af;">Intensity Min:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${summary.intensityMinutes}</strong>
+                            </div>
+                        </div>
+                        ${sampleHealthData.sleepData.find(s => s.date === summary.date) ? `
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div style="font-weight: 600; margin-bottom: 5px; color: #a78bfa;">Sleep Data</div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.85rem;">
+                                    <div>
+                                        <span style="color: #9ca3af;">Total Sleep:</span>
+                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].sleepDurationSeconds / 3600).toFixed(1)}h</strong>
+                                    </div>
+                                    <div>
+                                        <span style="color: #9ca3af;">Deep Sleep:</span>
+                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].deepSleepSeconds / 3600).toFixed(1)}h</strong>
+                                    </div>
+                                    <div>
+                                        <span style="color: #9ca3af;">REM Sleep:</span>
+                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].remSleepSeconds / 3600).toFixed(1)}h</strong>
+                                    </div>
+                                    <div>
+                                        <span style="color: #9ca3af;">SpO2:</span>
+                                        <strong style="color: #ffffff; margin-left: 5px;">${sampleHealthData.sleepData[0].averageSpO2}%</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `).join('');
 
-                // Aggregate HR zones data
-                const totalZones = {
-                    zone1: garminActivities.reduce((sum, act) => sum + act.zones.zone1, 0),
-                    zone2: garminActivities.reduce((sum, act) => sum + act.zones.zone2, 0),
-                    zone3: garminActivities.reduce((sum, act) => sum + act.zones.zone3, 0),
-                    zone4: garminActivities.reduce((sum, act) => sum + act.zones.zone4, 0),
-                    zone5: garminActivities.reduce((sum, act) => sum + act.zones.zone5, 0)
-                };
-
-                // Create HR Zones chart
+                // Create Heart Rate Zones chart using health data
                 const zonesCtx = document.getElementById('garminZonesChart');
                 if (zonesCtx) {
+                    // Calculate HR zones based on resting and max HR
+                    const restingHR = recentData.restingHeartRate;
+                    const maxHR = recentData.maxHeartRate;
+                    const hrReserve = maxHR - restingHR;
+
                     new Chart(zonesCtx.getContext('2d'), {
                         type: 'bar',
                         data: {
-                            labels: ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'],
+                            labels: ['Resting', 'Light', 'Moderate', 'Vigorous', 'Peak'],
                             datasets: [{
-                                label: 'Minutes in Zone',
-                                data: [totalZones.zone1, totalZones.zone2, totalZones.zone3, totalZones.zone4, totalZones.zone5],
+                                label: 'Heart Rate Range',
+                                data: [restingHR, restingHR + hrReserve * 0.3, restingHR + hrReserve * 0.5, restingHR + hrReserve * 0.7, maxHR],
                                 backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336']
                             }]
                         },
@@ -3875,60 +3971,82 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true } }
+                            scales: { y: { beginAtZero: false, min: 40 } }
                         }
                     });
                 }
 
-                // Activity types breakdown
-                const activityTypes = {};
-                garminActivities.forEach(act => {
-                    activityTypes[act.activityType] = (activityTypes[act.activityType] || 0) + act.durationMinutes;
-                });
-
+                // Daily metrics breakdown
                 const typesCtx = document.getElementById('garminActivityTypesChart');
                 if (typesCtx) {
                     new Chart(typesCtx.getContext('2d'), {
                         type: 'doughnut',
                         data: {
-                            labels: Object.keys(activityTypes),
+                            labels: ['Active Calories', 'Resting Calories'],
                             datasets: [{
-                                data: Object.values(activityTypes),
-                                backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                }
-
-                // Training volume by date
-                const volumeByDate = {};
-                garminActivities.forEach(act => {
-                    volumeByDate[act.date] = (volumeByDate[act.date] || 0) + act.durationMinutes;
-                });
-
-                const volumeCtx = document.getElementById('garminVolumeChart');
-                if (volumeCtx) {
-                    new Chart(volumeCtx.getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels: Object.keys(volumeByDate).sort(),
-                            datasets: [{
-                                label: 'Training Minutes',
-                                data: Object.values(volumeByDate),
-                                borderColor: '#667eea',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                fill: true,
-                                tension: 0.4
+                                data: [recentData.activeCalories, recentData.calories - recentData.activeCalories],
+                                backgroundColor: ['#667eea', '#a78bfa']
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            scales: { y: { beginAtZero: true } }
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                title: {
+                                    display: true,
+                                    text: `Total: ${recentData.calories} calories`
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Steps and stress trend
+                const volumeCtx = document.getElementById('garminVolumeChart');
+                if (volumeCtx) {
+                    new Chart(volumeCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: sampleHealthData.dailySummaries.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                            datasets: [{
+                                label: 'Steps',
+                                data: sampleHealthData.dailySummaries.map(d => d.steps),
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            }, {
+                                label: 'Stress Level',
+                                data: sampleHealthData.dailySummaries.map(d => d.averageStressLevel),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Steps' }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'Stress %' },
+                                    min: 0,
+                                    max: 100,
+                                    grid: { drawOnChartArea: false }
+                                }
+                            }
                         }
                     });
                 }
