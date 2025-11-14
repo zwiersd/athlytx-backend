@@ -5,7 +5,8 @@ class GarminOAuth2 {
         this.clientId = config.clientId || '4af31e5c-d758-442d-a007-809ea45f444a';
         this.clientSecret = config.clientSecret;
         this.redirectUri = config.redirectUri || 'https://www.athlytx.com/auth/garmin/callback';
-        this.scope = config.scope || 'WELLNESS_READ';
+        // Request all wellness scopes for complete data access
+        this.scope = config.scope || 'ACTIVITY_EXPORT HEALTH_EXPORT';
 
         // Storage for PKCE values
         this.codeVerifier = null;
@@ -303,7 +304,7 @@ async function initializeGarminAuth() {
         clientId: '4af31e5c-d758-442d-a007-809ea45f444a',
         clientSecret: 'YOUR_CLIENT_SECRET', // Should be handled server-side in production
         redirectUri: 'https://www.athlytx.com',
-        scope: 'WELLNESS_READ'
+        scope: 'ACTIVITY_EXPORT HEALTH_EXPORT'
     });
 
     // Check if we're handling a callback
