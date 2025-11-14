@@ -46,13 +46,9 @@ async function fetchWithBearer(path, method = 'GET', accessToken, query = {}, op
 
     console.log(`  Response: ${response.status} ${response.statusText}`);
 
-    // Log response headers for debugging
+    // Don't consume the body here - let the caller handle it
     if (!response.ok) {
-        const text = await response.text();
-        console.log(`  Error body: ${text}`);
-
-        // Return response with text already read for error handling
-        response._errorText = text;
+        console.log(`  Response status indicates error: ${response.status}`);
     }
 
     return response;
@@ -66,7 +62,9 @@ async function fetchWithBearer(path, method = 'GET', accessToken, query = {}, op
  */
 function validateTimeRange(startTime, endTime) {
     const MAX_RANGE = 86400; // 24 hours in seconds
-    return (endTime - startTime) <= MAX_RANGE;
+    const range = endTime - startTime;
+    // Must have at least 1 second range and not exceed max
+    return range > 0 && range <= MAX_RANGE;
 }
 
 /**
