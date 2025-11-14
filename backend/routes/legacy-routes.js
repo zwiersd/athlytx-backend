@@ -581,11 +581,12 @@ app.get('/api/garmin/v2/permissions', async (req, res) => {
             });
         }
 
-        console.log('🔐 Checking Garmin permissions with OAuth 1.0a signature + OAuth 2.0 token');
+        console.log('🔐 Checking Garmin permissions with Bearer token (Partner API)');
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
-        const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/user/permissions', 'GET', token, {});
+        // Use Bearer token directly for Partner API
+        const { fetchWithBearer } = require('../utils/garmin-api-bearer');
+        const response = await fetchWithBearer('/user/permissions', 'GET', token, {});
 
         const responseText = await response.text();
         console.log('🔐 Garmin permissions response:', {
@@ -630,7 +631,7 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        console.log('📊 Garmin dailies request (OAuth 1.0a + OAuth 2.0 token):', {
+        console.log('📊 Garmin dailies request (Bearer token):', {
             start,
             end,
             startTimestamp,
@@ -638,11 +639,27 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/dailies', 'GET', token, {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        });
+        // Use Bearer token directly for Partner API
+        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
+
+        let response;
+        // Check time range (max 24 hours)
+        if (!validateTimeRange(startTimestamp, endTimestamp)) {
+            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
+            // For now, just limit to 24 hours from end
+            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
+            console.log('📊 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
+
+            response = await fetchWithBearer('/dailies', 'GET', token, {
+                uploadStartTimeInSeconds: adjustedStart.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        } else {
+            response = await fetchWithBearer('/dailies', 'GET', token, {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        }
 
         const responseText = await response.text();
         console.log('📊 Garmin dailies response:', {
@@ -687,7 +704,7 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        console.log('🏃 Garmin activities request (OAuth 1.0a + OAuth 2.0 token):', {
+        console.log('🏃 Garmin activities request (Bearer token):', {
             start,
             end,
             startTimestamp,
@@ -695,11 +712,26 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/activities', 'GET', token, {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        });
+        // Use Bearer token directly for Partner API
+        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
+
+        let response;
+        // Check time range (max 24 hours)
+        if (!validateTimeRange(startTimestamp, endTimestamp)) {
+            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
+            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
+            console.log('🏃 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
+
+            response = await fetchWithBearer('/activities', 'GET', token, {
+                uploadStartTimeInSeconds: adjustedStart.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        } else {
+            response = await fetchWithBearer('/activities', 'GET', token, {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        }
 
         const responseText = await response.text();
         console.log('🏃 Garmin activities response:', {
@@ -744,7 +776,7 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
         const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
         const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
 
-        console.log('😴 Garmin sleep request (OAuth 1.0a + OAuth 2.0 token):', {
+        console.log('😴 Garmin sleep request (Bearer token):', {
             start,
             end,
             startTimestamp,
@@ -752,11 +784,26 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/sleeps', 'GET', token, {
-            uploadStartTimeInSeconds: startTimestamp.toString(),
-            uploadEndTimeInSeconds: endTimestamp.toString()
-        });
+        // Use Bearer token directly for Partner API
+        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
+
+        let response;
+        // Check time range (max 24 hours)
+        if (!validateTimeRange(startTimestamp, endTimestamp)) {
+            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
+            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
+            console.log('😴 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
+
+            response = await fetchWithBearer('/sleeps', 'GET', token, {
+                uploadStartTimeInSeconds: adjustedStart.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        } else {
+            response = await fetchWithBearer('/sleeps', 'GET', token, {
+                uploadStartTimeInSeconds: startTimestamp.toString(),
+                uploadEndTimeInSeconds: endTimestamp.toString()
+            });
+        }
 
         const responseText = await response.text();
         console.log('😴 Garmin sleep response:', {
