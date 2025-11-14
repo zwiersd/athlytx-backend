@@ -1,9 +1,9 @@
 // Garmin OAuth 2.0 with PKCE Implementation
 class GarminOAuth2 {
     constructor(config = {}) {
-        this.clientId = config.clientId || 'ee6809d5-abc0-4a33-b38a-d433e5045987';
+        this.clientId = config.clientId || '4af31e5c-d758-442d-a007-809ea45f444a';
         this.clientSecret = config.clientSecret;
-        this.redirectUri = config.redirectUri || 'https://www.athlytx.com';
+        this.redirectUri = config.redirectUri || 'https://www.athlytx.com/auth/garmin/callback';
         this.scope = config.scope || 'WELLNESS_READ';
 
         // Storage for PKCE values
@@ -58,7 +58,7 @@ class GarminOAuth2 {
 
     // Generate state parameter for CSRF protection
     generateState() {
-        this.state = 'garmin_' + this.generateRandomString(26);
+        this.state = 'garmin_auth';
         // Store state in sessionStorage for callback verification
         if (typeof sessionStorage !== 'undefined') {
             sessionStorage.setItem('garmin_oauth_state', this.state);
