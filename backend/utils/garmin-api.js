@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const GarminOAuth1Hybrid = require('./garmin-oauth1-hybrid');
 
-const WELLNESS_BASE = 'https://healthapi.garmin.com/wellness-api/rest';
+const WELLNESS_BASE = 'https://apis.garmin.com/wellness-api/rest';
 
 /**
  * Helper to sign and fetch from Garmin Wellness API

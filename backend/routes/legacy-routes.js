@@ -449,7 +449,7 @@ app.post('/api/garmin/token', async (req, res) => {
 
         try {
             const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-            const baseUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
+            const baseUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
             const signer = new GarminOAuth1Hybrid(
                 process.env.GARMIN_CONSUMER_KEY,
                 process.env.GARMIN_CONSUMER_SECRET
