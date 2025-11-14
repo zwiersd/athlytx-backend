@@ -14,7 +14,7 @@ async function sendMagicLink(email, magicLinkUrl, code) {
         const { data, error } = await resend.emails.send({
             from: process.env.EMAIL_FROM || 'Athlytx <noreply@athlytx.com>',
             to: [email],
-            subject: 'Your Athlytx Elite Login Code',
+            subject: '🔐 Your Athlytx Magic Link - Instant Login',
             html: `
 <!DOCTYPE html>
 <html>
@@ -34,29 +34,22 @@ async function sendMagicLink(email, magicLinkUrl, code) {
 
         <!-- Content -->
         <div style="padding: 50px 40px;">
-            <h2 style="color: #0a0e27; margin: 0 0 16px 0; font-size: 26px; font-weight: 700;">Your Login Code</h2>
+            <h2 style="color: #0a0e27; margin: 0 0 16px 0; font-size: 26px; font-weight: 700;">Your Magic Link</h2>
 
             <p style="color: #4a5568; font-size: 16px; line-height: 1.7; margin: 0 0 35px 0;">
-                Enter this code to access your elite coaching dashboard and unlock powerful analytics:
-            </p>
-
-            <!-- Code Display - Dark Box with Bright Text -->
-            <div style="background: linear-gradient(135deg, #0a0e27 0%, #1e2659 100%); border-radius: 12px; padding: 35px 30px; text-align: center; margin: 0 0 35px 0; border: 2px solid #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);">
-                <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #ffffff; font-family: 'Courier New', monospace; text-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
-                    ${code}
-                </div>
-            </div>
-
-            <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
-                Or use the button below for instant access:
+                Click the button below to instantly access your Athlytx dashboard. No code required!
             </p>
 
             <!-- Login Button -->
             <div style="text-align: center; margin: 0 0 40px 0;">
-                <a href="${magicLinkUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea, #5a67d8); color: white; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-weight: 700; font-size: 17px; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35); transition: all 0.3s;">
-                    Access Elite Dashboard →
+                <a href="${magicLinkUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea, #5a67d8); color: white; text-decoration: none; padding: 20px 60px; border-radius: 12px; font-weight: 700; font-size: 18px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4); transition: all 0.3s;">
+                    🔐 Log In to Athlytx
                 </a>
             </div>
+
+            <p style="color: #718096; font-size: 14px; line-height: 1.6; margin: 0 0 25px 0; text-align: center; font-style: italic;">
+                One click - instant access. No codes to enter!
+            </p>
 
             <!-- Security Notice -->
             <div style="background: linear-gradient(135deg, #f7fafc, #edf2f7); border-left: 4px solid #667eea; padding: 20px 24px; border-radius: 8px; margin: 0 0 20px 0;">
@@ -80,14 +73,12 @@ async function sendMagicLink(email, magicLinkUrl, code) {
 </html>
             `,
             text: `
-Your Athlytx Elite Login Code
+Your Athlytx Magic Link
 
-Use this code to access your coaching dashboard: ${code}
-
-Or click this link to log in directly:
+Click the link below to instantly log in to your dashboard:
 ${magicLinkUrl}
 
-This code expires in 15 minutes. If you didn't request this login, please ignore this email.
+This link expires in 15 minutes. If you didn't request this login, please ignore this email.
 
 © ${new Date().getFullYear()} Athlytx
             `

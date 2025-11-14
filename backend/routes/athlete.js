@@ -2,13 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
 const {
+    sequelize,
     User,
     CoachAthlete,
     Activity,
     DailyMetric,
     HeartRateZone,
     PowerZone,
-    TrainingSummary
+    TrainingSummary,
+    OAuthToken
 } = require('../models');
 
 /**
@@ -537,6 +539,118 @@ function formatDailyMetric(metric) {
         calories: metric.caloriesBurned
     };
 }
+
+/**
+ * DELETE /api/athlete/delete-account
+ * Permanently delete athlete account and all associated data
+ * Body: { athleteId, sessionToken, confirmEmail }
+ */
+router.delete('/delete-account', async (req, res) => {
+    try {
+        const { athleteId, sessionToken, confirmEmail } = req.body;
+        console.log('[ATHLETE-DELETE] Account deletion request for athlete:', athleteId);
+
+        if (!athleteId || !sessionToken || !confirmEmail) {
+            return res.status(400).json({ error: 'Athlete ID, session token, and email confirmation required' });
+        }
+
+        // Verify athlete session and email match
+        const athlete = await User.findOne({
+            where: {
+                id: athleteId,
+                sessionToken,
+                email: confirmEmail.toLowerCase().trim(),
+                sessionExpiry: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!athlete) {
+            console.log('[ATHLETE-DELETE] Invalid session or email mismatch');
+            return res.status(401).json({ error: 'Invalid credentials or email does not match' });
+        }
+
+        console.log('[ATHLETE-DELETE] Verified athlete:', athlete.email);
+
+        // Start transaction to ensure all-or-nothing deletion
+        const result = await sequelize.transaction(async (transaction) => {
+            // 1. Delete all coach-athlete relationships
+            const deletedRelationships = await CoachAthlete.destroy({
+                where: { athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedRelationships} coach relationships`);
+
+            // 2. Delete all OAuth tokens (device connections)
+            const deletedTokens = await OAuthToken.destroy({
+                where: { userId: athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedTokens} OAuth tokens`);
+
+            // 3. Delete all activities
+            const deletedActivities = await Activity.destroy({
+                where: { userId: athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedActivities} activities`);
+
+            // 4. Delete all daily metrics
+            const deletedMetrics = await DailyMetric.destroy({
+                where: { userId: athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedMetrics} daily metrics`);
+
+            // 5. Delete all training summaries
+            const deletedSummaries = await TrainingSummary.destroy({
+                where: { userId: athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedSummaries} training summaries`);
+
+            // 6. Delete all magic links
+            const { MagicLink } = require('../models');
+            const deletedMagicLinks = await MagicLink.destroy({
+                where: { userId: athleteId },
+                transaction
+            });
+            console.log(`[ATHLETE-DELETE] Deleted ${deletedMagicLinks} magic links`);
+
+            // 7. Finally, delete the user account
+            await athlete.destroy({ transaction });
+            console.log(`[ATHLETE-DELETE] Deleted user account: ${athlete.email}`);
+
+            return {
+                email: athlete.email,
+                deletedRelationships,
+                deletedTokens,
+                deletedActivities,
+                deletedMetrics,
+                deletedSummaries,
+                deletedMagicLinks
+            };
+        });
+
+        console.log('[ATHLETE-DELETE] ✅ Account deletion completed successfully');
+
+        res.json({
+            success: true,
+            message: 'Your account and all associated data have been permanently deleted',
+            summary: {
+                email: result.email,
+                coachRelationships: result.deletedRelationships,
+                devices: result.deletedTokens,
+                activities: result.deletedActivities,
+                dailyMetrics: result.deletedMetrics,
+                trainingSummaries: result.deletedSummaries
+            }
+        });
+
+    } catch (error) {
+        console.error('[ATHLETE-DELETE] Error:', error);
+        res.status(500).json({ error: 'Failed to delete account. Please contact support.' });
+    }
+});
 
 /**
  * Format training summary for response

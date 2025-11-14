@@ -631,4 +631,67 @@ router.delete('/cancel-invite/:relationshipId', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/coach/revoke-athlete/:relationshipId
+ * Revoke access to an athlete's data (kill switch)
+ */
+router.post('/revoke-athlete/:relationshipId', async (req, res) => {
+    try {
+        const { relationshipId } = req.params;
+        const { coachId } = req.body;
+
+        if (!coachId) {
+            return res.status(400).json({ error: 'coachId required' });
+        }
+
+        // Verify coach exists and has valid session
+        const coach = await User.findOne({
+            where: { id: coachId, role: 'coach' }
+        });
+
+        if (!coach) {
+            return res.status(404).json({ error: 'Coach not found' });
+        }
+
+        // Find the relationship
+        const relationship = await CoachAthlete.findOne({
+            where: { id: relationshipId, coachId },
+            include: [
+                { model: User, as: 'Athlete', attributes: ['email', 'name'] }
+            ]
+        });
+
+        if (!relationship) {
+            return res.status(404).json({ error: 'Athlete relationship not found or access denied' });
+        }
+
+        if (relationship.status === 'revoked') {
+            return res.status(400).json({ error: 'Access already revoked' });
+        }
+
+        // Revoke access
+        relationship.status = 'revoked';
+        relationship.revokedAt = new Date();
+        relationship.revokedBy = coachId;
+        await relationship.save();
+
+        console.log(`✅ Coach ${coachId} revoked access to athlete ${relationship.Athlete.email}`);
+
+        res.json({
+            success: true,
+            message: `Access to ${relationship.Athlete.name || relationship.Athlete.email} has been revoked`,
+            relationship: {
+                id: relationship.id,
+                athleteEmail: relationship.Athlete.email,
+                status: relationship.status,
+                revokedAt: relationship.revokedAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Revoke athlete error:', error);
+        res.status(500).json({ error: 'Failed to revoke athlete access' });
+    }
+});
+
 module.exports = router;
