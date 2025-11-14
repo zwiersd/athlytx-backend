@@ -448,13 +448,20 @@ app.post('/api/garmin/token', async (req, res) => {
         console.log('📝 Registering user with Garmin Wellness API...');
 
         try {
-            const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
+            const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
+            const baseUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
+            const signer = new GarminOAuth1Hybrid(
+                process.env.GARMIN_CONSUMER_KEY,
+                process.env.GARMIN_CONSUMER_SECRET
+            );
+            const authHeader = signer.generateAuthHeader('POST', baseUrl, {}, data.access_token);
 
-            const registrationResponse = await fetch(registrationUrl, {
+            const registrationResponse = await fetch(baseUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${data.access_token}`,
-                    'Content-Type': 'application/json'
+                    Authorization: authHeader,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
                 },
                 body: JSON.stringify({}) // Empty body for registration
             });
@@ -499,15 +506,10 @@ app.post('/api/garmin/v2/register', async (req, res) => {
         console.log('📝 Manual user registration request for Garmin Wellness API');
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
-        const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
-
-        const response = await fetch(registrationUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({}) // Empty body for registration
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/user/registration', 'POST', token, {}, {
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
         });
 
         const responseText = await response.text();
@@ -561,17 +563,8 @@ app.get('/api/garmin/v2/permissions', async (req, res) => {
         console.log('🔐 Checking Garmin permissions with OAuth 1.0a signature + OAuth 2.0 token');
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
-        // Try simple Bearer token authentication
-        const url = 'https://apis.garmin.com/wellness-api/rest/user/permissions';
-
-        console.log('🔐 Using Bearer token authentication');
-
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
-        });
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/user/permissions', 'GET', token, {});
 
         const responseText = await response.text();
         console.log('🔐 Garmin permissions response:', {
@@ -624,16 +617,10 @@ app.get('/api/garmin/v2/dailies', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Use Bearer token authentication
-        const apiUrl = `https://apis.garmin.com/wellness-api/rest/dailies?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('🔐 Using Bearer token for dailies');
-
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/dailies', 'GET', token, {
+            uploadStartTimeInSeconds: startTimestamp.toString(),
+            uploadEndTimeInSeconds: endTimestamp.toString()
         });
 
         const responseText = await response.text();
@@ -687,16 +674,10 @@ app.get('/api/garmin/v2/activities', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Use Bearer token authentication
-        const apiUrl = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('🔐 Using Bearer token for activities');
-
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/activities', 'GET', token, {
+            uploadStartTimeInSeconds: startTimestamp.toString(),
+            uploadEndTimeInSeconds: endTimestamp.toString()
         });
 
         const responseText = await response.text();
@@ -750,16 +731,10 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
             tokenPrefix: token.substring(0, 20) + '...'
         });
 
-        // Use Bearer token authentication
-        const apiUrl = `https://apis.garmin.com/wellness-api/rest/sleeps?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
-
-        console.log('🔐 Using Bearer token for sleep');
-
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/sleeps', 'GET', token, {
+            uploadStartTimeInSeconds: startTimestamp.toString(),
+            uploadEndTimeInSeconds: endTimestamp.toString()
         });
 
         const responseText = await response.text();
