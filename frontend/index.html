@@ -101,18 +101,21 @@
         }
         
         .device-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s, border 0.3s;
         }
-        
+
         .device-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
         
         .device-header {
@@ -141,13 +144,13 @@
 
         
         .device-info h3 {
-            color: #1f2937;
+            color: rgba(255, 255, 255, 0.95);
             font-size: 1.3rem;
             margin-bottom: 5px;
         }
-        
+
         .device-info p {
-            color: #6b7280;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.9rem;
         }
         
@@ -171,13 +174,21 @@
         .btn-oura { background: #B45CF3; }
         .btn-strava { background: #FC4C02; }
 
+        .connect-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
         .disconnect-btn {
             width: 100%;
             padding: 8px 16px;
-            border: 2px solid #dc2626;
+            border: 2px solid rgba(220, 38, 38, 0.7);
             border-radius: 8px;
-            background: transparent;
-            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -185,7 +196,8 @@
         }
 
         .disconnect-btn:hover {
-            background: #dc2626;
+            background: rgba(220, 38, 38, 0.8);
+            border-color: rgba(220, 38, 38, 0.9);
             color: white;
         }
 
@@ -197,24 +209,25 @@
         }
         
         .analytics-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
             padding: 30px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             margin-bottom: 25px;
         }
         
         .analytics-card h3 {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 15px;
             font-size: 1.4rem;
             font-weight: 600;
         }
-        
+
         .analytics-card {
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
         
         .data-summary {
@@ -225,7 +238,10 @@
         }
         
         .summary-card {
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 20px;
             border-radius: 12px;
             text-align: center;
@@ -240,25 +256,29 @@
         }
         
         .summary-label {
-            color: #6b7280;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.9rem;
             margin-top: 5px;
         }
         
         .refresh-btn {
-            background: rgba(255,255,255,0.9);
-            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 10px 18px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            color: #374151;
+            color: white;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: all 0.2s;
         }
         
         .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0,0,0,0.15);
         }
@@ -274,7 +294,10 @@
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            background: white;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 15px;
             border-radius: 12px;
         }
@@ -305,7 +328,7 @@
         }
 
         .insight-card h4 {
-            color: yellow;
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 8px;
             font-size: 1.1rem;
         }
@@ -317,38 +340,38 @@
 
         /* Running tab specific insight card styling */
         #running .insight-card h4 {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         #running .insight-card p {
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         /* Oura tab specific insight card styling */
         #oura .insight-card h4 {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         #oura .insight-card p {
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         /* Strava tab specific insight card styling */
         #strava .insight-card h4 {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         #strava .insight-card p {
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         /* Whoop tab specific insight card styling */
         #whoop .insight-card h4 {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         #whoop .insight-card p {
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         /* Footer styles */
@@ -405,14 +428,16 @@
         }
 
         .nav-link {
-            background: rgba(255,255,255,0.9);
-            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 8px 14px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 12px;
             font-weight: 600;
-            color: #374151;
+            color: white;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: all 0.2s;
             text-decoration: none;
@@ -421,6 +446,8 @@
         }
 
         .nav-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(0,0,0,0.15);
         }
@@ -463,15 +490,15 @@
         
         .record-item {
             padding: 15px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #374151;
+            color: rgba(255, 255, 255, 0.85);
         }
-        
+
         .record-item strong {
-            color: #111827;
+            color: rgba(255, 255, 255, 0.95);
         }
         
         .record-badge {
@@ -734,7 +761,7 @@
 
     <div id="dashboard" class="dashboard">
         <div style="position: fixed; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 1000; flex-wrap: wrap; align-items:center;">
-            <span id="readinessPill" style="display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.7); color:#111827; font-size:0.9rem; font-weight:600;">🏁 Readiness: --</span>
+            <span id="readinessPill" style="display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); color:white; font-size:0.9rem; font-weight:600;">🏁 Readiness: --</span>
             <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh</button>
             <button onclick="clearAllData()" class="refresh-btn">🗑️ Clear</button>
         </div>
@@ -842,18 +869,18 @@
 
             <!-- Overview Tab -->
             <div id="overview" class="tab-content">
-                <div class="analytics-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 30px;">
+                <div class="analytics-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
                     <div style="text-align: center;">
-                        <h2 style="color: white; margin-bottom: 20px;">⚡ Athlytx Score</h2>
-                        <div style="font-size: 4rem; font-weight: bold; margin: 20px 0;" id="athlytxScore">--</div>
-                        <div style="font-size: 1.2rem; margin-bottom: 10px;" id="scoreStatus">Connect devices to calculate your score</div>
-                        <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.9rem; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.15); margin-bottom: 14px;">Confidence: --</div>
-                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 6px;">
-                            <p id="scoreInsight" style="margin: 0;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
-                            <p id="scoreSources" style="margin: 8px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Sources — Recovery: --, Strain: --, Sleep: --, HRV: --</p>
-                            <p id="deviceGuidance" style="margin: 6px 0 0 0; font-size: 0.85rem; opacity: 0.85;">Tip: Connect Strava, Oura, and Whoop for highest confidence.</p>
-                            <div id="readinessBanner" style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.12); font-weight: 600;">
-                                🏁 Today’s Readiness: --
+                        <h2 style="color: rgba(255, 255, 255, 0.95); margin-bottom: 20px; font-size: 1.8rem; font-weight: 700;">⚡ Athlytx Score</h2>
+                        <div style="font-size: 5rem; font-weight: 800; margin: 30px 0; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
+                        <div style="font-size: 1.1rem; margin-bottom: 16px; color: rgba(255, 255, 255, 0.85);" id="scoreStatus">Connect devices to calculate your score</div>
+                        <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.9rem; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.2);">Confidence: --</div>
+                        <div style="background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); padding: 20px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <p id="scoreInsight" style="margin: 0; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
+                            <p id="scoreSources" style="margin: 12px 0 0 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.75);">Sources — Recovery: --, Strain: --, Sleep: --, HRV: --</p>
+                            <p id="deviceGuidance" style="margin: 8px 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.65);">💡 Tip: Connect Strava, Oura, and Whoop for highest confidence.</p>
+                            <div id="readinessBanner" style="margin-top: 16px; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.95);">
+                                🏁 Today's Readiness: --
                             </div>
                         </div>
                     </div>
@@ -947,7 +974,7 @@
                         <div class="chart-container">
                             <canvas id="stravaIntensityDistChart"></canvas>
                         </div>
-                        <div style="font-size: 0.85rem; color:#6b7280; margin-top:6px;">Buckets estimated using activity Suffer Score and duration.</div>
+                        <div style="font-size: 0.85rem; color:rgba(255,255,255,0.7); margin-top:6px;">Buckets estimated using activity Suffer Score and duration.</div>
                     </div>
 
                     <div class="analytics-card">
@@ -961,6 +988,12 @@
 
             <!-- Oura Data Tab -->
             <div id="oura" class="tab-content">
+                <!-- Oura Attribution Header -->
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
+                    <img src="src/images/ourawhite.png" alt="Oura" style="height: 45px; object-fit: contain;">
+                </div>
+
                 <div class="analytics-card">
                     <h3>💍 Oura Recovery & Sleep</h3>
                     <div class="data-summary">
@@ -1026,7 +1059,7 @@
                 <!-- Garmin Attribution Header -->
                 <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
-                    <img src="/src/images/GarminConnect.png" alt="Garmin Connect" style="height: 45px; object-fit: contain;">
+                    <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 45px; object-fit: contain;">
                 </div>
 
                 <div class="analytics-card">
@@ -1084,6 +1117,12 @@
 
             <!-- Whoop Data Tab -->
             <div id="whoop" class="tab-content">
+                <!-- Whoop Attribution Header -->
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
+                    <img src="src/images/WHOOP.svg" alt="Whoop" style="height: 45px; object-fit: contain; filter: invert(1) brightness(2);">
+                </div>
+
                 <div class="analytics-card">
                     <h3>💪 Whoop Strain & Recovery</h3>
                     <div class="data-summary">
@@ -1262,25 +1301,25 @@
                     <div class="analytics-card">
                         <h3>Cross-Device Correlations</h3>
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                            <label for="correlationWindow" style="font-size:0.9rem; color:#6b7280;">Window:</label>
-                            <select id="correlationWindow" style="font-size:0.9rem; padding:4px 8px; border-radius:6px; border:1px solid #e5e7eb;">
+                            <label for="correlationWindow" style="font-size:0.9rem; color:rgba(255,255,255,0.7);">Window:</label>
+                            <select id="correlationWindow" style="font-size:0.9rem; padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:white;">
                                 <option value="7">7 days</option>
                                 <option value="14">14 days</option>
                                 <option value="28">28 days</option>
                             </select>
-                            <span style="font-size:0.85rem; color:#6b7280;">Adjust to explore relationships over time</span>
+                            <span style="font-size:0.85rem; color:rgba(255,255,255,0.7);">Adjust to explore relationships over time</span>
                         </div>
                         <div class="chart-container" style="height: 240px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <div style="font-weight:600; color:#374151;">Load vs Recovery</div>
-                                <div id="loadRecoveryR" style="font-size:0.85rem; color:#6b7280;">r: --</div>
+                                <div style="font-weight:600; color:rgba(255,255,255,0.95);">Load vs Recovery</div>
+                                <div id="loadRecoveryR" style="font-size:0.85rem; color:rgba(255,255,255,0.7);">r: --</div>
                             </div>
                             <canvas id="loadRecoveryChart"></canvas>
                         </div>
                         <div class="chart-container" style="height: 240px; margin-top: 16px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <div style="font-weight:600; color:#374151;">Sleep vs Next‑day Load</div>
-                                <div id="sleepLoadR" style="font-size:0.85rem; color:#6b7280;">r: --</div>
+                                <div style="font-weight:600; color:rgba(255,255,255,0.95);">Sleep vs Next‑day Load</div>
+                                <div id="sleepLoadR" style="font-size:0.85rem; color:rgba(255,255,255,0.7);">r: --</div>
                             </div>
                             <canvas id="sleepLoadChart"></canvas>
                         </div>
@@ -1330,9 +1369,9 @@
                 scope: 'daily'
             },
             garmin: {
-                clientId: 'ee6809d5-abc0-4a33-b38a-d433e5045987',
-                clientSecret: '0Xjs//vs29LPby1XbvGUBcVM1gzn7/idbavTyTVnl3M',
-                redirectUri: 'https://www.athlytx.com',
+                clientId: '4af31e5c-d758-442d-a007-809ea45f444a',
+                clientSecret: 'GGDcZxqPhpn4UlVihFY62rHWhY+ZNkHbLE0auOYOkrU',
+                redirectUri: 'https://www.athlytx.com/auth/garmin/callback',
                 scope: 'WELLNESS_READ'
             },
             whoop: {
@@ -2334,7 +2373,18 @@
                 }
                 const sourcesEl = document.getElementById('scoreSources');
                 if (sourcesEl && dataSources) {
-                    sourcesEl.textContent = `Sources — Recovery: ${dataSources.recovery || '--'}, Strain: ${dataSources.strain || '--'}, Sleep: ${dataSources.sleep || '--'}, HRV: ${dataSources.hrv || '--'}`;
+                    // Build sources with logos
+                    const getSourceLogo = (source) => {
+                        if (!source || source === '--') return '--';
+                        const logos = {
+                            'Oura': '<img src="src/images/oura-logo.jpeg" alt="Oura" style="height: 14px; object-fit: contain; border-radius: 3px; vertical-align: middle; margin-left: 4px;">',
+                            'Whoop': '<img src="src/images/WHOOP.svg" alt="Whoop" style="height: 12px; object-fit: contain; filter: invert(1) brightness(2); vertical-align: middle; margin-left: 4px;">',
+                            'Garmin': '<img src="src/images/GarminConnect.png" alt="Garmin" style="height: 14px; object-fit: contain; vertical-align: middle; margin-left: 4px;">',
+                            'Strava': '<img src="src/images/strava.svg" alt="Strava" style="height: 12px; object-fit: contain; vertical-align: middle; margin-left: 4px;">'
+                        };
+                        return logos[source] || source;
+                    };
+                    sourcesEl.innerHTML = `Sources — Recovery: ${getSourceLogo(dataSources.recovery)}, Strain: ${getSourceLogo(dataSources.strain)}, Sleep: ${getSourceLogo(dataSources.sleep)}, HRV: ${getSourceLogo(dataSources.hrv)}`;
                 }
                 const guidanceEl = document.getElementById('deviceGuidance');
                 if (guidanceEl) {
