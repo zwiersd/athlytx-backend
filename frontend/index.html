@@ -4863,25 +4863,7 @@
                 });
             }
 
-            // DEMO: Add dummy Garmin data to show connection status
-            if (!fitnessData.garmin) {
-                fitnessData.garmin = {
-                    dailySummary: [{
-                        totalSteps: 12543,
-                        averageStressLevel: 32,
-                        maxBodyBattery: 85,
-                        restingHeartRateInBeatsPerMinute: 58
-                    }],
-                    activities: [
-                        { activityType: 'Running', duration: 2700 },
-                        { activityType: 'Cycling', duration: 3600 }
-                    ],
-                    sleep: { deepSleep: 120 },
-                    connected: true
-                };
-                updateConnectionStatus();
-                updateGarminDisplay();
-            }
+            // Removed dummy Garmin data - using real data only
         });
     </script>
 
