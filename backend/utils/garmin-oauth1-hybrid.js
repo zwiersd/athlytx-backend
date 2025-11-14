@@ -27,6 +27,9 @@ class GarminOAuth1Hybrid {
             .map(key => `${this.percentEncode(key)}=${this.percentEncode(params[key])}`)
             .join('&');
 
+        console.log('📝 Signature Generation Details:');
+        console.log('  Sorted Params (first 200 chars):', sortedParams.substring(0, 200) + '...');
+
         // Step 2: Create signature base string
         const signatureBase = [
             method.toUpperCase(),
@@ -34,11 +37,16 @@ class GarminOAuth1Hybrid {
             this.percentEncode(sortedParams)
         ].join('&');
 
+        console.log('  Signature Base String (first 300 chars):', signatureBase.substring(0, 300) + '...');
+
         // Step 3: Create signing key (consumer secret + empty token secret for OAuth 2.0)
         const signingKey = [
             this.percentEncode(this.consumerSecret),
             this.percentEncode(tokenSecret)
         ].join('&');
+
+        console.log('  Signing Key Length:', signingKey.length);
+        console.log('  Token Secret Used:', tokenSecret || '(empty)');
 
         // Step 4: Generate HMAC-SHA1 signature
         const signature = crypto
@@ -58,6 +66,13 @@ class GarminOAuth1Hybrid {
      * @returns {string} Authorization header value
      */
     generateAuthHeader(method, url, queryParams = {}, oauth2Token) {
+        console.log('\n🔐 === OAuth 1.0a Signature Generation Debug ===');
+        console.log('Method:', method);
+        console.log('URL:', url);
+        console.log('Query Params:', queryParams);
+        console.log('OAuth2 Token Length:', oauth2Token ? oauth2Token.length : 0);
+        console.log('OAuth2 Token Prefix:', oauth2Token ? oauth2Token.substring(0, 50) + '...' : 'null');
+
         // Generate OAuth parameters
         const oauthParams = {
             oauth_consumer_key: this.consumerKey,
@@ -68,6 +83,11 @@ class GarminOAuth1Hybrid {
             oauth_version: '1.0'
         };
 
+        console.log('OAuth Parameters:', {
+            ...oauthParams,
+            oauth_token: oauthParams.oauth_token.substring(0, 50) + '...'
+        });
+
         // Combine OAuth and query parameters for signature
         const allParams = { ...oauthParams, ...queryParams };
 
@@ -75,13 +95,20 @@ class GarminOAuth1Hybrid {
         const signature = this.generateSignature(method, url, allParams, '');
         oauthParams.oauth_signature = signature;
 
+        console.log('Generated Signature:', signature);
+
         // Build Authorization header
         const headerParts = Object.keys(oauthParams)
             .sort()
             .map(key => `${key}="${this.percentEncode(oauthParams[key])}"`)
             .join(', ');
 
-        return `OAuth ${headerParts}`;
+        const authHeader = `OAuth ${headerParts}`;
+        console.log('Authorization Header Length:', authHeader.length);
+        console.log('Authorization Header Preview:', authHeader.substring(0, 200) + '...');
+        console.log('===========================================\n');
+
+        return authHeader;
     }
 
     /**

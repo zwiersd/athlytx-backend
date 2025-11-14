@@ -445,11 +445,19 @@ app.post('/api/garmin/token', async (req, res) => {
 
         // IMPORTANT: Register user with Garmin Wellness API after OAuth 2.0
         // This step is required to enable data pulling with the access token
-        console.log('📝 Registering user with Garmin Wellness API...');
+        console.log('\n📝 === GARMIN USER REGISTRATION ===');
+        console.log('Consumer Key:', process.env.GARMIN_CONSUMER_KEY);
+        console.log('Consumer Secret Present:', !!process.env.GARMIN_CONSUMER_SECRET);
+        console.log('Access Token Length:', data.access_token.length);
+        console.log('Token Type:', data.token_type);
+        console.log('Expires In:', data.expires_in);
 
         try {
             const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
             const baseUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
+
+            console.log('Registration URL:', baseUrl);
+
             const signer = new GarminOAuth1Hybrid(
                 process.env.GARMIN_CONSUMER_KEY,
                 process.env.GARMIN_CONSUMER_SECRET
