@@ -469,15 +469,21 @@ app.post('/api/garmin/token', async (req, res) => {
             const regResponseText = await registrationResponse.text();
             console.log('📝 Registration response:', {
                 status: registrationResponse.status,
+                headers: Object.fromEntries(registrationResponse.headers.entries()),
                 body: regResponseText
             });
 
             if (!registrationResponse.ok) {
-                console.error('⚠️ User registration failed, but continuing:', regResponseText);
+                console.error('⚠️ User registration failed, but continuing:', {
+                    status: registrationResponse.status,
+                    body: regResponseText
+                });
                 // Don't fail the entire flow if registration fails
                 // Some users might already be registered
             } else {
                 console.log('✅ User successfully registered with Wellness API');
+                // Add a small delay to allow registration to propagate
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
         } catch (regError) {
             console.error('⚠️ User registration error (non-fatal):', regError);
