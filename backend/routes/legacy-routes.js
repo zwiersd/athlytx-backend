@@ -443,9 +443,125 @@ app.post('/api/garmin/token', async (req, res) => {
         }
 
         console.log('✅ Garmin token exchange successful');
+
+        // IMPORTANT: Register user with Garmin Wellness API after OAuth 2.0
+        // This step is required to enable data pulling with the access token
+        console.log('📝 Registering user with Garmin Wellness API...');
+
+        try {
+            // Use OAuth 1.0a signature for the registration endpoint
+            const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
+            const oauth1 = new GarminOAuth1Hybrid(
+                process.env.GARMIN_CONSUMER_KEY,
+                process.env.GARMIN_CONSUMER_SECRET
+            );
+
+            const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
+            const authHeader = oauth1.generateAuthHeader('POST', registrationUrl, {}, data.access_token);
+
+            const registrationResponse = await fetch(registrationUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({}) // Empty body for registration
+            });
+
+            const regResponseText = await registrationResponse.text();
+            console.log('📝 Registration response:', {
+                status: registrationResponse.status,
+                body: regResponseText
+            });
+
+            if (!registrationResponse.ok) {
+                console.error('⚠️ User registration failed, but continuing:', regResponseText);
+                // Don't fail the entire flow if registration fails
+                // Some users might already be registered
+            } else {
+                console.log('✅ User successfully registered with Wellness API');
+            }
+        } catch (regError) {
+            console.error('⚠️ User registration error (non-fatal):', regError);
+            // Continue even if registration fails - user might already be registered
+        }
+
         res.json(data);
     } catch (error) {
         console.error('❌ Garmin token error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// New endpoint to manually register user with Garmin Wellness API
+app.post('/api/garmin/v2/register', async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                error: 'Missing access token',
+                message: 'OAuth 2.0 token is required for registration'
+            });
+        }
+
+        console.log('📝 Manual user registration request for Garmin Wellness API');
+        console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
+
+        // Use OAuth 1.0a signature for the registration endpoint
+        const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
+        const oauth1 = new GarminOAuth1Hybrid(
+            process.env.GARMIN_CONSUMER_KEY,
+            process.env.GARMIN_CONSUMER_SECRET
+        );
+
+        const registrationUrl = 'https://healthapi.garmin.com/wellness-api/rest/user/registration';
+        const authHeader = oauth1.generateAuthHeader('POST', registrationUrl, {}, token);
+
+        console.log('🔐 OAuth 1.0a header for registration:', authHeader.substring(0, 100) + '...');
+
+        const response = await fetch(registrationUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({}) // Empty body for registration
+        });
+
+        const responseText = await response.text();
+        console.log('📝 Registration response:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: responseText
+        });
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            data = { message: responseText };
+        }
+
+        if (!response.ok) {
+            console.error('❌ User registration failed:', responseText);
+            return res.status(response.status).json({
+                error: 'Registration failed',
+                message: data.errorMessage || data.message || responseText,
+                status: response.status
+            });
+        }
+
+        console.log('✅ User successfully registered with Wellness API');
+        res.json({
+            success: true,
+            message: 'User registered successfully with Garmin Wellness API',
+            data: data
+        });
+
+    } catch (error) {
+        console.error('❌ Registration error:', error);
         res.status(500).json({ error: error.message });
     }
 });
