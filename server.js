@@ -69,11 +69,9 @@ legacyRoutes(app);
 const syncRoutes = require('./backend/routes/sync');
 const testRoutes = require('./backend/routes/test-garmin');
 const garminHealthRoutes = require('./backend/routes/garmin-health');
-const insertDummyGarminRoutes = require('./backend/routes/insert-dummy-garmin');
 app.use('/api/sync', syncRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/garmin', garminHealthRoutes);
-app.use('/api/insert-dummy-garmin', insertDummyGarminRoutes);
 
 // Import authentication and coach routes
 const authRoutes = require('./backend/routes/auth');
