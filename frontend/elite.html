@@ -510,6 +510,8 @@
             errorMessage.classList.remove('visible');
 
             try {
+                console.log('Sending magic link request to:', `${API_URL}/api/auth/magic-link`);
+
                 const response = await fetch(`${API_URL}/api/auth/magic-link`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -519,7 +521,16 @@
                     })
                 });
 
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server error:', errorText);
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (data.success) {
                     // Show success state
@@ -530,7 +541,7 @@
                     // In development, log the magic link
                     if (data.token) {
                         console.log('🔐 Development Magic Link:');
-                        console.log(`${window.location.origin}/elite.html?token=${data.token}`);
+                        console.log(`${window.location.origin}/elite?token=${data.token}`);
                     }
                 } else {
                     showError(data.error || 'Failed to send magic link');
@@ -539,7 +550,7 @@
                 }
             } catch (error) {
                 console.error('Magic link request error:', error);
-                showError(error.message || 'Failed to send magic link. Please try again.');
+                showError(error.message || 'Unable to connect to server. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Send Magic Link';
             }
