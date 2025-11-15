@@ -375,6 +375,18 @@
             ? 'http://localhost:3000'
             : window.location.origin;
 
+        // Detect role from URL path
+        const isCoach = window.location.pathname === '/coach';
+        const role = isCoach ? 'coach' : 'athlete';
+
+        // Update page title and badge based on role
+        if (isCoach) {
+            document.title = 'Coach Login | Athlytx Elite';
+            document.querySelector('.badge').textContent = 'COACH';
+            document.querySelector('h2').textContent = 'Welcome Coach';
+            document.querySelector('.subtitle').textContent = 'Enter your email to receive a magic link for instant login.';
+        }
+
         // Check for invitation token in URL
         const urlParams = new URLSearchParams(window.location.search);
         const inviteToken = urlParams.get('invite');
@@ -425,14 +437,20 @@
 
                     localStorage.setItem('athlytx_session', JSON.stringify(session));
 
-                    // Redirect based on onboarding status
-                    if (!data.user.onboarded) {
-                        const onboardUrl = inviteToken
-                            ? `athlete-onboard.html?invite=${inviteToken}`
-                            : 'athlete-onboard.html';
-                        window.location.href = onboardUrl;
+                    // Redirect based on role and onboarding status
+                    if (data.user.role === 'coach') {
+                        // Coaches go to coach dashboard
+                        window.location.href = 'coach-elite.html';
                     } else {
-                        window.location.href = 'athlete-dashboard.html';
+                        // Athletes check onboarding status
+                        if (!data.user.onboarded) {
+                            const onboardUrl = inviteToken
+                                ? `athlete-onboard.html?invite=${inviteToken}`
+                                : 'athlete-onboard.html';
+                            window.location.href = onboardUrl;
+                        } else {
+                            window.location.href = 'athlete-dashboard.html';
+                        }
                     }
                 } else {
                     showError(data.error || 'Invalid or expired magic link');
@@ -462,10 +480,14 @@
                 const data = await response.json();
 
                 if (data.success && data.user) {
-                    // Session is valid - redirect to dashboard
-                    window.location.href = data.user.onboarded
-                        ? 'athlete-dashboard.html'
-                        : 'athlete-onboard.html';
+                    // Session is valid - redirect based on role
+                    if (data.user.role === 'coach') {
+                        window.location.href = 'coach-elite.html';
+                    } else {
+                        window.location.href = data.user.onboarded
+                            ? 'athlete-dashboard.html'
+                            : 'athlete-onboard.html';
+                    }
                 }
             } catch (error) {
                 console.error('Session validation error:', error);
@@ -517,7 +539,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        role: 'athlete'
+                        role: role
                     })
                 });
 

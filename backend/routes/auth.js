@@ -199,7 +199,7 @@ router.post('/magic-link', async (req, res) => {
         console.log('[AUTH] Magic link record created');
 
         // Send magic link email with role-specific redirect
-        const loginPage = role === 'coach' ? 'coach-elite.html' : 'elite';
+        const loginPage = role === 'coach' ? 'coach' : 'athlete';
         const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/${loginPage}?token=${token}`;
 
         // Send email via Resend
@@ -515,7 +515,7 @@ router.post('/invite-athlete', async (req, res) => {
         });
 
         // Create invite URL - athlete lands on their login page with invite context
-        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?invite=${inviteToken}`;
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete?invite=${inviteToken}`;
 
         // Send invite email
         try {

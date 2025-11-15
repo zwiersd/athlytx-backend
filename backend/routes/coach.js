@@ -556,7 +556,7 @@ router.post('/resend-invite/:relationshipId', async (req, res) => {
         await relationship.save();
 
         // Send invitation email - athlete lands on their login page with invite context
-        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?invite=${newToken}`;
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete?invite=${newToken}`;
 
         const { sendAthleteInvite } = require('../utils/email');
         try {
