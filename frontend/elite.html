@@ -539,7 +539,7 @@
                 }
             } catch (error) {
                 console.error('Magic link request error:', error);
-                showError('Network error. Please check your connection and try again.');
+                showError(error.message || 'Failed to send magic link. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Send Magic Link';
             }
