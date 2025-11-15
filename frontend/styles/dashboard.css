@@ -39,6 +39,90 @@ body {
 }
 
 /* ============================================
+   READINESS STATUS HERO
+   ============================================ */
+
+.readiness-status-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+}
+
+.readiness-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.readiness-icon.optimal {
+  color: #10b981;
+}
+
+.readiness-icon.good {
+  color: #3b82f6;
+}
+
+.readiness-icon.moderate {
+  color: #f59e0b;
+}
+
+.readiness-icon.low {
+  color: #ef4444;
+}
+
+.readiness-text {
+  text-align: left;
+}
+
+.readiness-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.readiness-message {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.3;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .readiness-status-hero {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+
+  .readiness-text {
+    text-align: center;
+  }
+
+  .readiness-message {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
    MAIN LOGO (ABOVE TABS)
    ============================================ */
 

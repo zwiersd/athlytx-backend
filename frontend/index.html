@@ -197,6 +197,20 @@
     <div id="dashboard" class="dashboard">
         <div class="container">
 
+            <!-- Readiness Status -->
+            <div class="readiness-status-hero" id="readinessHero">
+                <div class="readiness-icon" id="readinessIcon">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                        <path id="readinessCircle" d="M 20,2 A 18,18 0 0,1 38,20" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </div>
+                <div class="readiness-text">
+                    <div class="readiness-label">Today's Readiness</div>
+                    <div class="readiness-message" id="readinessMessage">Connect your devices to see your status</div>
+                </div>
+            </div>
+
             <!-- Main Logo -->
             <div class="main-logo-container">
                 <img src="src/images/AthlytxLogoGlass.png" alt="Athlytx" class="main-logo">
@@ -1943,6 +1957,9 @@
                     readinessPill.textContent = `🏁 Readiness: ${readiness.type}`;
                     readinessPill.style.background = readiness.type === 'Push' ? 'rgba(16,185,129,0.85)' : (readiness.type === 'Maintain' ? 'rgba(245,158,11,0.85)' : 'rgba(220,38,38,0.85)');
                     readinessPill.style.color = '#fff';
+
+                    // Update hero readiness status
+                    updateReadinessHero(readiness);
                 }
             } else {
                 scoreElement.textContent = '--';
@@ -2349,6 +2366,32 @@
                 : 'Recovery flags detected. Reduce intensity/volume 30–50% and emphasize sleep and nutrition.';
             const priority = type === 'Deload' ? 'high' : (type === 'Maintain' ? 'medium' : 'positive');
             return { type, message, priority };
+        }
+
+        function updateReadinessHero(readiness) {
+            const messageEl = document.getElementById('readinessMessage');
+            const iconEl = document.getElementById('readinessIcon');
+
+            if (!messageEl || !iconEl) return;
+
+            // Update message with meaningful athlete-focused text
+            const messages = {
+                'Push': '🔥 You\'re primed to perform. Go crush that key workout!',
+                'Maintain': '⚡ Keep it steady. Quality over quantity today.',
+                'Deload': '🛌 Recovery mode. Listen to your body and rest up.'
+            };
+
+            messageEl.textContent = messages[readiness.type] || 'Connect your devices to see your status';
+
+            // Update icon color class
+            iconEl.classList.remove('optimal', 'good', 'moderate', 'low');
+            if (readiness.type === 'Push') {
+                iconEl.classList.add('optimal');
+            } else if (readiness.type === 'Maintain') {
+                iconEl.classList.add('moderate');
+            } else if (readiness.type === 'Deload') {
+                iconEl.classList.add('low');
+            }
         }
 
         function buildDailyMetrics(days = 7) {
