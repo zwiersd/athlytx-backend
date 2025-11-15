@@ -403,10 +403,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Store session token
+                    // Store session in the format dashboard expects
                     if (data.sessionToken) {
-                        localStorage.setItem('sessionToken', data.sessionToken);
-                        localStorage.setItem('user', JSON.stringify(data.user));
+                        const session = {
+                            sessionToken: data.sessionToken,
+                            sessionExpiry: data.sessionExpiry,
+                            user: data.user
+                        };
+                        localStorage.setItem('athlytx_session', JSON.stringify(session));
                     }
 
                     // Success! Show success message and redirect
