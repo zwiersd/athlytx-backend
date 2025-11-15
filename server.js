@@ -30,6 +30,11 @@ app.use(session({
 }));
 
 // ===== SERVE STATIC FRONTEND =====
+// Explicit route for athlete login (must come BEFORE static middleware)
+app.get('/elite', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'elite.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // ===== API ROUTES =====
