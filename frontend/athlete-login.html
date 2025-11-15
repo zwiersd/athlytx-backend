@@ -172,6 +172,82 @@
             color: #e57373;
         }
 
+        .success-state {
+            text-align: center;
+            padding: var(--spacing-xl) 0;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(52, 199, 89, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            border: 1.5px solid rgba(52, 199, 89, 0.3);
+        }
+
+        .success-icon svg {
+            width: 44px;
+            height: 44px;
+            color: rgba(52, 199, 89, 1);
+            filter: drop-shadow(0 2px 8px rgba(52, 199, 89, 0.4));
+        }
+
+        .success-state h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-md);
+            font-weight: 600;
+        }
+
+        .success-state p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            font-size: 0.95rem;
+        }
+
+        .success-state .email-sent {
+            color: var(--primary);
+            font-size: 1rem;
+            margin: var(--spacing-md) 0;
+        }
+
+        .success-state .invite-info {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin: var(--spacing-md) 0;
+            font-weight: 500;
+        }
+
+        .success-state .instructions {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+            margin: var(--spacing-lg) 0;
+            line-height: 1.5;
+        }
+
+        .btn-secondary {
+            margin-top: var(--spacing-lg);
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -357,23 +433,47 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (inviteToken) {
-                        showMessage('Magic link sent! After logging in, you\'ll be redirected to accept the invitation.', 'success');
-                    } else {
-                        showMessage('Magic link sent! Check your email.', 'success');
-                    }
-                    emailInput.value = '';
+                    // Hide the form
+                    loginForm.style.display = 'none';
+
+                    // Show success state
+                    showSuccessState(email, inviteToken);
                 } else {
                     showMessage(data.error || 'Failed to send magic link', 'error');
+                    submitBtn.disabled = false;
+                    loading.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Login error:', error);
                 showMessage('Network error. Please try again.', 'error');
-            } finally {
                 submitBtn.disabled = false;
                 loading.style.display = 'none';
             }
         });
+
+        function showSuccessState(email, hasInvite) {
+            loading.style.display = 'none';
+            const extraMessage = hasInvite
+                ? '<p class="invite-info">After signing in, you\'ll be redirected to accept your coach\'s invitation.</p>'
+                : '';
+
+            messageDiv.innerHTML = `
+                <div class="success-state">
+                    <div class="success-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Check your email</h3>
+                    <p>We've sent a magic link to:</p>
+                    <p class="email-sent"><strong>${email}</strong></p>
+                    ${extraMessage}
+                    <p class="instructions">Click the link in the email to sign in. The link will expire in 15 minutes.</p>
+                    <button onclick="location.reload()" class="btn-secondary">Send another link</button>
+                </div>
+            `;
+        }
 
         function showMessage(text, type) {
             messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
