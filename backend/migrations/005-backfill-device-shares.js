@@ -4,7 +4,7 @@ const { logMigrationEvent } = require('../utils/logger');
 /**
  * Migration 005: Backfill DeviceShares for Existing Relationships
  *
- * ⚠️ CRITICAL MIGRATION ⚠️
+ * [!] CRITICAL MIGRATION [!]
  *
  * Purpose: Ensure existing coach-athlete relationships work with new system
  * For each ACTIVE CoachAthlete relationship:
@@ -16,7 +16,7 @@ const { logMigrationEvent } = require('../utils/logger');
  */
 async function backfillDeviceShares(sequelize) {
     try {
-        console.log('📝 [MIGRATION-005] Starting DeviceShares backfill...');
+        console.log('[*] [MIGRATION-005] Starting DeviceShares backfill...');
         logMigrationEvent('START', { migration: '005-backfill-device-shares' });
 
         // Check if we should skip (detect if already run)
@@ -25,7 +25,7 @@ async function backfillDeviceShares(sequelize) {
         `);
 
         if (existingShares[0].count > 0) {
-            console.log(`✅ [MIGRATION-005] DeviceShares already backfilled (${existingShares[0].count} records exist)`);
+            console.log(`[✓] [MIGRATION-005] DeviceShares already backfilled (${existingShares[0].count} records exist)`);
             logMigrationEvent('SKIPPED', {
                 migration: '005-backfill-device-shares',
                 reason: 'DeviceShares already exist',
@@ -49,7 +49,7 @@ async function backfillDeviceShares(sequelize) {
 
         for (const rel of relationships) {
             try {
-                console.log(`  📝 Processing relationship: Coach ${rel.coachId.substring(0, 8)}... → Athlete ${rel.athleteId.substring(0, 8)}...`);
+                console.log(`  [*] Processing relationship: Coach ${rel.coachId.substring(0, 8)}... → Athlete ${rel.athleteId.substring(0, 8)}...`);
 
                 // Find all devices for this athlete
                 const [devices] = await sequelize.query(`
@@ -59,7 +59,7 @@ async function backfillDeviceShares(sequelize) {
                 });
 
                 if (devices.length === 0) {
-                    console.log(`    ℹ️  Athlete has no devices - skipping`);
+                    console.log(`    [i]  Athlete has no devices - skipping`);
                     athletesProcessed++;
                     continue;
                 }
@@ -97,11 +97,11 @@ async function backfillDeviceShares(sequelize) {
                 });
 
                 athletesProcessed++;
-                console.log(`    ✅ Created ${devices.length} device shares`);
+                console.log(`    [✓] Created ${devices.length} device shares`);
 
             } catch (relError) {
                 errors++;
-                console.error(`    ❌ Error processing relationship:`, relError.message);
+                console.error(`    [✗] Error processing relationship:`, relError.message);
                 logMigrationEvent('BACKFILL_ERROR', {
                     migration: '005-backfill-device-shares',
                     relationshipId: rel.id,
@@ -111,7 +111,7 @@ async function backfillDeviceShares(sequelize) {
             }
         }
 
-        console.log('✅ [MIGRATION-005] Backfill complete!');
+        console.log('[✓] [MIGRATION-005] Backfill complete!');
         console.log(`📊 Statistics:`);
         console.log(`   - Relationships processed: ${athletesProcessed}/${relationships.length}`);
         console.log(`   - DeviceShares created: ${totalDeviceSharesCreated}`);
@@ -126,7 +126,7 @@ async function backfillDeviceShares(sequelize) {
         });
 
     } catch (error) {
-        console.error('❌ [MIGRATION-005] Critical error:', error.message);
+        console.error('[✗] [MIGRATION-005] Critical error:', error.message);
         console.error(error.stack);
         logMigrationEvent('ERROR', {
             migration: '005-backfill-device-shares',
@@ -134,7 +134,7 @@ async function backfillDeviceShares(sequelize) {
             stack: error.stack
         });
         // Don't throw - let the app continue (but log prominently)
-        console.error('⚠️  [MIGRATION-005] Backfill failed - existing relationships may not work with new system!');
+        console.error('[!]  [MIGRATION-005] Backfill failed - existing relationships may not work with new system!');
     }
 }
 

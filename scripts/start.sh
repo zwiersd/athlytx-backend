@@ -5,22 +5,22 @@
 
 set -e  # Exit on error
 
-echo "🚀 Starting Athlytx production server..."
+echo "[>] Starting Athlytx production server..."
 
 # Run database migrations
 echo ""
-echo "📊 Running database migrations..."
+echo "[*] Running database migrations..."
 node migrations/run.js
 
 # Check if migrations succeeded
 if [ $? -eq 0 ]; then
     echo ""
-    echo "✅ Migrations completed successfully"
+    echo "[✓] Migrations completed successfully"
     echo ""
-    echo "🌐 Starting web server..."
+    echo "[>] Starting web server..."
     node server.js
 else
     echo ""
-    echo "❌ Migrations failed - aborting startup"
+    echo "[✗] Migrations failed - aborting startup"
     exit 1
 fi

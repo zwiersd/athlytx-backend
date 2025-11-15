@@ -12,7 +12,7 @@ const { logMigrationEvent } = require('../utils/logger');
  */
 async function migratePendingInvites(sequelize) {
     try {
-        console.log('📝 [MIGRATION-006] Starting pending invites migration...');
+        console.log('[*] [MIGRATION-006] Starting pending invites migration...');
         logMigrationEvent('START', { migration: '006-migrate-pending-invites' });
 
         // Check if we should skip (detect if already run)
@@ -21,7 +21,7 @@ async function migratePendingInvites(sequelize) {
         `);
 
         if (existingInvites[0].count > 0) {
-            console.log(`✅ [MIGRATION-006] Invites already migrated (${existingInvites[0].count} records exist)`);
+            console.log(`[✓] [MIGRATION-006] Invites already migrated (${existingInvites[0].count} records exist)`);
             logMigrationEvent('SKIPPED', {
                 migration: '006-migrate-pending-invites',
                 reason: 'Invites already exist',
@@ -55,7 +55,7 @@ async function migratePendingInvites(sequelize) {
         for (const inv of pending) {
             try {
                 if (!inv.athlete_email) {
-                    console.log(`    ⚠️  Skipping orphaned invite: athlete ${inv.athleteId} not found`);
+                    console.log(`    [!]  Skipping orphaned invite: athlete ${inv.athleteId} not found`);
                     continue;
                 }
 
@@ -63,7 +63,7 @@ async function migratePendingInvites(sequelize) {
                 const expiresAt = inv.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000);
                 const createdAt = inv.invitedAt || inv.createdAt || new Date();
 
-                console.log(`  📝 Migrating invite: ${inv.athlete_email}`);
+                console.log(`  [*] Migrating invite: ${inv.athlete_email}`);
 
                 // Create Invite record
                 await sequelize.query(`
@@ -102,11 +102,11 @@ async function migratePendingInvites(sequelize) {
                 });
 
                 invitesCreated++;
-                console.log(`    ✅ Invite migrated`);
+                console.log(`    [✓] Invite migrated`);
 
             } catch (invError) {
                 errors++;
-                console.error(`    ❌ Error migrating invite:`, invError.message);
+                console.error(`    [✗] Error migrating invite:`, invError.message);
                 logMigrationEvent('MIGRATE_ERROR', {
                     migration: '006-migrate-pending-invites',
                     inviteId: inv.id,
@@ -117,7 +117,7 @@ async function migratePendingInvites(sequelize) {
             }
         }
 
-        console.log('✅ [MIGRATION-006] Migration complete!');
+        console.log('[✓] [MIGRATION-006] Migration complete!');
         console.log(`📊 Statistics:`);
         console.log(`   - Invites migrated: ${invitesCreated}/${pending.length}`);
         console.log(`   - Errors: ${errors}`);
@@ -130,7 +130,7 @@ async function migratePendingInvites(sequelize) {
         });
 
     } catch (error) {
-        console.error('❌ [MIGRATION-006] Critical error:', error.message);
+        console.error('[✗] [MIGRATION-006] Critical error:', error.message);
         console.error(error.stack);
         logMigrationEvent('ERROR', {
             migration: '006-migrate-pending-invites',
@@ -138,7 +138,7 @@ async function migratePendingInvites(sequelize) {
             stack: error.stack
         });
         // Don't throw - let the app continue
-        console.error('⚠️  [MIGRATION-006] Migration failed - pending invites may need manual migration!');
+        console.error('[!]  [MIGRATION-006] Migration failed - pending invites may need manual migration!');
     }
 }
 

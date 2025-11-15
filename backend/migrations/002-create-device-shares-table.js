@@ -16,12 +16,12 @@ async function createDeviceSharesTable(sequelize) {
         const tables = await queryInterface.showAllTables();
 
         if (tables.includes('device_shares')) {
-            console.log('✅ [MIGRATION-002] DeviceShares table already exists');
+            console.log('[✓] [MIGRATION-002] DeviceShares table already exists');
             logMigrationEvent('SKIPPED', { migration: '002-create-device-shares-table', reason: 'Table exists' });
             return;
         }
 
-        console.log('📝 [MIGRATION-002] Creating device_shares table...');
+        console.log('[*] [MIGRATION-002] Creating device_shares table...');
         logMigrationEvent('START', { migration: '002-create-device-shares-table' });
 
         // Create device_shares table
@@ -84,10 +84,10 @@ async function createDeviceSharesTable(sequelize) {
             }
         });
 
-        console.log('✅ [MIGRATION-002] DeviceShares table created');
+        console.log('[✓] [MIGRATION-002] DeviceShares table created');
 
         // Create indexes for performance
-        console.log('📝 [MIGRATION-002] Creating indexes...');
+        console.log('[*] [MIGRATION-002] Creating indexes...');
 
         // Critical index for permission checks (coach viewing athlete)
         await queryInterface.addIndex('device_shares', ['athlete_id', 'coach_id', 'revoked_at'], {
@@ -104,7 +104,7 @@ async function createDeviceSharesTable(sequelize) {
             name: 'idx_device_shares_coach'
         });
 
-        console.log('✅ [MIGRATION-002] Indexes created successfully');
+        console.log('[✓] [MIGRATION-002] Indexes created successfully');
         logMigrationEvent('COMPLETE', {
             migration: '002-create-device-shares-table',
             tablesCreated: ['device_shares'],
@@ -112,7 +112,7 @@ async function createDeviceSharesTable(sequelize) {
         });
 
     } catch (error) {
-        console.error('❌ [MIGRATION-002] Error:', error.message);
+        console.error('[✗] [MIGRATION-002] Error:', error.message);
         logMigrationEvent('ERROR', {
             migration: '002-create-device-shares-table',
             error: error.message

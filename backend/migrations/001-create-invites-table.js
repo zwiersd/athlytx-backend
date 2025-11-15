@@ -15,12 +15,12 @@ async function createInvitesTable(sequelize) {
         const tables = await queryInterface.showAllTables();
 
         if (tables.includes('invites')) {
-            console.log('✅ [MIGRATION-001] Invites table already exists');
+            console.log('[✓] [MIGRATION-001] Invites table already exists');
             logMigrationEvent('SKIPPED', { migration: '001-create-invites-table', reason: 'Table exists' });
             return;
         }
 
-        console.log('📝 [MIGRATION-001] Creating invites table...');
+        console.log('[*] [MIGRATION-001] Creating invites table...');
         logMigrationEvent('START', { migration: '001-create-invites-table' });
 
         // Create invites table
@@ -83,10 +83,10 @@ async function createInvitesTable(sequelize) {
             }
         });
 
-        console.log('✅ [MIGRATION-001] Invites table created');
+        console.log('[✓] [MIGRATION-001] Invites table created');
 
         // Create indexes for performance
-        console.log('📝 [MIGRATION-001] Creating indexes...');
+        console.log('[*] [MIGRATION-001] Creating indexes...');
 
         await queryInterface.addIndex('invites', ['invite_token'], {
             name: 'idx_invite_token',
@@ -101,7 +101,7 @@ async function createInvitesTable(sequelize) {
             name: 'idx_invite_coach'
         });
 
-        console.log('✅ [MIGRATION-001] Indexes created successfully');
+        console.log('[✓] [MIGRATION-001] Indexes created successfully');
         logMigrationEvent('COMPLETE', {
             migration: '001-create-invites-table',
             tablesCreated: ['invites'],
@@ -109,7 +109,7 @@ async function createInvitesTable(sequelize) {
         });
 
     } catch (error) {
-        console.error('❌ [MIGRATION-001] Error:', error.message);
+        console.error('[✗] [MIGRATION-001] Error:', error.message);
         logMigrationEvent('ERROR', {
             migration: '001-create-invites-table',
             error: error.message
