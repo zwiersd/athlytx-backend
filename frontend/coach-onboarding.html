@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Registration - Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--surface-dark) 0%, var(--background-dark) 100%);
+            padding: var(--spacing-md);
+        }
+
+        .onboarding-container {
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .onboarding-card {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-label .required {
+            color: #e57373;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            font-size: 0.9rem;
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #e57373;
+        }
+
+        .link-section {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .link-section a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-section a:hover {
+            text-decoration: underline;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="logo">
+                <div class="logo-text">Athlytx Elite</div>
+            </div>
+
+            <div class="header">
+                <h1>Create Your Coach Profile</h1>
+                <p>Join Athlytx Elite and start coaching athletes with data-driven insights</p>
+            </div>
+
+            <div id="message"></div>
+
+            <form id="onboardingForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="firstName">
+                            First Name <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            class="form-input"
+                            placeholder="John"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="lastName">
+                            Last Name <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            class="form-input"
+                            placeholder="Smith"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">
+                        Email Address <span class="required">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        class="form-input"
+                        placeholder="coach@example.com"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="organization">
+                        Organization/Team
+                    </label>
+                    <input
+                        type="text"
+                        id="organization"
+                        class="form-input"
+                        placeholder="e.g., Elite Running Club"
+                    >
+                    <div class="help-text">Optional: Your team, club, or organization name</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="specialty">
+                        Coaching Specialty
+                    </label>
+                    <select id="specialty" class="form-select">
+                        <option value="">Select a specialty</option>
+                        <option value="running">Running</option>
+                        <option value="cycling">Cycling</option>
+                        <option value="triathlon">Triathlon</option>
+                        <option value="swimming">Swimming</option>
+                        <option value="strength">Strength & Conditioning</option>
+                        <option value="general">General Fitness</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bio">
+                        Brief Bio
+                    </label>
+                    <textarea
+                        id="bio"
+                        class="form-textarea"
+                        placeholder="Tell athletes about your coaching experience and philosophy..."
+                    ></textarea>
+                    <div class="help-text">Optional: Help athletes get to know you</div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Create Coach Account
+                </button>
+            </form>
+
+            <div class="link-section">
+                <p>Already have an account? <a href="/coach">Log in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const onboardingForm = document.getElementById('onboardingForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+
+        onboardingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                organization: document.getElementById('organization').value.trim(),
+                specialty: document.getElementById('specialty').value,
+                bio: document.getElementById('bio').value.trim()
+            };
+
+            // Basic validation
+            if (!formData.firstName || !formData.lastName || !formData.email) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Disable form
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/auth/register/coach', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Redirect to login with success message
+                    window.location.href = '/coach?registered=true';
+                } else {
+                    showMessage(data.error || 'Failed to create account', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Coach Account';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('Network error. Please try again.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Coach Account';
+            }
+        });
+
+        function showMessage(text, type) {
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+    </script>
+</body>
+</html>

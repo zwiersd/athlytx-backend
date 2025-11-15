@@ -10,8 +10,11 @@ const {
     HeartRateZone,
     PowerZone,
     TrainingSummary,
-    OAuthToken
+    OAuthToken,
+    DeviceShare
 } = require('../models');
+const { logConsentEvent, logError } = require('../utils/logger');
+const { sendCoachRevocation } = require('../utils/email');
 
 /**
  * Athlete Dashboard Routes
@@ -200,15 +203,19 @@ router.get('/coaches', async (req, res) => {
 
 /**
  * POST /api/athlete/revoke-coach
- * Revoke a coach's access to athlete data
- * Body: { athleteId, coachId, sessionToken }
+ * Revoke a coach's access to athlete data (ENHANCED for DeviceShares)
+ * Body: { athleteId, coachId, sessionToken, deviceIds? }
  */
 router.post('/revoke-coach', async (req, res) => {
+    const transaction = await sequelize.transaction();
+
     try {
-        const { athleteId, coachId, sessionToken } = req.body;
-        console.log('[ATHLETE-REVOKE] Athlete', athleteId, 'revoking coach', coachId);
+        const { athleteId, coachId, sessionToken, deviceIds } = req.body;
+        console.log('[ATHLETE-REVOKE] Athlete', athleteId?.substring(0, 8), 'revoking coach', coachId?.substring(0, 8));
+        logConsentEvent('REVOKE_INITIATED', { athleteId, coachId });
 
         if (!athleteId || !coachId || !sessionToken) {
+            await transaction.rollback();
             return res.status(400).json({ error: 'Athlete ID, coach ID, and session token required' });
         }
 
@@ -222,6 +229,7 @@ router.post('/revoke-coach', async (req, res) => {
         });
 
         if (!athlete) {
+            await transaction.rollback();
             console.log('[ATHLETE-REVOKE] Invalid session');
             return res.status(401).json({ error: 'Invalid session' });
         }
@@ -231,7 +239,7 @@ router.post('/revoke-coach', async (req, res) => {
             where: {
                 athleteId,
                 coachId,
-                status: { [Op.in]: ['pending', 'active'] }
+                status: 'active'
             },
             include: [{
                 model: User,
@@ -241,25 +249,88 @@ router.post('/revoke-coach', async (req, res) => {
         });
 
         if (!relationship) {
+            await transaction.rollback();
             console.log('[ATHLETE-REVOKE] Relationship not found');
             return res.status(404).json({ error: 'Coach relationship not found' });
         }
 
-        // Update status to 'revoked'
-        relationship.status = 'revoked';
-        relationship.revokedAt = new Date();
-        relationship.revokedBy = 'athlete';
-        await relationship.save();
+        const devicesToRevoke = deviceIds || [];
 
-        console.log('[ATHLETE-REVOKE] Successfully revoked access for coach:', relationship.Coach.email);
+        // If no specific devices, revoke ALL
+        if (devicesToRevoke.length === 0) {
+            const allShares = await DeviceShare.findAll({
+                where: { athleteId, coachId, revokedAt: null }
+            });
+            devicesToRevoke.push(...allShares.map(s => s.deviceId));
+        }
 
-        // Optional: Send notification email to coach
-        // This could be implemented later
-        // await sendCoachRevocationEmail(relationship.Coach.email, athlete.name);
+        console.log('[ATHLETE-REVOKE] Revoking', devicesToRevoke.length, 'devices');
+
+        // Revoke DeviceShares
+        const revokedCount = await DeviceShare.update(
+            { revokedAt: new Date() },
+            {
+                where: {
+                    athleteId,
+                    coachId,
+                    deviceId: { [Op.in]: devicesToRevoke },
+                    revokedAt: null
+                },
+                transaction
+            }
+        );
+
+        console.log('[ATHLETE-REVOKE] Revoked', revokedCount[0], 'device shares');
+
+        // Update device sharing flags
+        await OAuthToken.update(
+            { shareWithCoaches: false },
+            {
+                where: { id: { [Op.in]: devicesToRevoke } },
+                transaction
+            }
+        );
+
+        // Check if ANY devices still shared
+        const remainingShares = await DeviceShare.count({
+            where: { athleteId, coachId, revokedAt: null }
+        });
+
+        console.log('[ATHLETE-REVOKE] Remaining shares:', remainingShares);
+
+        // If no devices shared, revoke relationship
+        if (remainingShares === 0) {
+            relationship.status = 'revoked';
+            relationship.revokedAt = new Date();
+            relationship.revokedBy = athleteId;
+            await relationship.save({ transaction });
+            console.log('[ATHLETE-REVOKE] Relationship revoked');
+        }
+
+        await transaction.commit();
+
+        console.log('[ATHLETE-REVOKE] ✅ Success!');
+        logConsentEvent('ACCESS_REVOKED', {
+            athleteId,
+            coachId,
+            devicesRevoked: devicesToRevoke.length,
+            relationshipRevoked: remainingShares === 0
+        });
+
+        // Send email to coach (async)
+        const devices = await OAuthToken.findAll({ where: { id: { [Op.in]: devicesToRevoke } } });
+        sendCoachRevocation(
+            relationship.Coach.email,
+            relationship.Coach.name,
+            athlete.name,
+            devices.map(d => d.provider)
+        ).catch(err => console.error('[EMAIL] Revocation email failed:', err.message));
 
         res.json({
             success: true,
             message: `Access revoked for coach ${relationship.Coach.name}`,
+            revokedDevices: devices.map(d => d.provider),
+            relationshipStatus: remainingShares > 0 ? 'partial' : 'revoked',
             coach: {
                 id: relationship.Coach.id,
                 name: relationship.Coach.name,
@@ -268,8 +339,95 @@ router.post('/revoke-coach', async (req, res) => {
         });
 
     } catch (error) {
+        await transaction.rollback();
         console.error('[ATHLETE-REVOKE] Error:', error);
+        logError('ATHLETE_REVOKE', error);
         res.status(500).json({ error: 'Failed to revoke coach access' });
+    }
+});
+
+/**
+ * GET /api/athlete/device-status
+ * Get all devices and their sharing status with coaches (NEW)
+ * Query params: athleteId, sessionToken
+ */
+router.get('/device-status', async (req, res) => {
+    try {
+        const { athleteId, sessionToken } = req.query;
+
+        if (!athleteId || !sessionToken) {
+            return res.status(400).json({ error: 'Athlete ID and session token required' });
+        }
+
+        // Verify athlete session
+        const athlete = await User.findOne({
+            where: {
+                id: athleteId,
+                sessionToken,
+                sessionExpiry: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!athlete) {
+            return res.status(401).json({ error: 'Invalid session' });
+        }
+
+        // Get all devices for this athlete
+        const devices = await OAuthToken.findAll({
+            where: { userId: athleteId },
+            order: [['connectedAt', 'DESC']]
+        });
+
+        console.log('[DEVICE-STATUS] Found', devices.length, 'devices for athlete');
+
+        // For each device, get sharing status
+        const deviceStatus = await Promise.all(devices.map(async (device) => {
+            const shares = await DeviceShare.findAll({
+                where: {
+                    athleteId,
+                    deviceId: device.id,
+                    revokedAt: null
+                },
+                include: [{
+                    model: User,
+                    as: 'Coach',
+                    attributes: ['id', 'name', 'email']
+                }]
+            });
+
+            return {
+                id: device.id,
+                provider: device.provider,
+                shareWithCoaches: device.shareWithCoaches,
+                connectedAt: device.connectedAt,
+                lastSync: device.lastSyncAt,
+                isExpired: device.expiresAt && device.expiresAt < new Date(),
+                sharedWith: shares.map(s => ({
+                    coachId: s.Coach.id,
+                    coachName: s.Coach.name,
+                    coachEmail: s.Coach.email,
+                    sharedAt: s.consentAt,
+                    canRevoke: true
+                })),
+                status: device.expiresAt && device.expiresAt < new Date() ? 'expired' : 'active'
+            };
+        }));
+
+        res.json({
+            success: true,
+            devices: deviceStatus,
+            summary: {
+                total: devices.length,
+                shared: deviceStatus.filter(d => d.sharedWith.length > 0).length,
+                unshared: deviceStatus.filter(d => d.sharedWith.length === 0).length,
+                expired: deviceStatus.filter(d => d.status === 'expired').length
+            }
+        });
+
+    } catch (error) {
+        console.error('[DEVICE-STATUS] Error:', error);
+        logError('DEVICE_STATUS', error);
+        res.status(500).json({ error: 'Failed to fetch device status' });
     }
 });
 

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
+const validator = require('validator');
 const { Op } = require('sequelize');
 const {
     User,
@@ -7,13 +9,29 @@ const {
     Activity,
     DailyMetric,
     TrainingSummary,
-    OAuthToken
+    OAuthToken,
+    Invite
 } = require('../models');
+const { logInviteEvent, logError } = require('../utils/logger');
+const { useNewInviteSystem } = require('../utils/featureFlags');
 
 /**
  * Coach Dashboard Routes
  * Advanced analytics and athlete management
  */
+
+// ✅ SECURITY FIX: Rate limiting for coach invitations
+const inviteCreationLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // Max 10 invites per hour per IP
+    message: {
+        error: 'Rate limit exceeded. Maximum 10 invites per hour.',
+        code: 'RATE_LIMIT_EXCEEDED'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: false
+});
 
 // Middleware to verify coach access
 async function verifyCoach(req, res, next) {
@@ -39,6 +57,146 @@ async function verifyCoach(req, res, next) {
     req.coach = coach;
     next();
 }
+
+/**
+ * POST /api/coach/invite
+ * Send invitation to athlete (NEW SYSTEM)
+ * SECURITY: Rate limited to 10 invites per hour
+ */
+router.post('/invite', inviteCreationLimiter, async (req, res) => {
+    try {
+        const { coachId, sessionToken, athleteEmail, message } = req.body;
+
+        // Verify coach session
+        const coach = await User.findOne({
+            where: {
+                id: coachId,
+                sessionToken,
+                role: 'coach',
+                sessionExpiry: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!coach) {
+            return res.status(403).json({ error: 'Invalid coach credentials' });
+        }
+
+        const normalizedEmail = athleteEmail.toLowerCase().trim();
+
+        // ✅ SECURITY FIX: Validate email format and prevent injection
+        if (!validator.isEmail(normalizedEmail)) {
+            return res.status(400).json({
+                error: 'Invalid email address format',
+                code: 'INVALID_EMAIL'
+            });
+        }
+
+        // ✅ SECURITY FIX: Prevent email header injection
+        if (/[\r\n]/.test(normalizedEmail)) {
+            return res.status(400).json({
+                error: 'Invalid email address',
+                code: 'INVALID_EMAIL'
+            });
+        }
+
+        // ✅ SECURITY FIX: Check for excessively long emails (DOS prevention)
+        if (normalizedEmail.length > 255) {
+            return res.status(400).json({
+                error: 'Email address too long',
+                code: 'INVALID_EMAIL'
+            });
+        }
+
+        // Rate limiting: max 10 invites per hour
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        const recentInvites = await Invite.count({
+            where: {
+                coachId,
+                createdAt: { [Op.gte]: oneHourAgo }
+            }
+        });
+
+        if (recentInvites >= 10) {
+            console.log('[COACH-INVITE] Rate limit exceeded:', coachId);
+            logInviteEvent('RATE_LIMITED', { coachId, recentInvites });
+            return res.status(429).json({
+                error: 'Rate limit exceeded. Max 10 invites per hour.',
+                code: 'RATE_LIMIT_EXCEEDED'
+            });
+        }
+
+        // Check if pending invite already exists
+        const existingInvite = await Invite.findOne({
+            where: {
+                coachId,
+                athleteEmail: normalizedEmail,
+                acceptedAt: null,
+                revokedAt: null,
+                expiresAt: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (existingInvite) {
+            console.log('[COACH-INVITE] Pending invitation already exists');
+            return res.status(400).json({
+                error: 'Pending invitation already exists for this athlete',
+                code: 'INVITE_EXISTS'
+            });
+        }
+
+        // Create invite
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours
+
+        const invite = await Invite.create({
+            coachId,
+            athleteEmail: normalizedEmail,
+            message,
+            roleRequested: 'primary',
+            expiresAt
+        });
+
+        console.log('[COACH-INVITE] Invite created:', invite.id);
+        logInviteEvent('CREATED', {
+            inviteId: invite.id,
+            coachId,
+            athleteEmail: normalizedEmail
+        });
+
+        // Send invitation email
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete?invite=${invite.inviteToken}`;
+        const { sendAthleteInvite } = require('../utils/email');
+
+        sendAthleteInvite(
+            normalizedEmail,
+            coach.name || coach.email.split('@')[0],
+            inviteUrl,
+            message
+        ).catch(err => {
+            console.error('[COACH-INVITE] Email failed:', err.message);
+            logError('INVITE_EMAIL', err, { inviteId: invite.id });
+        });
+
+        res.json({
+            success: true,
+            message: 'Invitation sent',
+            invite: {
+                id: invite.id,
+                athleteEmail: invite.athleteEmail,
+                expiresAt: invite.expiresAt,
+                inviteToken: invite.inviteToken
+            }
+        });
+
+    } catch (error) {
+        console.error('[COACH-INVITE] Error:', error);
+        logError('COACH_INVITE', error);
+        res.status(500).json({
+            error: 'Failed to send invitation',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
 
 /**
  * GET /api/coach/athletes
@@ -460,7 +618,7 @@ async function generateAthleteReport(athleteId, startDate, endDate) {
 
 /**
  * GET /api/coach/invitations
- * Get all pending invitations for a coach
+ * Get all invitations for a coach (NEW SYSTEM)
  */
 router.get('/invitations', async (req, res) => {
     try {
@@ -470,7 +628,7 @@ router.get('/invitations', async (req, res) => {
             return res.status(400).json({ error: 'coachId required' });
         }
 
-        // Verify coach exists and has valid session
+        // Verify coach exists
         const coach = await User.findOne({
             where: { id: coachId, role: 'coach' }
         });
@@ -479,37 +637,49 @@ router.get('/invitations', async (req, res) => {
             return res.status(404).json({ error: 'Coach not found' });
         }
 
-        // Get all pending invitations
-        const invitations = await CoachAthlete.findAll({
-            where: {
-                coachId,
-                status: 'pending'
-            },
-            include: [
-                {
-                    model: User,
-                    as: 'Athlete',
-                    attributes: ['email', 'name']
-                }
-            ],
-            order: [['invitedAt', 'DESC']]
+        // Get all invitations (pending, accepted, expired)
+        const invitations = await Invite.findAll({
+            where: { coachId },
+            order: [['createdAt', 'DESC']]
         });
 
         const formattedInvitations = invitations.map(inv => ({
             id: inv.id,
-            athleteEmail: inv.Athlete.email,
-            athleteName: inv.Athlete.name,
-            inviteMessage: inv.inviteMessage,
-            invitedAt: inv.invitedAt,
+            athleteEmail: inv.athleteEmail,
+            message: inv.message,
+            invitedAt: inv.createdAt,
             expiresAt: inv.expiresAt,
-            isExpired: inv.expiresAt && new Date(inv.expiresAt) < new Date(),
+            acceptedAt: inv.acceptedAt,
+            revokedAt: inv.revokedAt,
+            status: inv.isAccepted() ? 'accepted' :
+                    inv.isRevoked() ? 'revoked' :
+                    inv.isExpired() ? 'expired' :
+                    'pending',
+            isPending: inv.isPending(),
             inviteToken: inv.inviteToken
         }));
 
-        res.json({ invitations: formattedInvitations });
+        // Separate by status
+        const pending = formattedInvitations.filter(i => i.status === 'pending');
+        const accepted = formattedInvitations.filter(i => i.status === 'accepted');
+        const expired = formattedInvitations.filter(i => i.status === 'expired');
+        const revoked = formattedInvitations.filter(i => i.status === 'revoked');
+
+        res.json({
+            success: true,
+            invitations: formattedInvitations,
+            summary: {
+                total: invitations.length,
+                pending: pending.length,
+                accepted: accepted.length,
+                expired: expired.length,
+                revoked: revoked.length
+            }
+        });
 
     } catch (error) {
-        console.error('Get invitations error:', error);
+        console.error('[COACH-INVITATIONS] Error:', error);
+        logError('COACH_INVITATIONS', error);
         res.status(500).json({ error: 'Failed to fetch invitations' });
     }
 });

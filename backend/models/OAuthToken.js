@@ -43,6 +43,22 @@ const OAuthToken = sequelize.define('OAuthToken', {
     lastSyncAt: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    // New columns for device sharing
+    shareWithCoaches: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+        field: 'share_with_coaches'
+    },
+    providerUserId: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'provider_user_id'
+    },
+    scopes: {
+        type: sequelize.getDialect() === 'postgres' ? DataTypes.JSONB : DataTypes.TEXT,
+        allowNull: true
     }
 }, {
     timestamps: true,
@@ -51,6 +67,9 @@ const OAuthToken = sequelize.define('OAuthToken', {
         {
             unique: true,
             fields: ['userId', 'provider']
+        },
+        {
+            fields: ['userId', 'provider', 'share_with_coaches']
         }
     ]
 });

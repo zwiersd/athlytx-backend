@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Sharing Consent - Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--surface-dark) 0%, var(--background-dark) 100%);
+            padding: var(--spacing-md);
+        }
+
+        .consent-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .consent-card {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .coach-info {
+            background: rgba(var(--accent-rgb, 139, 92, 246), 0.1);
+            border: 1px solid rgba(var(--accent-rgb, 139, 92, 246), 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+
+        .coach-info .coach-name {
+            font-size: 1.2rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .coach-info .coach-email {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .devices-list {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .device-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-provider {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: capitalize;
+            margin-bottom: 2px;
+        }
+
+        .device-email {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .device-badge {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-box ul {
+            margin: var(--spacing-sm) 0;
+            padding-left: var(--spacing-lg);
+        }
+
+        .info-box li {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .consent-checkbox:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .consent-checkbox input[type="checkbox"] {
+            margin-top: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .consent-text {
+            flex: 1;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .consent-text strong {
+            color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .btn {
+            flex: 1;
+            padding: var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .message {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            font-size: 0.9rem;
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #e57373;
+        }
+
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: var(--spacing-md);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+        }
+
+        .no-devices {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
+        }
+
+        .no-devices-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .no-devices h2 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .btn-onboarding {
+            margin-top: var(--spacing-lg);
+            width: auto;
+            padding: var(--spacing-md) var(--spacing-xl);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="consent-container">
+        <div class="consent-card">
+            <div class="logo">
+                <div class="logo-text">Athlytx Elite</div>
+            </div>
+
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading invitation details...</p>
+            </div>
+
+            <div id="messageDiv"></div>
+
+            <div id="consentContent" style="display: none;">
+                <div class="header">
+                    <h1>Coach Access Request</h1>
+                </div>
+
+                <div id="coachInfo" class="coach-info"></div>
+
+                <div id="hasDevices">
+                    <h3 class="section-title">Connected Devices</h3>
+                    <div id="devicesList" class="devices-list"></div>
+
+                    <div class="info-box">
+                        <strong>What your coach will see:</strong>
+                        <ul>
+                            <li>Training data from your connected devices</li>
+                            <li>Health metrics (heart rate, sleep, recovery)</li>
+                            <li>Activity summaries and performance trends</li>
+                        </ul>
+                        <strong>What your coach won't see:</strong>
+                        <ul>
+                            <li>Your device login credentials</li>
+                            <li>Any data you choose to revoke access to</li>
+                        </ul>
+                    </div>
+
+                    <label class="consent-checkbox">
+                        <input type="checkbox" id="consentCheckbox">
+                        <span class="consent-text">
+                            I <strong>consent</strong> to share my connected device data with <strong id="coachNameConsent"></strong>. I understand I can revoke this access at any time from my dashboard.
+                        </span>
+                    </label>
+
+                    <div class="button-group">
+                        <button class="btn btn-secondary" id="declineBtn">Decline</button>
+                        <button class="btn btn-primary" id="acceptBtn" disabled>Accept & Share Data</button>
+                    </div>
+                </div>
+
+                <div id="noDevices" class="no-devices" style="display: none;">
+                    <div class="no-devices-icon">🔗</div>
+                    <h2>No Devices Connected</h2>
+                    <p>You need to connect at least one device before accepting this invitation.</p>
+                    <button class="btn btn-primary btn-onboarding" id="onboardingBtn">
+                        Connect a Device
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inviteToken = null;
+        let inviteData = null;
+
+        // Elements
+        const loadingState = document.getElementById('loadingState');
+        const consentContent = document.getElementById('consentContent');
+        const messageDiv = document.getElementById('messageDiv');
+        const coachInfoDiv = document.getElementById('coachInfo');
+        const devicesListDiv = document.getElementById('devicesList');
+        const hasDevicesDiv = document.getElementById('hasDevices');
+        const noDevicesDiv = document.getElementById('noDevices');
+        const consentCheckbox = document.getElementById('consentCheckbox');
+        const coachNameConsent = document.getElementById('coachNameConsent');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const declineBtn = document.getElementById('declineBtn');
+        const onboardingBtn = document.getElementById('onboardingBtn');
+
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        inviteToken = urlParams.get('token');
+
+        if (!inviteToken) {
+            showError('Invalid invitation link. No token provided.');
+        } else {
+            loadInviteData();
+        }
+
+        async function loadInviteData() {
+            try {
+                const response = await fetch(`/api/invite/accept?token=${inviteToken}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load invitation');
+                }
+
+                inviteData = data;
+                displayInviteData(data);
+            } catch (error) {
+                console.error('Error loading invite:', error);
+                showError(error.message || 'Failed to load invitation details');
+            }
+        }
+
+        function displayInviteData(data) {
+            loadingState.style.display = 'none';
+            consentContent.style.display = 'block';
+
+            // Coach info
+            coachInfoDiv.innerHTML = `
+                <div class="coach-name">${data.coachName || 'Your Coach'}</div>
+                <div class="coach-email">${data.coachEmail || ''}</div>
+            `;
+            coachNameConsent.textContent = data.coachName || 'your coach';
+
+            // Check if user has devices
+            if (data.path === 'CONSENT' && data.devices && data.devices.length > 0) {
+                // PATH A: User has devices, show consent flow
+                hasDevicesDiv.style.display = 'block';
+                noDevicesDiv.style.display = 'none';
+
+                devicesListDiv.innerHTML = data.devices.map(device => `
+                    <div class="device-item">
+                        <div class="device-icon">${getDeviceIcon(device.provider)}</div>
+                        <div class="device-info">
+                            <div class="device-provider">${device.provider}</div>
+                            <div class="device-email">${device.providerUserId || device.provider_user_id || 'Connected'}</div>
+                        </div>
+                        <div class="device-badge">Active</div>
+                    </div>
+                `).join('');
+            } else {
+                // PATH B/C: User needs to onboard
+                hasDevicesDiv.style.display = 'none';
+                noDevicesDiv.style.display = 'block';
+            }
+        }
+
+        function getDeviceIcon(provider) {
+            const icons = {
+                garmin: '⌚',
+                whoop: '💪',
+                strava: '🚴',
+                oura: '💍'
+            };
+            return icons[provider.toLowerCase()] || '📱';
+        }
+
+        // Consent checkbox handling
+        consentCheckbox.addEventListener('change', (e) => {
+            acceptBtn.disabled = !e.target.checked;
+        });
+
+        // Accept button
+        acceptBtn.addEventListener('click', async () => {
+            if (!consentCheckbox.checked) return;
+
+            acceptBtn.disabled = true;
+            acceptBtn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch('/api/invite/accept-with-consent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: inviteToken })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Redirect to athlete dashboard
+                    window.location.href = '/athlete/dashboard?invited=true';
+                } else {
+                    throw new Error(data.error || 'Failed to accept invitation');
+                }
+            } catch (error) {
+                console.error('Error accepting invite:', error);
+                showError(error.message || 'Failed to accept invitation');
+                acceptBtn.disabled = false;
+                acceptBtn.textContent = 'Accept & Share Data';
+            }
+        });
+
+        // Decline button
+        declineBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to decline this invitation?')) {
+                window.location.href = '/athlete/dashboard';
+            }
+        });
+
+        // Onboarding button
+        onboardingBtn.addEventListener('click', () => {
+            // Redirect to onboarding with invite token preserved
+            window.location.href = `/athlete/onboard?invite=${inviteToken}`;
+        });
+
+        function showError(message) {
+            loadingState.style.display = 'none';
+            consentContent.style.display = 'none';
+            messageDiv.innerHTML = `
+                <div class="message error">
+                    ${message}
+                </div>
+                <div style="text-align: center; margin-top: var(--spacing-lg);">
+                    <a href="/athlete/dashboard" class="btn btn-secondary" style="display: inline-block; text-decoration: none;">
+                        Go to Dashboard
+                    </a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

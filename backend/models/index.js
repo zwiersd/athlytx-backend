@@ -8,6 +8,9 @@ const Activity = require('./Activity');
 const HeartRateZone = require('./HeartRateZone');
 const PowerZone = require('./PowerZone');
 const TrainingSummary = require('./TrainingSummary');
+// New models for invite system
+const Invite = require('./Invite');
+const DeviceShare = require('./DeviceShare');
 
 // Define associations
 User.hasMany(MagicLink, { foreignKey: 'userId' });
@@ -30,6 +33,18 @@ User.hasMany(CoachAthlete, { as: 'CoachingRelationships', foreignKey: 'coachId' 
 User.hasMany(CoachAthlete, { as: 'AthleteRelationships', foreignKey: 'athleteId' });
 CoachAthlete.belongsTo(User, { as: 'Coach', foreignKey: 'coachId' }); // Changed from 'coach' to 'Coach'
 CoachAthlete.belongsTo(User, { as: 'Athlete', foreignKey: 'athleteId' }); // Changed from 'athlete' to 'Athlete'
+
+// Invite relationships
+User.hasMany(Invite, { as: 'SentInvites', foreignKey: 'coachId' });
+Invite.belongsTo(User, { as: 'Coach', foreignKey: 'coachId' });
+
+// DeviceShare relationships
+User.hasMany(DeviceShare, { as: 'SharedDevicesAsAthlete', foreignKey: 'athleteId' });
+User.hasMany(DeviceShare, { as: 'SharedDevicesAsCoach', foreignKey: 'coachId' });
+OAuthToken.hasMany(DeviceShare, { as: 'Shares', foreignKey: 'deviceId' });
+DeviceShare.belongsTo(User, { as: 'Athlete', foreignKey: 'athleteId' });
+DeviceShare.belongsTo(User, { as: 'Coach', foreignKey: 'coachId' });
+DeviceShare.belongsTo(OAuthToken, { as: 'Device', foreignKey: 'deviceId' });
 
 // Initialize database and sync models
 async function initializeDatabase() {
@@ -96,12 +111,15 @@ async function initializeDatabase() {
             await HeartRateZone.sync();
             await PowerZone.sync();
             await TrainingSummary.sync();
+            // New models for invite system
+            await Invite.sync();
+            await DeviceShare.sync();
             console.log('✅ Database models synchronized');
         } catch (syncError) {
             console.warn('⚠️  Some sync issues, continuing anyway:', syncError.message);
         }
 
-        // Run migrations
+        // Run migrations (existing)
         try {
             const { addDeviceModelColumn } = require('../migrations/add-device-model');
             await addDeviceModelColumn(sequelize);
@@ -115,6 +133,53 @@ async function initializeDatabase() {
         } catch (migrationError) {
             console.warn('⚠️  Migration warning:', migrationError.message);
         }
+
+        // Run new migrations for invite system
+        console.log('🔄 Running new invite system migrations...');
+
+        try {
+            const { createInvitesTable } = require('../migrations/001-create-invites-table');
+            await createInvitesTable(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 001 warning:', migrationError.message);
+        }
+
+        try {
+            const { createDeviceSharesTable } = require('../migrations/002-create-device-shares-table');
+            await createDeviceSharesTable(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 002 warning:', migrationError.message);
+        }
+
+        try {
+            const { addDeviceSharingColumns } = require('../migrations/003-add-device-sharing-columns');
+            await addDeviceSharingColumns(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 003 warning:', migrationError.message);
+        }
+
+        try {
+            const { addPerformanceIndexes } = require('../migrations/004-add-performance-indexes');
+            await addPerformanceIndexes(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 004 warning:', migrationError.message);
+        }
+
+        try {
+            const { backfillDeviceShares } = require('../migrations/005-backfill-device-shares');
+            await backfillDeviceShares(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 005 warning:', migrationError.message);
+        }
+
+        try {
+            const { migratePendingInvites } = require('../migrations/006-migrate-pending-invites');
+            await migratePendingInvites(sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 006 warning:', migrationError.message);
+        }
+
+        console.log('✅ All invite system migrations complete!');
 
         return true;
     } catch (error) {
@@ -134,5 +199,8 @@ module.exports = {
     HeartRateZone,
     PowerZone,
     TrainingSummary,
+    // New models for invite system
+    Invite,
+    DeviceShare,
     initializeDatabase
 };

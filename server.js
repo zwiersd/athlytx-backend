@@ -30,13 +30,42 @@ app.use(session({
 }));
 
 // ===== SERVE STATIC FRONTEND =====
-// Explicit routes for login pages (must come BEFORE static middleware)
-app.get('/coach', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'elite.html'));
+// Explicit routes for pages (must come BEFORE static middleware)
+
+// Landing page
+app.get('/access', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'access.html'));
 });
 
+// Coach routes
+app.get('/coach', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-login.html'));
+});
+
+app.get('/coach/onboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-onboarding.html'));
+});
+
+app.get('/coach/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
+});
+
+// Athlete routes
 app.get('/athlete', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'elite.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-login.html'));
+});
+
+app.get('/athlete/onboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-onboard.html'));
+});
+
+app.get('/athlete/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-dashboard.html'));
+});
+
+// Invite routes
+app.get('/invite/accept', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'consent-screen.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'frontend')));
@@ -84,12 +113,16 @@ app.use('/api/test', testRoutes);
 app.use('/api/garmin', garminHealthRoutes);
 app.use('/api/garmin/test', garminOAuthTestRoutes);
 
-// Import authentication, coach, and device routes
+// Import authentication, coach, athlete, invite, and device routes
 const authRoutes = require('./backend/routes/auth');
 const coachRoutes = require('./backend/routes/coach');
+const athleteRoutes = require('./backend/routes/athlete');
+const inviteRoutes = require('./backend/routes/invite');
 const deviceRoutes = require('./backend/routes/devices');
 app.use('/api/auth', authRoutes);
 app.use('/api/coach', coachRoutes);
+app.use('/api/athlete', athleteRoutes);
+app.use('/api/invite', inviteRoutes);
 app.use('/api/devices', deviceRoutes);
 
 // Import AI agent routes

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-base, #0a0e27) 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-mesh, radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(237, 100, 166, 0.1) 0%, transparent 50%));
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .access-container {
+            max-width: 1100px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            margin-bottom: 60px;
+        }
+
+        .logo h1 {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary, #667eea), var(--color-accent, #ed64a6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 16px 0;
+            letter-spacing: -1px;
+        }
+
+        .logo .badge {
+            background: linear-gradient(135deg, var(--color-primary, #667eea), var(--color-primary-dark, #5a67d8));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: inline-block;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            margin-bottom: 24px;
+        }
+
+        .logo p {
+            color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .choice-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            padding: 60px 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary, #667eea), var(--color-accent, #ed64a6));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .choice-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .choice-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            border-color: var(--color-primary, #667eea);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .choice-card h2 {
+            color: var(--text-primary, #ffffff);
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+        }
+
+        .choice-card p {
+            color: var(--text-secondary, rgba(255, 255, 255, 0.8));
+            font-size: 17px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .choice-card .arrow {
+            display: inline-block;
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+            opacity: 0;
+        }
+
+        .choice-card:hover .arrow {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 42px;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .choice-card {
+                padding: 50px 30px;
+            }
+
+            .icon {
+                font-size: 64px;
+            }
+
+            .choice-card h2 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="access-container">
+        <div class="logo">
+            <div class="badge">ELITE</div>
+            <h1>Athlytx</h1>
+            <p>Choose your role to get started</p>
+        </div>
+
+        <div class="cards-container">
+            <div class="choice-card" onclick="navigateTo('/coach')">
+                <div class="icon">👨‍💼</div>
+                <h2>I'm a Coach <span class="arrow">→</span></h2>
+                <p>Manage athletes and analyze their training data with advanced insights and performance metrics</p>
+            </div>
+
+            <div class="choice-card" onclick="navigateTo('/athlete')">
+                <div class="icon">🏃</div>
+                <h2>I'm an Athlete <span class="arrow">→</span></h2>
+                <p>Connect with your coach and track your training progress with data-driven insights</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+    </script>
+</body>
+</html>
