@@ -563,7 +563,8 @@
                     // In development, log the magic link
                     if (data.token) {
                         console.log('🔐 Development Magic Link:');
-                        console.log(`${window.location.origin}/elite?token=${data.token}`);
+                        const loginPath = role === 'coach' ? 'coach' : 'athlete';
+                        console.log(`${window.location.origin}/${loginPath}?token=${data.token}`);
                     }
                 } else {
                     showError(data.error || 'Failed to send magic link');

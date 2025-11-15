@@ -145,7 +145,7 @@
     <script>
         const API_URL = window.location.hostname === 'localhost'
             ? 'http://localhost:3000'
-            : 'https://api.athlytx.com';
+            : window.location.origin;
 
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);

@@ -1876,9 +1876,12 @@
                 console.log('[MAGIC-LINK] Response:', data);
 
                 if (data.success && data.user) {
-                    // Store session
-                    localStorage.setItem('sessionToken', data.sessionToken);
-                    localStorage.setItem('coach', JSON.stringify(data.user));
+                    // Store session in unified format
+                    const session = {
+                        sessionToken: data.sessionToken,
+                        user: data.user
+                    };
+                    localStorage.setItem('athlytx_session', JSON.stringify(session));
                     currentCoach = data.user;
 
                     console.log('✅ Coach logged in:', currentCoach.email);
@@ -1911,19 +1914,19 @@
             }
 
             // Check for existing session
-            const sessionToken = localStorage.getItem('sessionToken');
-            const coach = localStorage.getItem('coach');
+            const sessionData = localStorage.getItem('athlytx_session');
 
-            if (sessionToken && coach) {
-                currentCoach = JSON.parse(coach);
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                currentCoach = session.user;
                 console.log('[SESSION] Found stored session for:', currentCoach.email);
-                console.log('[SESSION] Session token:', sessionToken.substring(0, 20) + '...');
+                console.log('[SESSION] Session token:', session.sessionToken.substring(0, 20) + '...');
 
                 // Validate session
                 fetch('/api/auth/session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionToken })
+                    body: JSON.stringify({ sessionToken: session.sessionToken })
                 })
                 .then(r => {
                     console.log('[SESSION] Response status:', r.status);
