@@ -403,6 +403,12 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Store session token
+                    if (data.sessionToken) {
+                        localStorage.setItem('sessionToken', data.sessionToken);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+
                     // Success! Show success message and redirect
                     messageDiv.innerHTML = `
                         <div class="success-state">
