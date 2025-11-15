@@ -513,8 +513,8 @@ router.post('/invite-athlete', async (req, res) => {
             expiresAt
         });
 
-        // Create invite URL - athlete accepts via dedicated page
-        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete/accept-invite?token=${inviteToken}`;
+        // Create invite URL - athlete lands on their login page with invite context
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/elite?invite=${inviteToken}`;
 
         // Send invite email
         try {

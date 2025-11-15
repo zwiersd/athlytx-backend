@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-base) 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            padding-top: 80px;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: #ffffff;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .btn-back {
+            padding: 8px 16px;
+            background: var(--glass-3);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--glass-4);
+            border-color: var(--border-focus);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .page-title {
+            color: var(--text-primary);
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 32px 0;
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--glass-2);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-2);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+
+        /* Coaches List */
+        .coaches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .coach-item {
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coach-info {
+            flex: 1;
+        }
+
+        .coach-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .coach-email {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .coach-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 12px;
+        }
+
+        .coach-status.active {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--status-fresh);
+        }
+
+        .coach-status.revoked {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--status-danger);
+        }
+
+        .btn-revoke {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 8px;
+            color: var(--status-danger);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-revoke:hover {
+            background: rgba(255, 69, 58, 0.1);
+            border-color: var(--status-danger);
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            border: 2px solid var(--status-danger);
+            border-radius: 16px;
+            padding: 24px;
+            background: rgba(255, 69, 58, 0.05);
+        }
+
+        .danger-zone h3 {
+            color: var(--status-danger);
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .danger-zone p {
+            margin-bottom: 20px;
+        }
+
+        .warning-list {
+            background: rgba(255, 69, 58, 0.1);
+            border-left: 4px solid var(--status-danger);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .warning-list ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .warning-list li {
+            margin-bottom: 4px;
+        }
+
+        .btn-danger {
+            padding: 12px 24px;
+            background: var(--status-danger);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background: #ff6b64;
+            transform: translateY(-2px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--glass-2);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-2);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+        }
+
+        .modal-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            background: var(--glass-4);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--glass-3);
+            color: var(--text-primary);
+            border: 1px solid var(--border-2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass-4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 20px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>Athlytx Elite</h1>
+            </div>
+            <a href="athlete-dashboard.html" class="btn-back">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="page-title">Settings</h1>
+
+        <div class="settings-grid">
+            <!-- My Coaches -->
+            <div class="card">
+                <h2>My Coaches</h2>
+                <p>Manage coaches who have access to your training data.</p>
+                <div class="coaches-list" id="coachesList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>Loading coaches...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card">
+                <div class="danger-zone">
+                    <h3>⚠️ Danger Zone</h3>
+                    <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+
+                    <div class="warning-list">
+                        <strong style="color: var(--status-danger); display: block; margin-bottom: 8px;">This will permanently delete:</strong>
+                        <ul>
+                            <li>All your personal information</li>
+                            <li>All activity and performance data</li>
+                            <li>All connected device integrations</li>
+                            <li>All coach relationships</li>
+                            <li>All training summaries and metrics</li>
+                        </ul>
+                    </div>
+
+                    <button class="btn-danger" onclick="openDeleteModal()">
+                        Delete My Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke Coach Modal -->
+    <div class="modal" id="revokeModal">
+        <div class="modal-content">
+            <h3>Revoke Coach Access?</h3>
+            <p>Are you sure you want to revoke access for <strong id="revokeCoachName"></strong>? They will no longer be able to view your training data.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeRevokeModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmRevoke()">Revoke Access</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>Delete Account - Final Confirmation</h3>
+            <p style="color: var(--status-danger); font-weight: 600;">This action is permanent and cannot be undone!</p>
+            <p>To confirm deletion, please enter your email address exactly as shown:</p>
+
+            <div class="form-group">
+                <label>Your Email: <strong id="userEmail" style="color: var(--text-primary);"></strong></label>
+                <input
+                    type="email"
+                    id="confirmEmail"
+                    placeholder="Enter your email to confirm"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()" disabled>
+                    Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://api.athlytx.com';
+
+        let session = null;
+        let selectedCoach = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            const sessionData = localStorage.getItem('athlytx_session');
+            if (!sessionData) {
+                window.location.href = 'elite.html';
+                return;
+            }
+
+            session = JSON.parse(sessionData);
+
+            // Set user email in delete modal
+            document.getElementById('userEmail').textContent = session.user.email;
+
+            // Enable delete button when email matches
+            document.getElementById('confirmEmail').addEventListener('input', (e) => {
+                const emailMatch = e.target.value.toLowerCase() === session.user.email.toLowerCase();
+                document.getElementById('confirmDeleteBtn').disabled = !emailMatch;
+            });
+
+            // Load coaches
+            loadCoaches();
+        });
+
+        async function loadCoaches() {
+            try {
+                const response = await fetch(`${API_URL}/api/auth/session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken: session.sessionToken })
+                });
+
+                const data = await response.json();
+
+                if (data.relationships) {
+                    updateCoachesUI(data.relationships);
+                }
+            } catch (error) {
+                console.error('Failed to load coaches:', error);
+            }
+        }
+
+        function updateCoachesUI(relationships) {
+            const coachesList = document.getElementById('coachesList');
+
+            // Filter for athlete's coaches
+            const coaches = relationships.filter(r => r.athleteId === session.user.id);
+
+            if (coaches.length === 0) {
+                coachesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>You don't have any coaches yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            coachesList.innerHTML = coaches.map(coach => `
+                <div class="coach-item">
+                    <div class="coach-info">
+                        <div class="coach-name">${coach.coach?.name || coach.coach?.email || 'Coach'}</div>
+                        <div class="coach-email">${coach.coach?.email || ''}</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="coach-status ${coach.status}">${coach.status}</span>
+                        ${coach.status === 'active' ? `
+                            <button class="btn-revoke" onclick="openRevokeModal('${coach.id}', '${coach.coach?.name || coach.coach?.email}')">
+                                Revoke Access
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Revoke Coach Functions
+        function openRevokeModal(coachId, coachName) {
+            selectedCoach = { id: coachId, name: coachName };
+            document.getElementById('revokeCoachName').textContent = coachName;
+            document.getElementById('revokeModal').classList.add('visible');
+        }
+
+        function closeRevokeModal() {
+            document.getElementById('revokeModal').classList.remove('visible');
+            selectedCoach = null;
+        }
+
+        async function confirmRevoke() {
+            if (!selectedCoach) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/athlete/revoke-coach`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        athleteId: session.user.id,
+                        coachId: selectedCoach.id,
+                        sessionToken: session.sessionToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeRevokeModal();
+                    loadCoaches(); // Reload list
+                    alert(`Access revoked for ${selectedCoach.name}`);
+                } else {
+                    throw new Error(data.error || 'Failed to revoke access');
+                }
+            } catch (error) {
+                console.error('Revoke error:', error);
+                alert('Failed to revoke access. Please try again.');
+            }
+        }
+
+        // Delete Account Functions
+        function openDeleteModal() {
+            document.getElementById('confirmEmail').value = '';
+            document.getElementById('confirmDeleteBtn').disabled = true;
+            document.getElementById('deleteModal').classList.add('visible');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('visible');
+        }
+
+        async function confirmDelete() {
+            const confirmEmail = document.getElementById('confirmEmail').value;
+
+            if (confirmEmail.toLowerCase() !== session.user.email.toLowerCase()) {
+                alert('Email does not match. Please try again.');
+                return;
+            }
+
+            const finalConfirm = confirm(
+                'FINAL WARNING: This will permanently delete ALL your data. ' +
+                'This action CANNOT be undone. Are you absolutely sure?'
+            );
+
+            if (!finalConfirm) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/athlete/delete-account`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        athleteId: session.user.id,
+                        sessionToken: session.sessionToken,
+                        confirmEmail: confirmEmail
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear local storage
+                    localStorage.clear();
+
+                    // Show goodbye message
+                    alert(
+                        'Your account has been permanently deleted.\n\n' +
+                        `Deleted data:\n` +
+                        `- ${data.summary?.activities || 0} activities\n` +
+                        `- ${data.summary?.coachRelationships || 0} coach relationships\n` +
+                        `- ${data.summary?.devices || 0} device connections\n\n` +
+                        `We're sorry to see you go!`
+                    );
+
+                    // Redirect to homepage
+                    window.location.href = 'index.html';
+                } else {
+                    throw new Error(data.error || 'Failed to delete account');
+                }
+            } catch (error) {
+                console.error('Delete account error:', error);
+                alert('Failed to delete account. Please try again or contact support.');
+            }
+        }
+
+        // Close modals on outside click
+        document.getElementById('revokeModal').addEventListener('click', (e) => {
+            if (e.target.id === 'revokeModal') closeRevokeModal();
+        });
+
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') closeDeleteModal();
+        });
+    </script>
+</body>
+</html>

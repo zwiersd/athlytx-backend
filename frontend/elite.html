@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Login | Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-base) 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Gradient mesh background */
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-mesh);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .login-container {
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Logo */
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 8px 0;
+        }
+
+        .logo .badge {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white;
+            padding: 4px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Invitation Banner */
+        .invite-banner {
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.15), rgba(56, 161, 105, 0.10));
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(12px);
+            display: none;
+        }
+
+        .invite-banner.visible {
+            display: block;
+        }
+
+        .invite-banner h3 {
+            color: var(--status-fresh);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        .invite-banner p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .invite-banner .coach-name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Glass Card */
+        .card {
+            background: var(--glass-2);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-2);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            text-align: center;
+        }
+
+        .card .subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 0 0 32px 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            background: var(--glass-4);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Button */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Success State */
+        .success-message {
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.visible {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .success-message h3 {
+            color: var(--status-fresh);
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+        }
+
+        .success-message p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--status-danger);
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: var(--color-primary-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
+            .card {
+                padding: 32px 24px;
+            }
+
+            .card h2 {
+                font-size: 24px;
+            }
+
+            .logo h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Logo -->
+        <div class="logo">
+            <h1>Athlytx</h1>
+            <span class="badge">ATHLETE</span>
+        </div>
+
+        <!-- Invitation Banner (hidden by default) -->
+        <div class="invite-banner" id="inviteBanner">
+            <h3>🎉 You've Been Invited!</h3>
+            <p><span class="coach-name" id="coachName"></span> has invited you to join Athlytx Elite. Log in to accept the invitation and start training together.</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="card">
+            <!-- Error Message -->
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Email Form -->
+            <div id="emailForm">
+                <h2>Welcome Athlete</h2>
+                <p class="subtitle">Enter your email to receive a magic link for instant login.</p>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="your@email.com"
+                            required
+                            autocomplete="email"
+                            autofocus
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        Send Magic Link
+                    </button>
+                </form>
+            </div>
+
+            <!-- Success State (hidden by default) -->
+            <div class="success-message" id="successMessage">
+                <div class="success-icon">📧</div>
+                <h3>Check Your Email</h3>
+                <p>We've sent a magic link to <strong id="sentEmail"></strong>. Click the link in the email to log in instantly.</p>
+                <p style="margin-top: 16px; font-size: 13px;">The link expires in 15 minutes.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Need help? <a href="mailto:support@athlytx.com">Contact Support</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://api.athlytx.com';
+
+        // Check for invitation token in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteToken = urlParams.get('invite');
+        const magicToken = urlParams.get('token');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if there's a magic link token for auto-login
+            if (magicToken) {
+                handleMagicLinkToken(magicToken);
+                return;
+            }
+
+            // Check for existing session
+            checkExistingSession();
+
+            // Show invitation banner if present
+            if (inviteToken) {
+                fetchInvitationDetails(inviteToken);
+            }
+        });
+
+        // Handle magic link token from email
+        async function handleMagicLinkToken(token) {
+            showLoading('Logging you in...');
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.user) {
+                    // Store session
+                    const session = {
+                        sessionToken: data.sessionToken,
+                        user: {
+                            id: data.user.id,
+                            email: data.user.email,
+                            name: data.user.name,
+                            role: data.user.role,
+                            onboarded: data.user.onboarded
+                        }
+                    };
+
+                    localStorage.setItem('athlytx_session', JSON.stringify(session));
+
+                    // Redirect based on onboarding status
+                    if (!data.user.onboarded) {
+                        const onboardUrl = inviteToken
+                            ? `athlete-onboard.html?invite=${inviteToken}`
+                            : 'athlete-onboard.html';
+                        window.location.href = onboardUrl;
+                    } else {
+                        window.location.href = 'athlete-dashboard.html';
+                    }
+                } else {
+                    showError(data.error || 'Invalid or expired magic link');
+                }
+            } catch (error) {
+                console.error('Magic link verification error:', error);
+                showError('Failed to verify magic link. Please try again.');
+            }
+        }
+
+        // Check for existing session
+        async function checkExistingSession() {
+            const session = localStorage.getItem('athlytx_session');
+
+            if (!session) return;
+
+            try {
+                const sessionData = JSON.parse(session);
+
+                // Validate session with backend
+                const response = await fetch(`${API_URL}/api/auth/session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken: sessionData.sessionToken })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.user) {
+                    // Session is valid - redirect to dashboard
+                    window.location.href = data.user.onboarded
+                        ? 'athlete-dashboard.html'
+                        : 'athlete-onboard.html';
+                }
+            } catch (error) {
+                console.error('Session validation error:', error);
+                // Clear invalid session
+                localStorage.removeItem('athlytx_session');
+            }
+        }
+
+        // Fetch invitation details
+        async function fetchInvitationDetails(token) {
+            try {
+                const response = await fetch(`${API_URL}/api/auth/invite/details?token=${token}`);
+                const data = await response.json();
+
+                if (data.success && data.coach) {
+                    const banner = document.getElementById('inviteBanner');
+                    const coachName = document.getElementById('coachName');
+                    coachName.textContent = data.coach.name || data.coach.email;
+                    banner.classList.add('visible');
+                }
+            } catch (error) {
+                console.error('Failed to fetch invitation details:', error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!email) {
+                showError('Please enter your email address');
+                return;
+            }
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Sending... <span class="loading"></span>';
+            errorMessage.classList.remove('visible');
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/magic-link`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        role: 'athlete'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success state
+                    document.getElementById('emailForm').style.display = 'none';
+                    document.getElementById('successMessage').classList.add('visible');
+                    document.getElementById('sentEmail').textContent = email;
+
+                    // In development, log the magic link
+                    if (data.token) {
+                        console.log('🔐 Development Magic Link:');
+                        console.log(`${window.location.origin}/elite.html?token=${data.token}`);
+                    }
+                } else {
+                    showError(data.error || 'Failed to send magic link');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Magic Link';
+                }
+            } catch (error) {
+                console.error('Magic link request error:', error);
+                showError('Network error. Please check your connection and try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Magic Link';
+            }
+        });
+
+        // Helper functions
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('visible');
+        }
+
+        function showLoading(message) {
+            document.getElementById('emailForm').innerHTML = `
+                <div style="text-align: center; padding: 40px 0;">
+                    <div class="loading" style="width: 40px; height: 40px; margin: 0 auto 16px;"></div>
+                    <p style="color: var(--text-secondary); font-size: 16px;">${message}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

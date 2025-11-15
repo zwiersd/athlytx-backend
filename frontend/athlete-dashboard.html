@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Dashboard | Athlytx Elite</title>
+    <link rel="stylesheet" href="styles/design-tokens.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-base) 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%);
+            min-height: 100vh;
+            padding-top: 80px;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: #ffffff;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .badge-elite {
+            background: linear-gradient(135deg, var(--status-fresh), var(--status-optimal));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(72, 187, 120, 0.4);
+            margin-left: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .user-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .btn-header {
+            padding: 8px 16px;
+            background: var(--glass-3);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-header:hover {
+            background: var(--glass-4);
+            border-color: var(--border-focus);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--glass-2);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-2);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+        }
+
+        /* Devices Grid */
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .device-card {
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .device-card.connected {
+            border-color: var(--status-fresh);
+            background: rgba(52, 199, 89, 0.08);
+        }
+
+        .device-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .device-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .device-status {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .device-card.connected .device-status {
+            color: var(--status-fresh);
+        }
+
+        /* Coaches Section */
+        .coaches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .coach-item {
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .coach-item:hover {
+            background: var(--glass-4);
+            border-color: var(--border-2);
+        }
+
+        .coach-info {
+            flex: 1;
+        }
+
+        .coach-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .coach-email {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .coach-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .coach-status.active {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--status-fresh);
+        }
+
+        .coach-status.pending {
+            background: rgba(255, 159, 10, 0.15);
+            color: var(--status-fatigued);
+        }
+
+        .coach-status.revoked {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--status-danger);
+        }
+
+        .btn-revoke {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 8px;
+            color: var(--status-danger);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-revoke:hover {
+            background: rgba(255, 69, 58, 0.1);
+            border-color: var(--status-danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--glass-3);
+            border: 1px solid var(--border-1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--glass-2);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-2);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+        }
+
+        .modal-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--glass-3);
+            color: var(--text-primary);
+            border: 1px solid var(--border-2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass-4);
+        }
+
+        .btn-danger {
+            background: var(--status-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff6b64;
+        }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid,
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                padding: 16px 20px;
+            }
+
+            .container {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>Athlytx <span class="badge-elite">ATHLETE</span></h1>
+            </div>
+            <div class="header-actions">
+                <span class="user-info" id="userName">Loading...</span>
+                <a href="athlete-settings.html" class="btn-header">Settings</a>
+                <button class="btn-header" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="activitiesCount">0</div>
+                <div class="stat-label">Activities</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="devicesCount">0</div>
+                <div class="stat-label">Devices</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="coachesCount">0</div>
+                <div class="stat-label">Coaches</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column: Connected Devices -->
+            <div class="card">
+                <h2>Connected Devices</h2>
+                <div class="devices-grid" id="devicesGrid">
+                    <div class="device-card">
+                        <div class="device-icon">⌚</div>
+                        <div class="device-name">Garmin</div>
+                        <div class="device-status">Not connected</div>
+                    </div>
+                    <div class="device-card">
+                        <div class="device-icon">🚴</div>
+                        <div class="device-name">Strava</div>
+                        <div class="device-status">Not connected</div>
+                    </div>
+                    <div class="device-card">
+                        <div class="device-icon">💪</div>
+                        <div class="device-name">Whoop</div>
+                        <div class="device-status">Not connected</div>
+                    </div>
+                    <div class="device-card">
+                        <div class="device-icon">💍</div>
+                        <div class="device-name">Oura</div>
+                        <div class="device-status">Not connected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: My Coaches -->
+            <div class="card">
+                <h2>My Coaches</h2>
+                <div class="coaches-list" id="coachesList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No coaches yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke Confirmation Modal -->
+    <div class="modal" id="revokeModal">
+        <div class="modal-content">
+            <h3>Revoke Coach Access?</h3>
+            <p>Are you sure you want to revoke access for <strong id="revokeCoachName"></strong>? They will no longer be able to view your training data.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeRevokeModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmRevoke()">Revoke Access</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://api.athlytx.com';
+
+        let session = null;
+        let selectedCoach = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            const sessionData = localStorage.getItem('athlytx_session');
+            if (!sessionData) {
+                window.location.href = 'elite.html';
+                return;
+            }
+
+            session = JSON.parse(sessionData);
+
+            // Check if user is onboarded
+            if (!session.user.onboarded) {
+                window.location.href = 'athlete-onboard.html';
+                return;
+            }
+
+            // Update user name
+            document.getElementById('userName').textContent = session.user.name || session.user.email;
+
+            // Load dashboard data
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Load devices
+                const devicesResponse = await fetch(`${API_URL}/api/devices/status?sessionToken=${session.sessionToken}`);
+                const devicesData = await devicesResponse.json();
+
+                if (devicesData.devices) {
+                    updateDevicesUI(devicesData.devices);
+                }
+
+                // Load coaches
+                const coachesResponse = await fetch(`${API_URL}/api/auth/session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionToken: session.sessionToken })
+                });
+
+                const coachesData = await coachesResponse.json();
+
+                if (coachesData.relationships) {
+                    updateCoachesUI(coachesData.relationships);
+                }
+
+                // Update stats
+                document.getElementById('devicesCount').textContent = devicesData.devices?.length || 0;
+                document.getElementById('coachesCount').textContent = coachesData.relationships?.filter(r => r.status === 'active').length || 0;
+
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+
+        function updateDevicesUI(devices) {
+            const devicesGrid = document.getElementById('devicesGrid');
+            const deviceCards = devicesGrid.querySelectorAll('.device-card');
+
+            devices.forEach(device => {
+                const card = Array.from(deviceCards).find(c =>
+                    c.querySelector('.device-name').textContent.toLowerCase() === device.provider.toLowerCase()
+                );
+
+                if (card) {
+                    card.classList.add('connected');
+                    const status = card.querySelector('.device-status');
+                    status.textContent = 'Connected';
+
+                    if (device.lastSyncAt) {
+                        const lastSync = new Date(device.lastSyncAt);
+                        const hoursAgo = Math.floor((Date.now() - lastSync) / (1000 * 60 * 60));
+                        status.textContent = hoursAgo < 24 ? `Synced ${hoursAgo}h ago` : 'Connected';
+                    }
+                }
+            });
+        }
+
+        function updateCoachesUI(relationships) {
+            const coachesList = document.getElementById('coachesList');
+
+            // Filter for athlete's coaches (where they are the athlete)
+            const coaches = relationships.filter(r => r.athleteId === session.user.id);
+
+            if (coaches.length === 0) {
+                coachesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No coaches yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            coachesList.innerHTML = coaches.map(coach => `
+                <div class="coach-item">
+                    <div class="coach-info">
+                        <div class="coach-name">${coach.coach?.name || coach.coach?.email || 'Coach'}</div>
+                        <div class="coach-email">${coach.coach?.email || ''}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="coach-status ${coach.status}">${coach.status}</span>
+                        ${coach.status === 'active' ? `
+                            <button class="btn-revoke" onclick="openRevokeModal('${coach.id}', '${coach.coach?.name || coach.coach?.email}')">
+                                Revoke
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openRevokeModal(coachId, coachName) {
+            selectedCoach = { id: coachId, name: coachName };
+            document.getElementById('revokeCoachName').textContent = coachName;
+            document.getElementById('revokeModal').classList.add('visible');
+        }
+
+        function closeRevokeModal() {
+            document.getElementById('revokeModal').classList.remove('visible');
+            selectedCoach = null;
+        }
+
+        async function confirmRevoke() {
+            if (!selectedCoach) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/athlete/revoke-coach`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        athleteId: session.user.id,
+                        coachId: selectedCoach.id,
+                        sessionToken: session.sessionToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeRevokeModal();
+                    // Reload coaches list
+                    loadDashboardData();
+                    alert(`Access revoked for ${selectedCoach.name}`);
+                } else {
+                    throw new Error(data.error || 'Failed to revoke access');
+                }
+            } catch (error) {
+                console.error('Revoke error:', error);
+                alert('Failed to revoke access. Please try again.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('athlytx_session');
+            window.location.href = 'elite.html';
+        }
+
+        // Close modal on outside click
+        document.getElementById('revokeModal').addEventListener('click', (e) => {
+            if (e.target.id === 'revokeModal') {
+                closeRevokeModal();
+            }
+        });
+    </script>
+</body>
+</html>

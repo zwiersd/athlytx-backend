@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connecting Device | Athlytx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1e2659 50%, #0a0e27 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: rgba(52, 199, 89, 0.15);
+            color: #34c759;
+        }
+
+        .status.error {
+            background: rgba(255, 69, 58, 0.15);
+            color: #ff453a;
+        }
+
+        .status.loading {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .countdown {
+            color: rgba(255, 255, 255, 0.50);
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .error-details {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: left;
+            color: #ff453a;
+            font-size: 13px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loadingState">
+            <div class="spinner"></div>
+            <h1>Connecting Device...</h1>
+            <p>Please wait while we complete the connection.</p>
+            <div class="status loading">Processing</div>
+        </div>
+
+        <div id="successState" style="display: none;">
+            <div class="icon">✓</div>
+            <h1>Device Connected!</h1>
+            <p id="successMessage">Your device has been successfully connected to Athlytx.</p>
+            <div class="status success">Connected</div>
+            <div class="countdown" id="countdown">Closing in 3 seconds...</div>
+        </div>
+
+        <div id="errorState" style="display: none;">
+            <div class="icon">⚠️</div>
+            <h1>Connection Failed</h1>
+            <p id="errorMessage">We couldn't connect your device. Please try again.</p>
+            <div class="status error">Failed</div>
+            <div class="countdown">You can close this window.</div>
+            <div class="error-details" id="errorDetails" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://api.athlytx.com';
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const provider = window.location.pathname.split('/device-callback/')[1] ||
+                        urlParams.get('provider');
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        // Handle the callback
+        document.addEventListener('DOMContentLoaded', () => {
+            if (error) {
+                showError(`Authentication error: ${errorDescription || error}`);
+                return;
+            }
+
+            if (!code) {
+                showError('No authorization code received');
+                return;
+            }
+
+            if (!provider) {
+                showError('Provider not specified');
+                return;
+            }
+
+            // Process the OAuth callback
+            processCallback();
+        });
+
+        async function processCallback() {
+            try {
+                // The backend will handle the token exchange
+                const response = await fetch(
+                    `${API_URL}/api/devices/callback/${provider}?code=${code}&state=${state || ''}`,
+                    { credentials: 'include' }
+                );
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(provider);
+
+                    // Send message to parent window
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'device-connected',
+                            provider: provider,
+                            success: true
+                        }, '*');
+                    }
+
+                    // Auto-close after 3 seconds
+                    let countdown = 3;
+                    const countdownEl = document.getElementById('countdown');
+                    const interval = setInterval(() => {
+                        countdown--;
+                        if (countdown > 0) {
+                            countdownEl.textContent = `Closing in ${countdown} second${countdown > 1 ? 's' : ''}...`;
+                        } else {
+                            clearInterval(interval);
+                            window.close();
+                        }
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Connection failed');
+                }
+            } catch (error) {
+                console.error('Callback processing error:', error);
+                showError(error.message);
+
+                // Notify parent window of failure
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'device-connection-failed',
+                        provider: provider,
+                        error: error.message
+                    }, '*');
+                }
+            }
+        }
+
+        function showSuccess(provider) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+
+            const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+            document.getElementById('successMessage').textContent =
+                `Your ${providerName} device has been successfully connected to Athlytx.`;
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+
+            document.getElementById('errorMessage').textContent = message;
+
+            // Show error details in development
+            if (window.location.hostname === 'localhost') {
+                const errorDetails = document.getElementById('errorDetails');
+                errorDetails.textContent = `Provider: ${provider}\nCode: ${code}\nState: ${state}`;
+                errorDetails.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
