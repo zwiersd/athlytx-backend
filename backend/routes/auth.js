@@ -198,8 +198,9 @@ router.post('/magic-link', async (req, res) => {
         });
         console.log('[AUTH] Magic link record created');
 
-        // Send magic link email
-        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/login.html?token=${token}`;
+        // Send magic link email with role-specific redirect
+        const loginPage = role === 'coach' ? 'coach-elite.html' : 'elite';
+        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/${loginPage}?token=${token}`;
 
         // Send email via Resend
         try {
