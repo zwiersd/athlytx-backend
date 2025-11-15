@@ -4,7 +4,8 @@
   "description": "Athlytx Fitness Analytics - Unified Frontend & Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "bash scripts/start.sh",
+    "start:dev": "node server.js",
     "dev": "node server.js",
     "migrate": "node migrations/run.js"
   },
