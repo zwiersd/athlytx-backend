@@ -1327,9 +1327,12 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Store session
-                    localStorage.setItem('sessionToken', result.sessionToken);
-                    localStorage.setItem('coach', JSON.stringify(result.user));
+                    // Store session in unified format
+                    const session = {
+                        sessionToken: result.sessionToken,
+                        user: result.user
+                    };
+                    localStorage.setItem('athlytx_session', JSON.stringify(session));
 
                     currentCoach = result.user;
                     athletes = result.relationships || [];
@@ -1368,11 +1371,15 @@
 
         async function completeOnboarding(name) {
             try {
+                // Get session from unified storage
+                const sessionData = localStorage.getItem('athlytx_session');
+                const session = sessionData ? JSON.parse(sessionData) : null;
+
                 const response = await fetch('/api/auth/update-profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sessionToken: localStorage.getItem('sessionToken'),
+                        sessionToken: session?.sessionToken,
                         name
                     })
                 });
@@ -1380,9 +1387,13 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update stored coach info
+                    // Update stored coach info in unified format
                     currentCoach = result.user;
-                    localStorage.setItem('coach', JSON.stringify(result.user));
+                    const updatedSession = {
+                        sessionToken: session.sessionToken,
+                        user: result.user
+                    };
+                    localStorage.setItem('athlytx_session', JSON.stringify(updatedSession));
 
                     // Show dashboard
                     document.getElementById('onboardingScreen').style.display = 'none';
@@ -1829,12 +1840,16 @@
             if (!note) return;
 
             try {
+                // Get session from unified storage
+                const sessionData = localStorage.getItem('athlytx_session');
+                const session = sessionData ? JSON.parse(sessionData) : null;
+
                 const response = await fetch(`/api/coach/athlete/${currentAthlete.id}/note`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         coachId: currentCoach.id,
-                        sessionToken: localStorage.getItem('sessionToken'),
+                        sessionToken: session?.sessionToken,
                         activityId,
                         type,
                         note,
@@ -1931,10 +1946,11 @@
                 .then(r => {
                     console.log('[SESSION] Response status:', r.status);
 
-                    // Check if it's a 401 (invalid session) - clear localStorage
+                    // Check if it's a 401 (invalid session) - clear localStorage and redirect
                     if (r.status === 401) {
-                        console.warn('[SESSION] ❌ 401 Invalid session - clearing localStorage');
+                        console.warn('[SESSION] ❌ 401 Invalid session - clearing localStorage and redirecting');
                         localStorage.clear();
+                        window.location.href = '/coach';
                         return null;
                     }
 
@@ -1960,17 +1976,20 @@
                         showDashboard();
                     } else {
                         console.warn('[SESSION] ❌ Invalid response:', result.error);
-                        console.warn('[SESSION] Clearing localStorage');
+                        console.warn('[SESSION] Clearing localStorage and redirecting to /coach');
                         localStorage.clear();
+                        window.location.href = '/coach';
                     }
                 })
                 .catch(error => {
                     console.error('[SESSION] ❌ Network/fetch error:', error);
-                    console.error('[SESSION] Keeping localStorage, auth screen visible');
-                    // Auth screen is already visible, user can try to login again
+                    console.error('[SESSION] Redirecting to /coach login');
+                    // Redirect to login page instead of showing built-in auth
+                    window.location.href = '/coach';
                 });
             } else {
-                console.log('[SESSION] No stored session found');
+                console.log('[SESSION] No stored session found - redirecting to /coach');
+                window.location.href = '/coach';
             }
 
             // Auth form handler

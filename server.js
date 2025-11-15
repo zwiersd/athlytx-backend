@@ -135,15 +135,6 @@ app.get('/auth/garmin/callback', async (req, res) => {
 });
 
 // ===== SPECIAL ROUTES =====
-// Coach dashboard route (basic auth removed)
-app.get('/coach', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'coach-dashboard.html'));
-});
-
-app.get('/elite', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
-});
-
 // Clean URL routes (without .html)
 app.get('/privacy', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'privacy.html'));
