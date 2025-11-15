@@ -163,8 +163,8 @@ router.post('/invite', inviteCreationLimiter, async (req, res) => {
             athleteEmail: normalizedEmail
         });
 
-        // Send invitation email
-        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete?invite=${invite.inviteToken}`;
+        // Send invitation email to athlete signup (not login)
+        const inviteUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/athlete/onboard?invite=${invite.inviteToken}`;
         const { sendAthleteInvite } = require('../utils/email');
 
         sendAthleteInvite(
