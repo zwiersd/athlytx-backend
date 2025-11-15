@@ -206,8 +206,25 @@
         }
 
         .success-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, var(--status-fresh), var(--status-optimal));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(52, 199, 89, 0.3);
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
         }
 
         .success-message h3 {
@@ -336,7 +353,11 @@
 
             <!-- Success State (hidden by default) -->
             <div class="success-message" id="successMessage">
-                <div class="success-icon">📧</div>
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
                 <h3>Check Your Email</h3>
                 <p>We've sent a magic link to <strong id="sentEmail"></strong>. Click the link in the email to log in instantly.</p>
                 <p style="margin-top: 16px; font-size: 13px;">The link expires in 15 minutes.</p>
