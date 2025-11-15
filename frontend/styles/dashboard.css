@@ -251,7 +251,6 @@ body {
 }
 
 .device-card:hover {
-  transform: translateY(-1px);
   background: var(--glass-3);
   border-color: var(--border-2);
   box-shadow: var(--shadow-xl);

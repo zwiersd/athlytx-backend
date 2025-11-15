@@ -43,7 +43,6 @@
 .glass-card-hover:hover {
   background: var(--glass-3);
   border-color: var(--border-2);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -111,7 +110,6 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
   box-shadow: var(--shadow-lg), var(--glow-brand);
   border-color: var(--border-2);
 }
@@ -133,7 +131,6 @@
 .btn-secondary:hover {
   background: var(--glass-3);
   border-color: var(--border-3);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
