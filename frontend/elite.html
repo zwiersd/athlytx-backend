@@ -373,7 +373,7 @@
     <script>
         const API_URL = window.location.hostname === 'localhost'
             ? 'http://localhost:3000'
-            : 'https://api.athlytx.com';
+            : window.location.origin;
 
         // Check for invitation token in URL
         const urlParams = new URLSearchParams(window.location.search);
