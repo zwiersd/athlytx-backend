@@ -264,6 +264,34 @@
   --content-max-width: 1600px;
   --sidebar-width: 280px;
   --header-height: 72px;
+
+  /* ============================================
+     LEGACY VARIABLE ALIASES (for compatibility)
+     ============================================ */
+
+  /* Color aliases */
+  --primary: var(--color-primary);
+  --primary-light: var(--color-primary-light);
+  --primary-dark: var(--color-primary-dark);
+  --secondary: var(--color-secondary);
+  --accent: var(--color-accent);
+
+  /* Background aliases */
+  --background-dark: var(--bg-base);
+  --surface-dark: var(--bg-layer-1);
+  --surface-light: var(--bg-layer-2);
+
+  /* Glass effect aliases */
+  --glass-background: var(--glass-2);
+  --glass-border: var(--border-2);
+
+  /* Spacing aliases */
+  --spacing-xs: var(--space-2);
+  --spacing-sm: var(--space-3);
+  --spacing-md: var(--space-4);
+  --spacing-lg: var(--space-6);
+  --spacing-xl: var(--space-8);
+  --spacing-2xl: var(--space-12);
 }
 
 /* ============================================
