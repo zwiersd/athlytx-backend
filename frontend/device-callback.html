@@ -34,9 +34,42 @@
         }
 
         .icon {
-            font-size: 64px;
-            margin-bottom: 24px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
             animation: pulse 2s infinite;
+        }
+
+        .icon svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        .icon-success {
+            background: rgba(52, 199, 89, 0.1);
+            border-color: rgba(52, 199, 89, 0.3);
+        }
+
+        .icon-success svg {
+            color: rgba(52, 199, 89, 1);
+            filter: drop-shadow(0 2px 8px rgba(52, 199, 89, 0.4));
+        }
+
+        .icon-error {
+            background: rgba(255, 69, 58, 0.1);
+            border-color: rgba(255, 69, 58, 0.3);
+        }
+
+        .icon-error svg {
+            color: rgba(255, 69, 58, 1);
+            filter: drop-shadow(0 2px 8px rgba(255, 69, 58, 0.4));
         }
 
         @keyframes pulse {
@@ -125,7 +158,12 @@
         </div>
 
         <div id="successState" style="display: none;">
-            <div class="icon">✓</div>
+            <div class="icon icon-success">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
             <h1>Device Connected!</h1>
             <p id="successMessage">Your device has been successfully connected to Athlytx.</p>
             <div class="status success">Connected</div>
@@ -133,7 +171,13 @@
         </div>
 
         <div id="errorState" style="display: none;">
-            <div class="icon">⚠️</div>
+            <div class="icon icon-error">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                </svg>
+            </div>
             <h1>Connection Failed</h1>
             <p id="errorMessage">We couldn't connect your device. Please try again.</p>
             <div class="status error">Failed</div>

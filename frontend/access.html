@@ -118,9 +118,35 @@
         }
 
         .icon {
-            font-size: 80px;
+            width: 80px;
+            height: 80px;
             margin-bottom: 24px;
-            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            color: rgba(102, 126, 234, 0.9);
+            filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
+        }
+
+        .choice-card:hover .icon {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice-card:hover .icon svg {
+            color: rgba(102, 126, 234, 1);
+            transform: scale(1.1);
         }
 
         .choice-card h2 {
@@ -183,13 +209,26 @@
 
         <div class="cards-container">
             <div class="choice-card" onclick="navigateTo('/coach')">
-                <div class="icon">👨‍💼</div>
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M4 20C4 16.6863 6.68629 14 10 14H14C17.3137 14 20 16.6863 20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M15 8L17 6L19 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
                 <h2>I'm a Coach <span class="arrow">→</span></h2>
                 <p>Manage athletes and analyze their training data with advanced insights and performance metrics</p>
             </div>
 
             <div class="choice-card" onclick="navigateTo('/athlete')">
-                <div class="icon">🏃</div>
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13.5 5.5C13.5 6.88071 12.3807 8 11 8C9.61929 8 8.5 6.88071 8.5 5.5C8.5 4.11929 9.61929 3 11 3C12.3807 3 13.5 4.11929 13.5 5.5Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M14 14L17 10L18 14L20 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M11 10L8 14L4 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 14L14 14L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
                 <h2>I'm an Athlete <span class="arrow">→</span></h2>
                 <p>Connect with your coach and track your training progress with data-driven insights</p>
             </div>
