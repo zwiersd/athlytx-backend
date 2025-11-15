@@ -353,10 +353,60 @@
         const loading = document.getElementById('loading');
         const messageDiv = document.getElementById('message');
 
-        // Check for success message in URL
+        // Check for magic link token in URL
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('registered') === 'true') {
+        const token = urlParams.get('token');
+
+        if (token) {
+            // Hide form and verify token automatically
+            loginForm.style.display = 'none';
+            messageDiv.innerHTML = '<div class="loading"><div class="spinner"></div><span>Verifying magic link...</span></div>';
+            verifyToken(token);
+        } else if (urlParams.get('registered') === 'true') {
             showMessage('Account created! Check your email for a magic link.', 'success');
+        }
+
+        async function verifyToken(token) {
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Show success message and redirect
+                    messageDiv.innerHTML = `
+                        <div class="success-state">
+                            <div class="success-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <h3>Login Successful!</h3>
+                            <p>Redirecting to your dashboard...</p>
+                        </div>
+                    `;
+
+                    // Redirect after 1 second
+                    setTimeout(() => {
+                        window.location.href = '/coach/dashboard';
+                    }, 1000);
+                } else {
+                    // Show error and display login form
+                    loginForm.style.display = 'block';
+                    showMessage(data.error || 'Invalid or expired magic link. Please request a new one.', 'error');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                loginForm.style.display = 'block';
+                showMessage('Network error. Please try again.', 'error');
+            }
         }
 
         loginForm.addEventListener('submit', async (e) => {

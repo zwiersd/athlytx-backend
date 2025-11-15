@@ -370,21 +370,74 @@
         const messageDiv = document.getElementById('message');
         const inviteNotice = document.getElementById('inviteNotice');
 
-        // Check for invite token in URL
+        // Check for magic link token or invite token in URL
         const urlParams = new URLSearchParams(window.location.search);
+        const magicToken = urlParams.get('token');
         const inviteToken = urlParams.get('invite');
 
-        if (inviteToken) {
+        if (magicToken) {
+            // Magic link verification - hide form and verify token automatically
+            loginForm.style.display = 'none';
+            messageDiv.innerHTML = '<div class="loading"><div class="spinner"></div><span>Verifying magic link...</span></div>';
+            verifyToken(magicToken);
+        } else if (inviteToken) {
             // Store invite token for after login
             sessionStorage.setItem('inviteToken', inviteToken);
 
             // Fetch invite details to pre-fill email
             fetchInviteDetails(inviteToken);
+        } else if (urlParams.get('registered') === 'true') {
+            showMessage('Account created! Check your email for a magic link.', 'success');
         }
 
-        // Check for messages
-        if (urlParams.get('registered') === 'true') {
-            showMessage('Account created! Check your email for a magic link.', 'success');
+        async function verifyToken(token) {
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Show success message and redirect
+                    messageDiv.innerHTML = `
+                        <div class="success-state">
+                            <div class="success-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <h3>Login Successful!</h3>
+                            <p>Redirecting to your dashboard...</p>
+                        </div>
+                    `;
+
+                    // Check if there's a stored invite token
+                    const storedInvite = sessionStorage.getItem('inviteToken');
+
+                    // Redirect after 1 second
+                    setTimeout(() => {
+                        if (storedInvite) {
+                            window.location.href = `/consent?token=${storedInvite}`;
+                        } else {
+                            window.location.href = '/athlete/dashboard';
+                        }
+                    }, 1000);
+                } else {
+                    // Show error and display login form
+                    loginForm.style.display = 'block';
+                    showMessage(data.error || 'Invalid or expired magic link. Please request a new one.', 'error');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                loginForm.style.display = 'block';
+                showMessage('Network error. Please try again.', 'error');
+            }
         }
 
         async function fetchInviteDetails(token) {
