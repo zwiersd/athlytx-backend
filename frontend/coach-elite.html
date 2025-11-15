@@ -1856,8 +1856,60 @@
             location.reload();
         }
 
+        // Handle magic link token from email
+        async function handleMagicLinkToken(token) {
+            console.log('[MAGIC-LINK] Verifying token...');
+
+            // Hide auth form, show loading
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainSection').innerHTML = '<div style="text-align:center; padding:50px;"><h3>Logging you in...</h3></div>';
+            document.getElementById('mainSection').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json();
+                console.log('[MAGIC-LINK] Response:', data);
+
+                if (data.success && data.user) {
+                    // Store session
+                    localStorage.setItem('sessionToken', data.sessionToken);
+                    localStorage.setItem('coach', JSON.stringify(data.user));
+                    currentCoach = data.user;
+
+                    console.log('✅ Coach logged in:', currentCoach.email);
+
+                    // Remove token from URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+
+                    // Load dashboard
+                    await loadDashboard();
+                } else {
+                    throw new Error(data.error || 'Invalid or expired magic link');
+                }
+            } catch (error) {
+                console.error('[MAGIC-LINK] Error:', error);
+                alert('Login failed: ' + error.message);
+                document.getElementById('authSection').style.display = 'flex';
+                document.getElementById('mainSection').style.display = 'none';
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            // Check for magic link token in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const magicToken = urlParams.get('token');
+
+            if (magicToken) {
+                handleMagicLinkToken(magicToken);
+                return;
+            }
+
             // Check for existing session
             const sessionToken = localStorage.getItem('sessionToken');
             const coach = localStorage.getItem('coach');
