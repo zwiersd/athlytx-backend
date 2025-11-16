@@ -332,38 +332,44 @@
     <script>
         let currentUser = null;
 
-        async function loadProfile() {
-            const sessionToken = localStorage.getItem('athlytx_session');
-            const userId = localStorage.getItem('athlytx_userId');
-            const userEmail = localStorage.getItem('athlytx_email');
+        let currentSession = null;
 
-            if (!sessionToken || !userId) {
+        async function loadProfile() {
+            const sessionData = localStorage.getItem('athlytx_session');
+
+            if (!sessionData) {
+                window.location.href = '/coach';
+                return;
+            }
+
+            try {
+                currentSession = JSON.parse(sessionData);
+            } catch (e) {
+                console.error('Failed to parse session:', e);
+                window.location.href = '/coach';
+                return;
+            }
+
+            if (!currentSession.sessionToken || !currentSession.user) {
                 window.location.href = '/coach';
                 return;
             }
 
             // Display account info
-            document.getElementById('userEmail').textContent = userEmail || 'Not available';
-            document.getElementById('userId').textContent = userId;
+            document.getElementById('userEmail').textContent = currentSession.user.email || 'Not available';
+            document.getElementById('userId').textContent = currentSession.user.id || 'Not available';
 
-            // Load coach profile data
-            // For now, load from localStorage or make API call to get full profile
-            const userName = localStorage.getItem('athlytx_name') || '';
-            const userOrg = localStorage.getItem('athlytx_organization') || '';
-            const userSpecialty = localStorage.getItem('athlytx_specialty') || '';
-            const userBio = localStorage.getItem('athlytx_bio') || '';
-
-            document.getElementById('name').value = userName;
-            document.getElementById('organization').value = userOrg;
-            document.getElementById('specialty').value = userSpecialty;
-            document.getElementById('bio').value = userBio;
+            // Load coach profile data from session
+            document.getElementById('name').value = currentSession.user.name || '';
+            document.getElementById('organization').value = currentSession.user.organization || '';
+            document.getElementById('specialty').value = currentSession.user.specialty || '';
+            document.getElementById('bio').value = currentSession.user.bio || '';
         }
 
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const sessionToken = localStorage.getItem('athlytx_session');
-            if (!sessionToken) {
+            if (!currentSession || !currentSession.sessionToken) {
                 showMessage('Session expired. Please log in again.', 'error');
                 setTimeout(() => window.location.href = '/coach', 2000);
                 return;
@@ -381,7 +387,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        sessionToken,
+                        sessionToken: currentSession.sessionToken,
                         name: document.getElementById('name').value.trim(),
                         organization: document.getElementById('organization').value.trim(),
                         specialty: document.getElementById('specialty').value,
@@ -392,11 +398,9 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Update localStorage
-                    localStorage.setItem('athlytx_name', data.user.name || '');
-                    localStorage.setItem('athlytx_organization', data.user.organization || '');
-                    localStorage.setItem('athlytx_specialty', data.user.specialty || '');
-                    localStorage.setItem('athlytx_bio', data.user.bio || '');
+                    // Update session with new user data
+                    currentSession.user = data.user;
+                    localStorage.setItem('athlytx_session', JSON.stringify(currentSession));
 
                     showMessage('Profile updated successfully!', 'success');
 
