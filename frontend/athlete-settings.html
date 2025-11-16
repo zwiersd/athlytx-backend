@@ -374,6 +374,58 @@
         <h1 class="page-title">Settings</h1>
 
         <div class="settings-grid">
+            <!-- Profile Settings -->
+            <div class="card">
+                <h2>Profile</h2>
+                <p>Update your personal information and preferences.</p>
+
+                <div id="profileMessage"></div>
+
+                <form id="profileForm" style="margin-top: 24px;">
+                    <div class="form-group">
+                        <label for="profileName">Full Name</label>
+                        <input type="text" id="profileName" placeholder="Your name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileSport">Primary Sport</label>
+                        <select id="profileSport" style="width: 100%; padding: 12px 16px; background: var(--glass-3); border: 1px solid var(--border-1); border-radius: 10px; color: var(--text-primary); font-size: 14px;">
+                            <option value="">Select sport...</option>
+                            <option value="running">Running</option>
+                            <option value="cycling">Cycling</option>
+                            <option value="triathlon">Triathlon</option>
+                            <option value="swimming">Swimming</option>
+                            <option value="strength">Strength Training</option>
+                            <option value="crossfit">CrossFit</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileTimezone">Timezone</label>
+                        <select id="profileTimezone" style="width: 100%; padding: 12px 16px; background: var(--glass-3); border: 1px solid var(--border-1); border-radius: 10px; color: var(--text-primary); font-size: 14px;">
+                            <option value="America/New_York">Eastern Time</option>
+                            <option value="America/Chicago">Central Time</option>
+                            <option value="America/Denver">Mountain Time</option>
+                            <option value="America/Los_Angeles">Pacific Time</option>
+                            <option value="Europe/London">London (GMT)</option>
+                            <option value="Europe/Paris">Central European Time</option>
+                            <option value="Asia/Tokyo">Tokyo</option>
+                            <option value="Australia/Sydney">Sydney</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                        <button type="button" class="btn-secondary" style="padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;" onclick="loadProfile()">
+                            Reset
+                        </button>
+                        <button type="submit" class="btn-primary" style="padding: 12px 24px; background: var(--primary); border: none; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- My Coaches -->
             <div class="card">
                 <h2>My Coaches</h2>
@@ -479,6 +531,12 @@
 
             // Load coaches
             loadCoaches();
+
+            // Load profile
+            loadProfile();
+
+            // Handle profile form submission
+            document.getElementById('profileForm').addEventListener('submit', handleProfileSubmit);
         });
 
         async function loadCoaches() {
@@ -531,6 +589,75 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // Profile Functions
+        function loadProfile() {
+            if (!session || !session.user) return;
+
+            // Load from session user data
+            document.getElementById('profileName').value = session.user.name || '';
+            document.getElementById('profileSport').value = session.user.sport || '';
+            document.getElementById('profileTimezone').value = session.user.timezone || 'America/New_York';
+        }
+
+        async function handleProfileSubmit(e) {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const profileData = {
+                sessionToken: session.sessionToken,
+                name: document.getElementById('profileName').value.trim(),
+                sport: document.getElementById('profileSport').value,
+                timezone: document.getElementById('profileTimezone').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/update-profile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profileData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update session storage
+                    session.user = data.user;
+                    localStorage.setItem('athlytx_session', JSON.stringify(session));
+
+                    showProfileMessage('Profile updated successfully!', 'success');
+                } else {
+                    showProfileMessage(data.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showProfileMessage('Failed to update profile. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        function showProfileMessage(text, type) {
+            const messageDiv = document.getElementById('profileMessage');
+            const bgColor = type === 'success' ? 'rgba(72, 187, 120, 0.2)' : 'rgba(245, 101, 101, 0.2)';
+            const borderColor = type === 'success' ? '#48bb78' : '#f56565';
+            const textColor = type === 'success' ? '#48bb78' : '#f56565';
+
+            messageDiv.innerHTML = `
+                <div style="padding: 12px 16px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 10px; color: ${textColor}; font-size: 14px; margin-bottom: 16px;">
+                    ${text}
+                </div>
+            `;
+
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
         }
 
         // Revoke Coach Functions

@@ -556,15 +556,113 @@ router.post('/invite-athlete', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/register/coach
+ * Complete coach onboarding with full profile
+ */
+router.post('/register/coach', async (req, res) => {
+    try {
+        const { firstName, lastName, email, organization, specialty, bio } = req.body;
+
+        console.log('[COACH-REGISTER] Onboarding request:', { email, firstName, lastName });
+
+        if (!firstName || !lastName || !email) {
+            return res.status(400).json({
+                error: 'First name, last name, and email are required'
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Check if user already exists
+        let user = await User.findOne({
+            where: { email: normalizedEmail }
+        });
+
+        if (user) {
+            // Update existing user with onboarding data
+            user.name = `${firstName.trim()} ${lastName.trim()}`;
+            user.organization = organization?.trim() || null;
+            user.specialty = specialty || null;
+            user.bio = bio?.trim() || null;
+            user.role = 'coach';
+            user.isActive = true;
+            await user.save();
+
+            console.log('[COACH-REGISTER] Updated existing user:', user.id);
+        } else {
+            // Create new coach user
+            user = await User.create({
+                email: normalizedEmail,
+                name: `${firstName.trim()} ${lastName.trim()}`,
+                organization: organization?.trim() || null,
+                specialty: specialty || null,
+                bio: bio?.trim() || null,
+                role: 'coach',
+                isActive: true
+            });
+
+            console.log('[COACH-REGISTER] Created new coach:', user.id);
+
+            // Send admin notification
+            try {
+                await sendAdminNotification(user.email, user.name, user.role, user.id);
+            } catch (notificationError) {
+                console.warn('[COACH-REGISTER] Admin notification failed:', notificationError.message);
+            }
+        }
+
+        // Generate magic link for immediate login
+        const token = generateToken();
+        const code = generateCode();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        await MagicLink.create({
+            userId: user.id,
+            email: normalizedEmail,
+            token,
+            code,
+            expiresAt,
+            used: false
+        });
+
+        // Send magic link email
+        const magicLinkUrl = `${process.env.FRONTEND_URL || 'https://www.athlytx.com'}/coach?token=${token}`;
+
+        try {
+            await sendMagicLink(normalizedEmail, magicLinkUrl, code);
+            console.log(`✅ Magic link sent to new coach: ${normalizedEmail}`);
+        } catch (emailError) {
+            console.error('❌ Email failed:', emailError.message);
+            console.log(`🔐 Magic Link: ${magicLinkUrl}\nCode: ${code}`);
+        }
+
+        res.json({
+            success: true,
+            message: 'Account created! Check your email for the magic link to login.',
+            userId: user.id,
+            // In dev, return the code for testing
+            ...(process.env.NODE_ENV === 'development' && { code, token })
+        });
+
+    } catch (error) {
+        console.error('[COACH-REGISTER] Error:', error);
+        res.status(500).json({
+            error: 'Failed to create coach account',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
  * POST /api/auth/update-profile
  * Update coach/athlete profile information
  */
 router.post('/update-profile', async (req, res) => {
     try {
-        const { sessionToken, name } = req.body;
+        const { sessionToken, name, organization, specialty, bio, sport, timezone, dateOfBirth } = req.body;
 
-        if (!sessionToken || !name) {
-            return res.status(400).json({ error: 'Session token and name required' });
+        if (!sessionToken) {
+            return res.status(400).json({ error: 'Session token required' });
         }
 
         // Find user by session token
@@ -579,9 +677,21 @@ router.post('/update-profile', async (req, res) => {
             return res.status(401).json({ error: 'Invalid session' });
         }
 
-        // Update user name
-        user.name = name.trim();
+        // Update user profile (only update fields that are provided)
+        // Coach fields
+        if (name !== undefined) user.name = name.trim();
+        if (organization !== undefined) user.organization = organization?.trim() || null;
+        if (specialty !== undefined) user.specialty = specialty || null;
+        if (bio !== undefined) user.bio = bio?.trim() || null;
+
+        // Athlete fields
+        if (sport !== undefined) user.sport = sport || null;
+        if (timezone !== undefined) user.timezone = timezone || null;
+        if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth || null;
+
         await user.save();
+
+        console.log(`[UPDATE-PROFILE] Updated profile for ${user.email} (${user.role})`);
 
         res.json({
             success: true,
@@ -589,6 +699,15 @@ router.post('/update-profile', async (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
+                // Coach fields
+                organization: user.organization,
+                specialty: user.specialty,
+                bio: user.bio,
+                // Athlete fields
+                sport: user.sport,
+                timezone: user.timezone,
+                dateOfBirth: user.dateOfBirth,
+                // Common
                 role: user.role
             }
         });

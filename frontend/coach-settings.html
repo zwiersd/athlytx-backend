@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Settings - Athlytx Elite</title>
+    <link rel="stylesheet" href="/styles/design-tokens.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--surface-dark) 0%, var(--background-dark) 100%);
+            padding: var(--spacing-xl);
+        }
+
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .settings-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .settings-header h1 {
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .settings-header p {
+            color: var(--text-secondary);
+        }
+
+        .settings-card {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .settings-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--spacing-xl);
+        }
+
+        .btn {
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: #e57373;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ef5350;
+        }
+
+        .info-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .message {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            font-size: 0.95rem;
+        }
+
+        .message-success {
+            background: rgba(72, 187, 120, 0.2);
+            border: 1px solid #48bb78;
+            color: #48bb78;
+        }
+
+        .message-error {
+            background: rgba(245, 101, 101, 0.2);
+            border: 1px solid #f56565;
+            color: #f56565;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: var(--spacing-lg);
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-md);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <a href="/elite" class="back-link">
+            ← Back to Dashboard
+        </a>
+
+        <div class="settings-header">
+            <h1>Coach Settings</h1>
+            <p>Manage your profile and account preferences</p>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="settings-card">
+            <div class="settings-section">
+                <h2 class="section-title">Account Information</h2>
+
+                <div class="info-display">
+                    <span class="info-label">Email</span>
+                    <span class="info-value" id="userEmail">Loading...</span>
+                </div>
+
+                <div class="info-display">
+                    <span class="info-label">User ID</span>
+                    <span class="info-value" id="userId">Loading...</span>
+                </div>
+
+                <div class="info-display">
+                    <span class="info-label">Role</span>
+                    <span class="info-value">Coach</span>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2 class="section-title">Profile Settings</h2>
+
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            class="form-input"
+                            placeholder="John Smith"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="organization">Organization/Team</label>
+                        <input
+                            type="text"
+                            id="organization"
+                            class="form-input"
+                            placeholder="Elite Running Club"
+                        >
+                        <div class="help-text">Your team, club, or organization name (optional)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="specialty">Specialty</label>
+                        <select id="specialty" class="form-select">
+                            <option value="">Select your specialty...</option>
+                            <option value="running">Running</option>
+                            <option value="cycling">Cycling</option>
+                            <option value="triathlon">Triathlon</option>
+                            <option value="swimming">Swimming</option>
+                            <option value="strength">Strength & Conditioning</option>
+                            <option value="crossfit">CrossFit</option>
+                            <option value="general">General Fitness</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div class="help-text">Your primary coaching specialty</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Bio</label>
+                        <textarea
+                            id="bio"
+                            class="form-textarea"
+                            placeholder="Tell your athletes about your coaching philosophy and experience..."
+                        ></textarea>
+                        <div class="help-text">This will be visible to your athletes</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn btn-secondary" onclick="loadProfile()">
+                            Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="settings-section">
+                <h2 class="section-title">Account Actions</h2>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="logout()">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        async function loadProfile() {
+            const sessionToken = localStorage.getItem('athlytx_session');
+            const userId = localStorage.getItem('athlytx_userId');
+            const userEmail = localStorage.getItem('athlytx_email');
+
+            if (!sessionToken || !userId) {
+                window.location.href = '/coach';
+                return;
+            }
+
+            // Display account info
+            document.getElementById('userEmail').textContent = userEmail || 'Not available';
+            document.getElementById('userId').textContent = userId;
+
+            // Load coach profile data
+            // For now, load from localStorage or make API call to get full profile
+            const userName = localStorage.getItem('athlytx_name') || '';
+            const userOrg = localStorage.getItem('athlytx_organization') || '';
+            const userSpecialty = localStorage.getItem('athlytx_specialty') || '';
+            const userBio = localStorage.getItem('athlytx_bio') || '';
+
+            document.getElementById('name').value = userName;
+            document.getElementById('organization').value = userOrg;
+            document.getElementById('specialty').value = userSpecialty;
+            document.getElementById('bio').value = userBio;
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const sessionToken = localStorage.getItem('athlytx_session');
+            if (!sessionToken) {
+                showMessage('Session expired. Please log in again.', 'error');
+                setTimeout(() => window.location.href = '/coach', 2000);
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('/api/auth/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionToken,
+                        name: document.getElementById('name').value.trim(),
+                        organization: document.getElementById('organization').value.trim(),
+                        specialty: document.getElementById('specialty').value,
+                        bio: document.getElementById('bio').value.trim()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update localStorage
+                    localStorage.setItem('athlytx_name', data.user.name || '');
+                    localStorage.setItem('athlytx_organization', data.user.organization || '');
+                    localStorage.setItem('athlytx_specialty', data.user.specialty || '');
+                    localStorage.setItem('athlytx_bio', data.user.bio || '');
+
+                    showMessage('Profile updated successfully!', 'success');
+
+                    // Reload profile after a moment
+                    setTimeout(() => {
+                        loadProfile();
+                    }, 1000);
+                } else {
+                    showMessage(data.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showMessage('Failed to update profile. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message message-${type}">${text}</div>`;
+
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                localStorage.clear();
+                window.location.href = '/coach';
+            }
+        }
+
+        // Load profile on page load
+        window.addEventListener('load', loadProfile);
+    </script>
+</body>
+</html>
