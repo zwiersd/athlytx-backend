@@ -95,11 +95,17 @@ async function migrate() {
         }
 
         console.log('✅ Migration completed successfully!');
-        process.exit(0);
+        if (require.main === module) {
+            process.exit(0);
+        }
+        return { success: true, message: 'Migration completed successfully' };
 
     } catch (error) {
         console.error('❌ Migration failed:', error);
-        process.exit(1);
+        if (require.main === module) {
+            process.exit(1);
+        }
+        throw error;
     }
 }
 
