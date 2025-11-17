@@ -497,6 +497,36 @@ app.post('/api/garmin/token', async (req, res) => {
 
                     // Add garminUserId to response data
                     data.garminUserId = garminUserId;
+
+                    // **CRITICAL:** Register user for Health API PUSH notifications
+                    console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS ===');
+                    const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
+                    const pushAuthHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, data.access_token);
+
+                    console.log('Registration URL (PUSH):', pushRegUrl);
+
+                    const pushRegResponse = await fetch(pushRegUrl, {
+                        method: 'POST',
+                        headers: {
+                            Authorization: pushAuthHeader,
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    });
+
+                    const pushRegText = await pushRegResponse.text();
+                    console.log('📝 Push registration response:', {
+                        status: pushRegResponse.status,
+                        body: pushRegText
+                    });
+
+                    if (pushRegResponse.ok || pushRegResponse.status === 409) {
+                        console.log('✅ User registered for PUSH notifications (or already registered)');
+                    } else {
+                        console.warn('⚠️ Push registration failed (non-fatal):', pushRegText);
+                    }
+
                 } catch (e) {
                     console.warn('⚠️ Could not parse registration response:', e);
                 }

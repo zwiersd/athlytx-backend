@@ -119,10 +119,12 @@ const syncRoutes = require('./backend/routes/sync');
 const testRoutes = require('./backend/routes/test-garmin');
 const garminHealthRoutes = require('./backend/routes/garmin-health');
 const garminOAuthTestRoutes = require('./backend/routes/garmin-oauth-test');
+const garminRegisterRoutes = require('./backend/routes/garmin-register-existing');
 app.use('/api/sync', syncRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/garmin', garminHealthRoutes);
 app.use('/api/garmin/test', garminOAuthTestRoutes);
+app.use('/api/garmin/admin', garminRegisterRoutes);
 
 // Import authentication, coach, athlete, invite, and device routes
 const authRoutes = require('./backend/routes/auth');
