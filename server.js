@@ -99,6 +99,17 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Admin migration endpoint (temporary - run once then remove)
+app.get('/admin/migrate-oauth-tokens', async (req, res) => {
+    try {
+        const migrate = require('./backend/migrations/add-oauth-token-columns');
+        await migrate();
+        res.json({ success: true, message: 'Migration completed' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message, stack: error.stack });
+    }
+});
+
 // Import legacy routes (existing OAuth endpoints)
 const legacyRoutes = require('./backend/routes/legacy-routes');
 legacyRoutes(app);
