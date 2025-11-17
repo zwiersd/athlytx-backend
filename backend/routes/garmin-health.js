@@ -239,34 +239,126 @@ async function processGarminPushData(data) {
     console.log('🔄 Processing Garmin PUSH data asynchronously...');
 
     try {
-        // Parse the notification type
-        const { userId, summaries, activities, sleeps, stressDetails, userMetrics } = data;
+        const { Activity, HeartRateZone, DailyMetric } = require('../models');
 
-        if (!userId) {
+        // Garmin Health API sends data with garminUserId, need to map to our userId
+        const { userId: garminUserId, summaries, activities, sleeps, stressDetails, userMetrics } = data;
+
+        if (!garminUserId) {
             console.warn('⚠️  No userId in PUSH data');
             return;
         }
 
-        console.log(`Processing data for Garmin user: ${userId}`);
+        // Find our internal userId from the Garmin GUID
+        const token = await OAuthToken.findOne({
+            where: {
+                provider: 'garmin',
+                providerUserId: garminUserId
+            }
+        });
 
-        // Process different data types
+        if (!token) {
+            console.warn(`⚠️  No user found for Garmin userId: ${garminUserId}`);
+            return;
+        }
+
+        const ourUserId = token.userId;
+        console.log(`Processing Health API data for user: ${ourUserId} (Garmin: ${garminUserId})`);
+
+        let stored = 0;
+
+        // Process daily summaries (steps, heart rate, sleep, etc.)
         if (summaries && summaries.length > 0) {
             console.log(`📊 Processing ${summaries.length} daily summaries`);
-            // Store daily summaries in your database
+
+            for (const summary of summaries) {
+                try {
+                    await DailyMetric.upsert({
+                        userId: ourUserId,
+                        date: summary.calendarDate || summary.summaryDate,
+                        provider: 'garmin',
+                        steps: summary.steps,
+                        totalKilocalories: summary.totalKilocalories,
+                        activeKilocalories: summary.activeKilocalories,
+                        bmrKilocalories: summary.bmrKilocalories,
+                        restingHeartRate: summary.restingHeartRate,
+                        minHeartRate: summary.minHeartRate,
+                        maxHeartRate: summary.maxHeartRate,
+                        averageStressLevel: summary.averageStressLevel,
+                        maxStressLevel: summary.maxStressLevel,
+                        sleepSeconds: summary.sleepingSeconds,
+                        moderateIntensityMinutes: summary.moderateIntensityMinutes,
+                        vigorousIntensityMinutes: summary.vigorousIntensityMinutes,
+                        rawData: summary
+                    });
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing summary:', err.message);
+                }
+            }
+            console.log(`✅ Stored ${stored} daily summaries`);
         }
 
+        // Process activities (workouts with HR data)
         if (activities && activities.length > 0) {
             console.log(`🏃 Processing ${activities.length} activities`);
-            // Store activities in your database
-            // You can reuse your syncService logic here
+            stored = 0;
+
+            for (const activity of activities) {
+                try {
+                    // Store activity
+                    const [activityRecord] = await Activity.upsert({
+                        userId: ourUserId,
+                        provider: 'garmin',
+                        externalId: activity.activityId || activity.summaryId,
+                        activityType: activity.activityType,
+                        activityName: activity.activityName,
+                        startTime: new Date(activity.startTimeInSeconds * 1000),
+                        durationSeconds: activity.durationInSeconds,
+                        distanceMeters: activity.distanceInMeters,
+                        calories: activity.activeKilocalories,
+                        avgHr: activity.averageHeartRateInBeatsPerMinute,
+                        maxHr: activity.maxHeartRateInBeatsPerMinute,
+                        deviceModel: activity.deviceModel || activity.deviceName,
+                        rawData: activity
+                    }, { returning: true });
+
+                    // Process heart rate zones if available
+                    if (activity.timeInHeartRateZonesInSeconds && activity.timeInHeartRateZonesInSeconds.length >= 5) {
+                        const zones = activity.timeInHeartRateZonesInSeconds;
+
+                        await HeartRateZone.upsert({
+                            userId: ourUserId,
+                            activityId: activityRecord.id,
+                            provider: 'garmin',
+                            date: new Date(activity.startTimeInSeconds * 1000),
+                            activityType: activity.activityType,
+                            durationSeconds: activity.durationInSeconds,
+                            zone1Seconds: zones[0] || 0,
+                            zone2Seconds: zones[1] || 0,
+                            zone3Seconds: zones[2] || 0,
+                            zone4Seconds: zones[3] || 0,
+                            zone5Seconds: zones[4] || 0,
+                            avgHr: activity.averageHeartRateInBeatsPerMinute,
+                            maxHr: activity.maxHeartRateInBeatsPerMinute
+                        });
+                    }
+
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing activity:', err.message);
+                }
+            }
+            console.log(`✅ Stored ${stored} activities`);
         }
 
+        // Process sleep data
         if (sleeps && sleeps.length > 0) {
             console.log(`😴 Processing ${sleeps.length} sleep records`);
-            // Store sleep data
+            // Sleep data can be added to DailyMetric or a separate Sleep model
         }
 
-        console.log('✅ Garmin PUSH data processed successfully');
+        console.log('✅ Garmin Health API PUSH data processed successfully');
 
     } catch (error) {
         console.error('❌ Error in processGarminPushData:', error);

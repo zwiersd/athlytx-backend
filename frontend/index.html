@@ -1156,7 +1156,7 @@
         });
 
         // ===== TOKEN MANAGEMENT =====
-        async function saveTokenToDatabase(provider, accessToken, refreshToken = null, expiresAt = null) {
+        async function saveTokenToDatabase(provider, accessToken, refreshToken = null, expiresAt = null, providerUserId = null) {
             try {
                 // Get userId from localStorage - this ensures we always use the same user
                 const userId = localStorage.getItem('userId');
@@ -1169,7 +1169,8 @@
                         provider,
                         accessToken,
                         refreshToken,
-                        expiresAt
+                        expiresAt,
+                        providerUserId // Garmin GUID for mapping Health API push data
                     })
                 });
 
@@ -1383,12 +1384,23 @@
                         localStorage.setItem('garmin_expiry', expiryTime);
                     }
 
-                    // Save to database
+                    // Extract Garmin GUID from JWT token
+                    let garminGuid = null;
+                    try {
+                        const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+                        garminGuid = payload.garmin_guid;
+                        console.log('Extracted Garmin GUID:', garminGuid);
+                    } catch (e) {
+                        console.warn('Could not extract Garmin GUID from token:', e);
+                    }
+
+                    // Save to database with Garmin GUID
                     await saveTokenToDatabase(
                         'garmin',
                         data.access_token,
                         data.refresh_token,
-                        expiryTime ? new Date(expiryTime).toISOString() : null
+                        expiryTime ? new Date(expiryTime).toISOString() : null,
+                        garminGuid
                     );
 
                     // Clean up PKCE verifier from both storages

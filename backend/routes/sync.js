@@ -210,7 +210,7 @@ router.get('/users', async (req, res) => {
  */
 router.post('/save-token', async (req, res) => {
     try {
-        const { userId, provider, accessToken, refreshToken, expiresAt } = req.body;
+        const { userId, provider, accessToken, refreshToken, expiresAt, providerUserId } = req.body;
         const { User, OAuthToken } = require('../models');
         const { encrypt } = require('../utils/encryption');
         const { v4: uuidv4 } = require('uuid');
@@ -246,12 +246,13 @@ router.post('/save-token', async (req, res) => {
             provider: provider,
             accessTokenEncrypted: encrypt(accessToken),
             refreshTokenEncrypted: refreshToken ? encrypt(refreshToken) : null,
-            expiresAt: expiresAt ? new Date(expiresAt) : null
+            expiresAt: expiresAt ? new Date(expiresAt) : null,
+            providerUserId: providerUserId // Garmin GUID for Health API push
         }, {
             returning: true
         });
 
-        console.log(`✅ ${created ? 'Created' : 'Updated'} ${provider} token for user ${user.id}`);
+        console.log(`✅ ${created ? 'Created' : 'Updated'} ${provider} token for user ${user.id}${providerUserId ? ` (providerUserId: ${providerUserId})` : ''}`);
 
         res.json({
             success: true,
