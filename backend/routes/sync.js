@@ -348,4 +348,58 @@ router.get('/check-token', async (req, res) => {
     }
 });
 
+/**
+ * Clear all activity data for a user (keeps OAuth tokens)
+ * POST /api/sync/clear-data
+ * Body: { userId: 'uuid' }
+ */
+router.post('/clear-data', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const { DailyMetric } = require('../models');
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        console.log(`🗑️  Clearing all activity data for user ${userId}...`);
+
+        // Delete all data for this user (preserves OAuth tokens)
+        const deletedZones = await HeartRateZone.destroy({
+            where: { userId }
+        });
+
+        const deletedActivities = await Activity.destroy({
+            where: { userId }
+        });
+
+        const deletedMetrics = await DailyMetric.destroy({
+            where: { userId }
+        });
+
+        const deletedSummaries = await TrainingSummary.destroy({
+            where: { userId }
+        });
+
+        console.log(`✅ Deleted: ${deletedActivities} activities, ${deletedZones} HR zones, ${deletedMetrics} daily metrics, ${deletedSummaries} training summaries`);
+
+        res.json({
+            success: true,
+            message: 'All activity data cleared',
+            deleted: {
+                activities: deletedActivities,
+                heartRateZones: deletedZones,
+                dailyMetrics: deletedMetrics,
+                trainingSummaries: deletedSummaries
+            }
+        });
+    } catch (error) {
+        console.error('Clear data error:', error);
+        res.status(500).json({
+            error: 'Failed to clear data',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
