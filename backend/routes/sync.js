@@ -331,7 +331,7 @@ router.get('/check-token', async (req, res) => {
 
         const tokens = await OAuthToken.findAll({
             where: whereClause,
-            attributes: ['userId', 'provider', 'expiresAt', 'createdAt', 'updatedAt']
+            attributes: ['userId', 'provider', 'providerUserId', 'expiresAt', 'createdAt', 'updatedAt']
         });
 
         res.json({
