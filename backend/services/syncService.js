@@ -332,6 +332,14 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
     console.log(`  📊 Syncing Garmin activities...`);
 
     const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
+    const tokenSecret = tokenRecord.refreshTokenEncrypted ? decrypt(tokenRecord.refreshTokenEncrypted) : '';
+
+    // Garmin uses OAuth 1.0a, so we need to sign requests
+    const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
+    const signer = new GarminOAuth1Hybrid(
+        process.env.GARMIN_CONSUMER_KEY,
+        process.env.GARMIN_CONSUMER_SECRET
+    );
 
     // Garmin API only allows 24-hour windows (86400 seconds max)
     // So we need to make multiple requests, one for each day
@@ -348,14 +356,16 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
         console.log(`  Fetching day ${day + 1}/${daysBack}...`);
 
         try {
-            const response = await fetch(
-                `https://apis.garmin.com/wellness-api/rest/activities?summaryStartTimeInSeconds=${startTimestamp}&summaryEndTimeInSeconds=${endTimestamp}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
+            const url = `https://apis.garmin.com/wellness-api/rest/activities?summaryStartTimeInSeconds=${startTimestamp}&summaryEndTimeInSeconds=${endTimestamp}`;
+
+            // Generate OAuth 1.0a signature
+            const authHeader = signer.generateAuthHeader('GET', url, {}, accessToken, tokenSecret);
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': authHeader
                 }
-            );
+            });
 
             if (!response.ok) {
                 const errorText = await response.text();
