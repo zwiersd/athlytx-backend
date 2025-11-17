@@ -41,14 +41,16 @@ async function syncUserData(userId, daysBack = 1) {
             }
         }
 
-        // Sync Garmin
+        // Sync Garmin - DISABLED: Garmin uses PUSH notifications only, PULL requests not allowed
         const garminToken = tokens.find(t => t.provider === 'garmin');
         if (garminToken) {
-            try {
-                results.garmin = await syncGarminActivities(userId, garminToken, daysBack);
-            } catch (error) {
-                results.errors.push(`Garmin: ${error.message}`);
-            }
+            console.log('⚠️  Garmin sync skipped - using PUSH notifications only (PULL requests forbidden for production apps)');
+            results.garmin = {
+                message: 'Garmin uses PUSH notifications - sync not needed',
+                pushOnly: true
+            };
+            // PULL requests cause InvalidPullTokenException errors
+            // All Garmin data comes via /api/garmin/push webhook
         }
 
         // Sync Oura
