@@ -652,221 +652,37 @@ app.get('/api/garmin/v2/permissions', async (req, res) => {
     }
 });
 
+// DISABLED: PULL requests not allowed for production apps
+// Garmin requires PUSH-only notifications - this endpoint violated compliance
 app.get('/api/garmin/v2/dailies', async (req, res) => {
-    try {
-        const { token, start, end } = req.query;
-
-        if (!token) {
-            return res.status(400).json({
-                error: 'Missing access token',
-                message: 'OAuth 2.0 token is required'
-            });
-        }
-
-        // Convert date strings to Unix timestamps
-        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
-        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
-
-        console.log('📊 Garmin dailies request (Bearer token):', {
-            start,
-            end,
-            startTimestamp,
-            endTimestamp,
-            tokenPrefix: token.substring(0, 20) + '...'
-        });
-
-        // Use Bearer token directly for Partner API
-        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
-
-        let response;
-        // Check time range (max 24 hours)
-        if (!validateTimeRange(startTimestamp, endTimestamp)) {
-            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
-            // For now, just limit to 24 hours from end
-            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
-            console.log('📊 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
-
-            response = await fetchWithBearer('/dailies', 'GET', token, {
-                uploadStartTimeInSeconds: adjustedStart.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        } else {
-            response = await fetchWithBearer('/dailies', 'GET', token, {
-                uploadStartTimeInSeconds: startTimestamp.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        }
-
-        const responseText = await response.text();
-        console.log('📊 Garmin dailies response:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries()),
-            body: responseText.substring(0, 500)
-        });
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            // If not JSON, wrap response
-            data = { raw: responseText };
-        }
-
-        if (!response.ok) {
-            console.error('❌ Garmin API error:', response.status, responseText);
-            throw new Error(`Garmin API error: ${response.status} - ${data.errorMessage || data.message || responseText}`);
-        }
-
-        res.json(data);
-    } catch (error) {
-        console.error('❌ Garmin dailies error:', error.message);
-        res.status(500).json({ error: error.message });
-    }
+    console.log('⚠️ PULL request blocked: /api/garmin/v2/dailies (compliance violation)');
+    res.status(403).json({
+        error: 'PULL requests forbidden',
+        message: 'Garmin production apps must use PUSH notifications only. Data is available via /api/garmin/push webhook.',
+        compliance: 'This endpoint was disabled to meet Garmin Health API requirements'
+    });
 });
 
+// DISABLED: PULL requests not allowed for production apps
+// Garmin requires PUSH-only notifications - this endpoint violated compliance
 app.get('/api/garmin/v2/activities', async (req, res) => {
-    try {
-        const { token, start, end } = req.query;
-
-        if (!token) {
-            return res.status(400).json({
-                error: 'Missing access token',
-                message: 'OAuth 2.0 token is required'
-            });
-        }
-
-        // Convert date strings to Unix timestamps
-        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
-        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
-
-        console.log('🏃 Garmin activities request (Bearer token):', {
-            start,
-            end,
-            startTimestamp,
-            endTimestamp,
-            tokenPrefix: token.substring(0, 20) + '...'
-        });
-
-        // Use Bearer token directly for Partner API
-        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
-
-        let response;
-        // Check time range (max 24 hours)
-        if (!validateTimeRange(startTimestamp, endTimestamp)) {
-            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
-            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
-            console.log('🏃 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
-
-            response = await fetchWithBearer('/activities', 'GET', token, {
-                uploadStartTimeInSeconds: adjustedStart.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        } else {
-            response = await fetchWithBearer('/activities', 'GET', token, {
-                uploadStartTimeInSeconds: startTimestamp.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        }
-
-        const responseText = await response.text();
-        console.log('🏃 Garmin activities response:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries()),
-            body: responseText.substring(0, 500)
-        });
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            // If not JSON, wrap response
-            data = { raw: responseText };
-        }
-
-        if (!response.ok) {
-            console.error('❌ Garmin API error:', response.status, responseText);
-            throw new Error(`Garmin API error: ${response.status} - ${data.errorMessage || data.message || responseText}`);
-        }
-
-        res.json(data);
-    } catch (error) {
-        console.error('❌ Garmin activities error:', error.message);
-        res.status(500).json({ error: error.message });
-    }
+    console.log('⚠️ PULL request blocked: /api/garmin/v2/activities (compliance violation)');
+    res.status(403).json({
+        error: 'PULL requests forbidden',
+        message: 'Garmin production apps must use PUSH notifications only. Data is available via /api/garmin/push webhook.',
+        compliance: 'This endpoint was disabled to meet Garmin Health API requirements'
+    });
 });
 
+// DISABLED: PULL requests not allowed for production apps
+// Garmin requires PUSH-only notifications - this endpoint violated compliance
 app.get('/api/garmin/v2/sleep', async (req, res) => {
-    try {
-        const { token, start, end } = req.query;
-
-        if (!token) {
-            return res.status(400).json({
-                error: 'Missing access token',
-                message: 'OAuth 2.0 token is required'
-            });
-        }
-
-        // Convert date strings to Unix timestamps
-        const startTimestamp = Math.floor(new Date(start).getTime() / 1000);
-        const endTimestamp = Math.floor(new Date(end).getTime() / 1000);
-
-        console.log('😴 Garmin sleep request (Bearer token):', {
-            start,
-            end,
-            startTimestamp,
-            endTimestamp,
-            tokenPrefix: token.substring(0, 20) + '...'
-        });
-
-        // Use Bearer token directly for Partner API
-        const { fetchWithBearer, validateTimeRange } = require('../utils/garmin-api-bearer');
-
-        let response;
-        // Check time range (max 24 hours)
-        if (!validateTimeRange(startTimestamp, endTimestamp)) {
-            console.log('⚠️ Time range exceeds 24 hours, will limit to last 24 hours');
-            const adjustedStart = Math.max(startTimestamp, endTimestamp - 86400);
-            console.log('😴 Adjusted time range:', new Date(adjustedStart * 1000).toISOString(), 'to', new Date(endTimestamp * 1000).toISOString());
-
-            response = await fetchWithBearer('/sleeps', 'GET', token, {
-                uploadStartTimeInSeconds: adjustedStart.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        } else {
-            response = await fetchWithBearer('/sleeps', 'GET', token, {
-                uploadStartTimeInSeconds: startTimestamp.toString(),
-                uploadEndTimeInSeconds: endTimestamp.toString()
-            });
-        }
-
-        const responseText = await response.text();
-        console.log('😴 Garmin sleep response:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries()),
-            body: responseText.substring(0, 500)
-        });
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            // If not JSON, wrap response
-            data = { raw: responseText };
-        }
-
-        if (!response.ok) {
-            console.error('❌ Garmin API error:', response.status, responseText);
-            throw new Error(`Garmin API error: ${response.status} - ${data.errorMessage || data.message || responseText}`);
-        }
-
-        res.json(data);
-    } catch (error) {
-        console.error('❌ Garmin sleep error:', error.message);
-        res.status(500).json({ error: error.message });
-    }
+    console.log('⚠️ PULL request blocked: /api/garmin/v2/sleep (compliance violation)');
+    res.status(403).json({
+        error: 'PULL requests forbidden',
+        message: 'Garmin production apps must use PUSH notifications only. Data is available via /api/garmin/push webhook.',
+        compliance: 'This endpoint was disabled to meet Garmin Health API requirements'
+    });
 });
 
 console.log('✅ Legacy OAuth routes loaded');

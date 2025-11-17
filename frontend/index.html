@@ -2911,92 +2911,31 @@
                     throw new Error('No Garmin access token found');
                 }
 
-                const today = new Date();
-                // Garmin API limit: max 1 day (86400 seconds) per request
-                const startDate = today.toISOString().split('T')[0];
-                const endDate = today.toISOString().split('T')[0];
+                // NOTE: PULL requests disabled for Garmin production compliance
+                // Garmin requires PUSH-only notifications. Data comes via webhook.
+                // Display connection status without making forbidden PULL requests.
 
-                // Fetch Garmin data endpoints through backend with OAuth 2.0 token
-                const [dailySummaryResponse, activitiesResponse, sleepResponse] = await Promise.allSettled([
-                    fetchWithRetry(`${API_CONFIG.backend}/api/garmin/v2/dailies?token=${token}&start=${startDate}&end=${endDate}`).catch(e => ({ ok: false, error: e })),
-                    fetchWithRetry(`${API_CONFIG.backend}/api/garmin/v2/activities?token=${token}&start=${startDate}&end=${endDate}`).catch(e => ({ ok: false, error: e })),
-                    fetchWithRetry(`${API_CONFIG.backend}/api/garmin/v2/sleep?token=${token}&start=${startDate}&end=${endDate}`).catch(e => ({ ok: false, error: e }))
-                ]);
+                // Mark as connected - data will come from PUSH webhooks
+                fitnessData.garmin = {
+                    dailySummary: null,
+                    activities: null,
+                    sleep: null,
+                    connected: true,
+                    pushOnly: true
+                };
 
-                let dailySummary = null, activities = null, sleep = null;
-                let hasAnyData = false;
+                button.innerHTML = '<span class="check-icon">✓</span> Connected';
+                button.classList.add('connected');
+                button.disabled = false;
 
-                // Process responses with validation
-                if (dailySummaryResponse.status === 'fulfilled' && dailySummaryResponse.value.ok) {
-                    const data = await dailySummaryResponse.value.json();
-                    if (data) {
-                        dailySummary = data;
-                        hasAnyData = true;
-                    }
+                // Show disconnect button
+                const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'block';
                 }
 
-                if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
-                    const data = await activitiesResponse.value.json();
-                    if (data && Array.isArray(data)) {
-                        activities = data;
-                        hasAnyData = true;
-                    }
-                }
-
-                if (sleepResponse.status === 'fulfilled' && sleepResponse.value.ok) {
-                    const data = await sleepResponse.value.json();
-                    if (data) {
-                        sleep = data;
-                        hasAnyData = true;
-                    }
-                }
-                
-                if (hasAnyData) {
-                    fitnessData.garmin = {
-                        dailySummary,
-                        activities,
-                        sleep,
-                        connected: true
-                    };
-                    
-                    fitnessData.lastUpdated = new Date();
-                    updateConnectionStatus();
-                    showMessage('Garmin data loaded successfully!', 'success');
-                    
-                    // Update UI with Garmin data
-                    if (document.getElementById('garmin').classList.contains('active')) {
-                        updateGarminDisplay();
-                    }
-                    
-                    button.innerHTML = '<span class="check-icon">✓</span> Connected';
-
-                    // Show disconnect button
-                    const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
-                    if (disconnectBtn) {
-                        disconnectBtn.style.display = 'block';
-                    }
-                    button.classList.add('connected');
-                } else {
-                    // No data available yet, but connection is successful
-                    fitnessData.garmin = {
-                        dailySummary: null,
-                        activities: null,
-                        sleep: null,
-                        connected: true
-                    };
-
-                    button.innerHTML = '<span class="check-icon">✓</span> Connected';
-                    button.classList.add('connected');
-                    button.disabled = false;
-
-                    // Show disconnect button
-                    const disconnectBtn = document.querySelector('.btn-garmin-disconnect');
-                    if (disconnectBtn) {
-                        disconnectBtn.style.display = 'block';
-                    }
-
-                    showMessage('Garmin connected! Data will sync automatically via webhooks.', 'success');
-                }
+                updateConnectionStatus();
+                showMessage('Garmin connected! Data will sync automatically via PUSH webhooks when you record activities.', 'success');
 
             } catch (error) {
                 console.error('Garmin data fetch error:', error);
