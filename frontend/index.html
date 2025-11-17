@@ -1384,23 +1384,36 @@
                         localStorage.setItem('garmin_expiry', expiryTime);
                     }
 
-                    // Extract Garmin GUID from JWT token
-                    let garminGuid = null;
-                    try {
-                        const payload = JSON.parse(atob(data.access_token.split('.')[1]));
-                        garminGuid = payload.garmin_guid;
-                        console.log('Extracted Garmin GUID:', garminGuid);
-                    } catch (e) {
-                        console.warn('Could not extract Garmin GUID from token:', e);
+                    // Extract Garmin User ID
+                    let garminUserId = null;
+
+                    // First, try to get it from the backend response (from User ID endpoint)
+                    if (data.garminUserId) {
+                        garminUserId = data.garminUserId;
+                        console.log('✅ Got Garmin User ID from backend:', garminUserId);
+                    } else {
+                        // Fallback: Try to extract from JWT token
+                        try {
+                            const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+                            console.log('🔍 Full JWT payload:', JSON.stringify(payload, null, 2));
+
+                            // Try multiple possible field names for Garmin user ID
+                            garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
+
+                            console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
+                            console.log('Available fields in token:', Object.keys(payload));
+                        } catch (e) {
+                            console.warn('⚠️  Could not extract Garmin User ID from token:', e);
+                        }
                     }
 
-                    // Save to database with Garmin GUID
+                    // Save to database with Garmin User ID
                     await saveTokenToDatabase(
                         'garmin',
                         data.access_token,
                         data.refresh_token,
                         expiryTime ? new Date(expiryTime).toISOString() : null,
-                        garminGuid
+                        garminUserId
                     );
 
                     // Clean up PKCE verifier from both storages

@@ -450,18 +450,21 @@ app.post('/api/garmin/token', async (req, res) => {
             refreshToken: data.refresh_token ? data.refresh_token.substring(0, 20) + '...' : 'NOT PROVIDED'
         });
 
-        // IMPORTANT: Register user with Garmin Wellness API after OAuth 2.0
-        // This step is required to enable data pulling with the access token
-        console.log('\n📝 === GARMIN USER REGISTRATION ===');
+        // IMPORTANT: Register user with Garmin Health API after OAuth 2.0
+        // This step is required for Health API push notifications
+        console.log('\n📝 === GARMIN HEALTH API USER REGISTRATION ===');
         console.log('Consumer Key:', process.env.GARMIN_CONSUMER_KEY);
         console.log('Consumer Secret Present:', !!process.env.GARMIN_CONSUMER_SECRET);
         console.log('Access Token Length:', data.access_token.length);
         console.log('Token Type:', data.token_type);
         console.log('Expires In:', data.expires_in);
 
+        let garminUserId = null;
+
         try {
             const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-            const baseUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
+            // Use Health API registration endpoint instead of Wellness API
+            const baseUrl = 'https://apis.garmin.com/wellness-api/rest/user/id';
 
             console.log('Registration URL:', baseUrl);
 
@@ -469,40 +472,43 @@ app.post('/api/garmin/token', async (req, res) => {
                 process.env.GARMIN_CONSUMER_KEY,
                 process.env.GARMIN_CONSUMER_SECRET
             );
-            const authHeader = signer.generateAuthHeader('POST', baseUrl, {}, data.access_token);
+            const authHeader = signer.generateAuthHeader('GET', baseUrl, {}, data.access_token);
 
             const registrationResponse = await fetch(baseUrl, {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     Authorization: authHeader,
-                    'Content-Type': 'application/json',
                     Accept: 'application/json'
-                },
-                body: JSON.stringify({}) // Empty body for registration
+                }
             });
 
             const regResponseText = await registrationResponse.text();
-            console.log('📝 Registration response:', {
+            console.log('📝 User ID endpoint response:', {
                 status: registrationResponse.status,
                 headers: Object.fromEntries(registrationResponse.headers.entries()),
                 body: regResponseText
             });
 
-            if (!registrationResponse.ok) {
-                console.error('⚠️ User registration failed, but continuing:', {
+            if (registrationResponse.ok) {
+                try {
+                    const regData = JSON.parse(regResponseText);
+                    garminUserId = regData.userId || regData.userAccessToken;
+                    console.log('✅ Extracted Garmin User ID:', garminUserId);
+
+                    // Add garminUserId to response data
+                    data.garminUserId = garminUserId;
+                } catch (e) {
+                    console.warn('⚠️ Could not parse registration response:', e);
+                }
+            } else {
+                console.error('⚠️ User ID fetch failed:', {
                     status: registrationResponse.status,
                     body: regResponseText
                 });
-                // Don't fail the entire flow if registration fails
-                // Some users might already be registered
-            } else {
-                console.log('✅ User successfully registered with Wellness API');
-                // Add a small delay to allow registration to propagate
-                await new Promise(resolve => setTimeout(resolve, 2000));
             }
         } catch (regError) {
             console.error('⚠️ User registration error (non-fatal):', regError);
-            // Continue even if registration fails - user might already be registered
+            // Continue even if registration fails
         }
 
         res.json(data);
