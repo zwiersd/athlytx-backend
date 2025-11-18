@@ -37,13 +37,26 @@ app.get('/access', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'access.html'));
 });
 
-// Coach routes - SIMPLE AUTH (new)
-app.get('/coach-simple', (req, res) => {
+// Coach routes - SIMPLE AUTH (default)
+app.get('/coach', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-simple-auth.html'));
 });
 
-// Coach routes - LEGACY MAGIC LINK (old)
-app.get('/coach', (req, res) => {
+app.get('/coach/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
+});
+
+// Athlete routes - SIMPLE AUTH (default)
+app.get('/athlete', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-simple-auth.html'));
+});
+
+app.get('/athlete/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-dashboard.html'));
+});
+
+// Legacy magic link routes (kept for backward compatibility)
+app.get('/coach-magic', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-login.html'));
 });
 
@@ -51,26 +64,12 @@ app.get('/coach/onboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-onboarding.html'));
 });
 
-app.get('/coach/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
-});
-
-// Athlete routes - SIMPLE AUTH (new)
-app.get('/athlete-simple', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'athlete-simple-auth.html'));
-});
-
-// Athlete routes - LEGACY MAGIC LINK (old)
-app.get('/athlete', (req, res) => {
+app.get('/athlete-magic', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'athlete-login.html'));
 });
 
 app.get('/athlete/onboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'athlete-onboard.html'));
-});
-
-app.get('/athlete/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'athlete-dashboard.html'));
 });
 
 // Invite routes
