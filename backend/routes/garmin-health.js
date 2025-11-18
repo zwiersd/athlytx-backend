@@ -391,6 +391,71 @@ async function processGarminPushData(data) {
             // Sleep data can be added to DailyMetric or a separate Sleep model
         }
 
+        // Process user metrics (includes HRV data)
+        if (userMetrics && userMetrics.length > 0) {
+            console.log(`📈 Processing ${userMetrics.length} user metrics (HRV data)`);
+            stored = 0;
+
+            for (const metric of userMetrics) {
+                try {
+                    // Find existing DailyMetric for this date or create new one
+                    const date = metric.calendarDate || metric.summaryDate;
+
+                    if (!date) continue;
+
+                    await DailyMetric.upsert({
+                        userId: ourUserId,
+                        date: date,
+                        hrvAvg: metric.avgWakingHeartRateVariabilityInMillis || metric.heartRateVariabilityAvg,
+                        restingHr: metric.restingHeartRate
+                    });
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing user metrics:', err.message);
+                }
+            }
+            console.log(`✅ Stored ${stored} user metrics with HRV data`);
+        }
+
+        // Process epochs (intraday HRV measurements)
+        if (epochs && epochs.length > 0) {
+            console.log(`⏱️ Processing ${epochs.length} epochs (intraday HRV)`);
+            // Epochs contain granular HRV data throughout the day
+            // For now, we'll calculate daily average from epochs
+
+            const epochsByDate = {};
+            epochs.forEach(epoch => {
+                if (epoch.hrvValue || epoch.heartRateVariability) {
+                    const date = new Date(epoch.timestampGMT || epoch.startTimeInSeconds * 1000)
+                        .toISOString().split('T')[0];
+
+                    if (!epochsByDate[date]) {
+                        epochsByDate[date] = [];
+                    }
+                    epochsByDate[date].push(epoch.hrvValue || epoch.heartRateVariability);
+                }
+            });
+
+            stored = 0;
+            for (const [date, hrvValues] of Object.entries(epochsByDate)) {
+                if (hrvValues.length > 0) {
+                    const avgHrv = hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length;
+
+                    try {
+                        await DailyMetric.upsert({
+                            userId: ourUserId,
+                            date: date,
+                            hrvAvg: avgHrv
+                        });
+                        stored++;
+                    } catch (err) {
+                        console.error('Error storing epoch HRV:', err.message);
+                    }
+                }
+            }
+            console.log(`✅ Calculated and stored HRV averages from ${stored} days of epoch data`);
+        }
+
         console.log('✅ Garmin Health API PUSH data processed successfully');
 
     } catch (error) {
