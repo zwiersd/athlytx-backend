@@ -3646,19 +3646,41 @@
                 `).join('');
                 }
 
-                // Create Heart Rate Zones chart from activity data
+                // Create Heart Rate Zones TIME IN ZONE chart from activity data
                 const zonesCtx = document.getElementById('garminZonesChart');
                 if (zonesCtx && activities.length > 0) {
-                    // Get HR data from activities
-                    const avgHRValue = Math.round(activities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / activities.length);
+                    // Calculate time in each zone (estimated based on avg HR and duration)
                     const maxHRValue = Math.max(...activities.map(a => a.maxHeartRateInBeatsPerMinute || 0));
 
-                    // Calculate zones (estimate based on max HR)
-                    const zone1 = Math.round(maxHRValue * 0.5); // Recovery
-                    const zone2 = Math.round(maxHRValue * 0.6); // Fat burn
-                    const zone3 = Math.round(maxHRValue * 0.7); // Cardio
-                    const zone4 = Math.round(maxHRValue * 0.8); // Threshold
-                    const zone5 = maxHRValue; // Peak
+                    // Define zone boundaries (% of max HR)
+                    const zones = {
+                        recovery: { min: 0.5, max: 0.6, time: 0 },
+                        fatBurn: { min: 0.6, max: 0.7, time: 0 },
+                        cardio: { min: 0.7, max: 0.8, time: 0 },
+                        threshold: { min: 0.8, max: 0.9, time: 0 },
+                        peak: { min: 0.9, max: 1.0, time: 0 }
+                    };
+
+                    // Estimate time in each zone based on average HR
+                    activities.forEach(activity => {
+                        if (activity.averageHeartRateInBeatsPerMinute && activity.durationInSeconds) {
+                            const avgHRPercent = activity.averageHeartRateInBeatsPerMinute / maxHRValue;
+                            const durationMinutes = activity.durationInSeconds / 60;
+
+                            // Find which zone the average HR falls into
+                            if (avgHRPercent >= zones.recovery.min && avgHRPercent < zones.recovery.max) {
+                                zones.recovery.time += durationMinutes;
+                            } else if (avgHRPercent >= zones.fatBurn.min && avgHRPercent < zones.fatBurn.max) {
+                                zones.fatBurn.time += durationMinutes;
+                            } else if (avgHRPercent >= zones.cardio.min && avgHRPercent < zones.cardio.max) {
+                                zones.cardio.time += durationMinutes;
+                            } else if (avgHRPercent >= zones.threshold.min && avgHRPercent < zones.threshold.max) {
+                                zones.threshold.time += durationMinutes;
+                            } else if (avgHRPercent >= zones.peak.min) {
+                                zones.peak.time += durationMinutes;
+                            }
+                        }
+                    });
 
                     // Destroy existing chart if it exists
                     const existingChart = Chart.getChart(zonesCtx);
@@ -3667,22 +3689,36 @@
                     new Chart(zonesCtx.getContext('2d'), {
                         type: 'bar',
                         data: {
-                            labels: ['Recovery', 'Fat Burn', 'Cardio', 'Threshold', 'Peak'],
+                            labels: ['Recovery\n(50-60%)', 'Fat Burn\n(60-70%)', 'Cardio\n(70-80%)', 'Threshold\n(80-90%)', 'Peak\n(90-100%)'],
                             datasets: [{
-                                label: 'Heart Rate (bpm)',
-                                data: [zone1, zone2, zone3, zone4, zone5],
+                                label: 'Time (minutes)',
+                                data: [
+                                    Math.round(zones.recovery.time),
+                                    Math.round(zones.fatBurn.time),
+                                    Math.round(zones.cardio.time),
+                                    Math.round(zones.threshold.time),
+                                    Math.round(zones.peak.time)
+                                ],
                                 backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336']
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y + ' minutes';
+                                        }
+                                    }
+                                }
+                            },
                             scales: {
                                 y: {
-                                    beginAtZero: false,
-                                    min: 40,
-                                    title: { display: true, text: 'Heart Rate (bpm)' }
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Time (minutes)' }
                                 }
                             }
                         }
