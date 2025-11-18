@@ -4697,8 +4697,14 @@
                 if (tabName === 'running' && typeof updateRunningAnalytics === 'function') {
                     updateRunningAnalytics();
                 }
-                if (tabName === 'garmin' && typeof updateGarminDisplay === 'function') {
-                    updateGarminDisplay();
+                if (tabName === 'garmin') {
+                    console.log('🔥 Garmin tab detected, typeof updateGarminDisplay:', typeof updateGarminDisplay);
+                    if (typeof updateGarminDisplay === 'function') {
+                        console.log('🔥 Calling updateGarminDisplay NOW!');
+                        updateGarminDisplay();
+                    } else {
+                        console.log('❌ updateGarminDisplay is not a function!');
+                    }
                 }
             }
             console.log('=== SWITCH TAB END ===');
