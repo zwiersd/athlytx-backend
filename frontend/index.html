@@ -358,11 +358,12 @@
                             <div class="form-group">
                                 <label for="signup-email-modal">Email</label>
                                 <input type="email" id="signup-email-modal" required placeholder="you@example.com">
+                                <small id="signup-email-helper" class="form-helper" style="display: none;"></small>
                             </div>
                             <div class="form-group">
                                 <label for="signup-password-modal">Password</label>
                                 <input type="password" id="signup-password-modal" required minlength="8" placeholder="Min 8 characters">
-                                <small style="color: rgba(255,255,255,0.6);">Must be at least 8 characters</small>
+                                <small id="signup-password-helper" class="form-helper">Must be at least 8 characters</small>
                             </div>
                             <button type="submit" class="auth-submit-btn">Create Account</button>
                             <div id="signup-error-modal" class="auth-error" style="display: none;"></div>
@@ -373,10 +374,12 @@
                             <div class="form-group">
                                 <label for="login-email-modal">Email</label>
                                 <input type="email" id="login-email-modal" required placeholder="you@example.com">
+                                <small id="login-email-helper" class="form-helper" style="display: none;"></small>
                             </div>
                             <div class="form-group">
                                 <label for="login-password-modal">Password</label>
                                 <input type="password" id="login-password-modal" required placeholder="Your password">
+                                <small id="login-password-helper" class="form-helper" style="display: none;"></small>
                             </div>
                             <button type="submit" class="auth-submit-btn">Login</button>
                             <div id="login-error-modal" class="auth-error" style="display: none;"></div>
@@ -1223,6 +1226,214 @@
                 loginForm.style.display = 'block';
                 signupTab.classList.remove('active');
                 loginTab.classList.add('active');
+            }
+        }
+
+        // Form validation helpers
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function getPasswordStrength(password) {
+            if (password.length < 8) return { strength: 'weak', message: 'Too short - minimum 8 characters required' };
+            if (password.length < 10) return { strength: 'fair', message: 'Fair password - consider making it longer' };
+
+            let strength = 0;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+            if (strength >= 3 && password.length >= 12) return { strength: 'strong', message: 'Strong password!' };
+            if (strength >= 2 && password.length >= 10) return { strength: 'good', message: 'Good password' };
+            return { strength: 'fair', message: 'Fair password - add numbers or symbols for better security' };
+        }
+
+        function showHelper(helperId, message, type) {
+            const helper = document.getElementById(helperId);
+            helper.textContent = message;
+            helper.style.display = 'block';
+            helper.style.color = type === 'error' ? '#ef4444' :
+                                 type === 'success' ? '#10b981' :
+                                 type === 'warning' ? '#f59e0b' :
+                                 'rgba(255,255,255,0.6)';
+        }
+
+        function hideHelper(helperId) {
+            document.getElementById(helperId).style.display = 'none';
+        }
+
+        // Real-time validation for signup form
+        const signupEmailInput = document.getElementById('signup-email-modal');
+        const signupPasswordInput = document.getElementById('signup-password-modal');
+
+        if (signupEmailInput) {
+            signupEmailInput.addEventListener('blur', function() {
+                if (this.value && !validateEmail(this.value)) {
+                    showHelper('signup-email-helper', 'Please enter a valid email address', 'error');
+                } else if (this.value) {
+                    hideHelper('signup-email-helper');
+                }
+            });
+        }
+
+        if (signupPasswordInput) {
+            signupPasswordInput.addEventListener('input', function() {
+                if (this.value) {
+                    const result = getPasswordStrength(this.value);
+                    const type = result.strength === 'strong' ? 'success' :
+                                 result.strength === 'good' ? 'success' :
+                                 result.strength === 'fair' ? 'warning' : 'error';
+                    showHelper('signup-password-helper', result.message, type);
+                } else {
+                    showHelper('signup-password-helper', 'Must be at least 8 characters', 'info');
+                }
+            });
+        }
+
+        // Handle signup form submission
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('signup-email-modal').value;
+            const password = document.getElementById('signup-password-modal').value;
+            const name = document.getElementById('signup-name-modal').value;
+            const errorDiv = document.getElementById('signup-error-modal');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+
+            // Validate email
+            if (!validateEmail(email)) {
+                showHelper('signup-email-helper', 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            // Validate password
+            if (password.length < 8) {
+                showHelper('signup-password-helper', 'Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            errorDiv.style.display = 'none';
+
+            try {
+                const userId = localStorage.getItem('userId');
+                const response = await fetch(`${API_CONFIG.backend}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, email, password, name })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save user data
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('sessionToken', data.sessionToken);
+                    localStorage.setItem('userEmail', data.user.email);
+                    if (data.user.name) localStorage.setItem('userName', data.user.name);
+
+                    // Close modal
+                    closeAuthModal();
+
+                    // Update UI to show authenticated view
+                    document.getElementById('guestView').style.display = 'none';
+                    document.getElementById('authenticatedView').style.display = 'block';
+                    document.getElementById('user-email').textContent = data.user.email;
+                    document.getElementById('user-name').textContent = data.user.name || 'Not set';
+                    document.getElementById('user-id').textContent = data.user.id;
+
+                    showMessage('Account created successfully!', 'success');
+                } else {
+                    errorDiv.textContent = data.error || 'Signup failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        }
+
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('login-email-modal').value;
+            const password = document.getElementById('login-password-modal').value;
+            const errorDiv = document.getElementById('login-error-modal');
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+
+            // Validate email
+            if (!validateEmail(email)) {
+                showHelper('login-email-helper', 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!password) {
+                showHelper('login-password-helper', 'Password is required', 'error');
+                return;
+            }
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            errorDiv.style.display = 'none';
+            hideHelper('login-email-helper');
+            hideHelper('login-password-helper');
+
+            try {
+                const response = await fetch(`${API_CONFIG.backend}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save user data
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('sessionToken', data.sessionToken);
+                    localStorage.setItem('userEmail', data.user.email);
+                    if (data.user.name) localStorage.setItem('userName', data.user.name);
+
+                    // Close modal
+                    closeAuthModal();
+
+                    // Update UI to show authenticated view
+                    document.getElementById('guestView').style.display = 'none';
+                    document.getElementById('authenticatedView').style.display = 'block';
+                    document.getElementById('user-email').textContent = data.user.email;
+                    document.getElementById('user-name').textContent = data.user.name || 'Not set';
+                    document.getElementById('user-id').textContent = data.user.id;
+
+                    showMessage('Logged in successfully!', 'success');
+
+                    // Reload existing connections
+                    if (typeof loadExistingConnections === 'function') {
+                        await loadExistingConnections();
+                    }
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                    if (data.error && data.error.includes('Invalid')) {
+                        showHelper('login-password-helper', 'Invalid email or password', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
             }
         }
 
