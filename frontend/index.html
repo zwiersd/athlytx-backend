@@ -333,55 +333,72 @@
                 <div id="readinessBanner"></div>
             </div>
 
+            <!-- Login/Signup Modal Overlay -->
+            <div id="authModal" class="auth-modal-overlay" style="display: none;">
+                <div class="auth-modal-container">
+                    <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+
+                    <div class="auth-modal-content">
+                        <h2>Welcome to Athlytx</h2>
+                        <p style="color: rgba(255,255,255,0.7); margin-bottom: 24px;">
+                            Create an account to sync your data across devices and unlock additional features.
+                        </p>
+
+                        <div class="auth-tabs">
+                            <button class="auth-tab active" onclick="showAuthForm('signup')">Sign Up</button>
+                            <button class="auth-tab" onclick="showAuthForm('login')">Login</button>
+                        </div>
+
+                        <!-- Sign Up Form -->
+                        <form id="signupFormModal" class="auth-form" onsubmit="handleSignup(event)">
+                            <div class="form-group">
+                                <label for="signup-name-modal">Name (optional)</label>
+                                <input type="text" id="signup-name-modal" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email-modal">Email</label>
+                                <input type="email" id="signup-email-modal" required placeholder="you@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password-modal">Password</label>
+                                <input type="password" id="signup-password-modal" required minlength="8" placeholder="Min 8 characters">
+                                <small style="color: rgba(255,255,255,0.6);">Must be at least 8 characters</small>
+                            </div>
+                            <button type="submit" class="auth-submit-btn">Create Account</button>
+                            <div id="signup-error-modal" class="auth-error" style="display: none;"></div>
+                        </form>
+
+                        <!-- Login Form -->
+                        <form id="loginFormModal" class="auth-form" style="display: none;" onsubmit="handleLogin(event)">
+                            <div class="form-group">
+                                <label for="login-email-modal">Email</label>
+                                <input type="email" id="login-email-modal" required placeholder="you@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password-modal">Password</label>
+                                <input type="password" id="login-password-modal" required placeholder="Your password">
+                            </div>
+                            <button type="submit" class="auth-submit-btn">Login</button>
+                            <div id="login-error-modal" class="auth-error" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab Content Wrapper -->
             <div class="tab-content-wrapper">
                 <!-- Account Tab -->
                 <div id="account" class="tab-panel" role="tabpanel" aria-labelledby="account-tab">
                     <!-- Guest Mode View -->
                     <div id="guestView" class="account-view">
-                        <div class="account-card glass-card">
-                            <h2>Welcome to Athlytx</h2>
-                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 24px;">
+                        <div class="account-card glass-card" style="text-align: center; padding: 60px 40px;">
+                            <h2 style="margin-bottom: 16px;">Welcome to Athlytx</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 32px; font-size: 16px;">
                                 You're currently using Athlytx as a guest. Create an account to sync your data across devices and unlock additional features.
                             </p>
-
-                            <div class="auth-tabs">
-                                <button class="auth-tab active" onclick="showAuthForm('signup')">Sign Up</button>
-                                <button class="auth-tab" onclick="showAuthForm('login')">Login</button>
-                            </div>
-
-                            <!-- Sign Up Form -->
-                            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
-                                <div class="form-group">
-                                    <label for="signup-name">Name (optional)</label>
-                                    <input type="text" id="signup-name" placeholder="Your name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-email">Email</label>
-                                    <input type="email" id="signup-email" required placeholder="you@example.com">
-                                </div>
-                                <div class="form-group">
-                                    <label for="signup-password">Password</label>
-                                    <input type="password" id="signup-password" required minlength="8" placeholder="Min 8 characters">
-                                    <small style="color: rgba(255,255,255,0.6);">Must be at least 8 characters</small>
-                                </div>
-                                <button type="submit" class="auth-submit-btn">Create Account</button>
-                                <div id="signup-error" class="auth-error" style="display: none;"></div>
-                            </form>
-
-                            <!-- Login Form -->
-                            <form id="loginForm" class="auth-form" style="display: none;" onsubmit="handleLogin(event)">
-                                <div class="form-group">
-                                    <label for="login-email">Email</label>
-                                    <input type="email" id="login-email" required placeholder="you@example.com">
-                                </div>
-                                <div class="form-group">
-                                    <label for="login-password">Password</label>
-                                    <input type="password" id="login-password" required placeholder="Your password">
-                                </div>
-                                <button type="submit" class="auth-submit-btn">Login</button>
-                                <div id="login-error" class="auth-error" style="display: none;"></div>
-                            </form>
+                            <button onclick="openAuthModal()" class="auth-submit-btn" style="padding: 16px 48px; font-size: 16px; min-width: 200px;">
+                                Sign Up / Login
+                            </button>
                         </div>
                     </div>
 
@@ -1178,6 +1195,51 @@
             const d = parseInt(localStorage.getItem('insight_window_days') || '7', 10);
             return [7,14,28].includes(d) ? d : 7;
         }
+
+        // ===== AUTH MODAL FUNCTIONS =====
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        function showAuthForm(formType) {
+            const signupForm = document.getElementById('signupFormModal');
+            const loginForm = document.getElementById('loginFormModal');
+            const signupTab = document.querySelector('.auth-modal-content .auth-tab:first-child');
+            const loginTab = document.querySelector('.auth-modal-content .auth-tab:last-child');
+
+            if (formType === 'signup') {
+                signupForm.style.display = 'block';
+                loginForm.style.display = 'none';
+                signupTab.classList.add('active');
+                loginTab.classList.remove('active');
+            } else {
+                signupForm.style.display = 'none';
+                loginForm.style.display = 'block';
+                signupTab.classList.remove('active');
+                loginTab.classList.add('active');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('authModal');
+            if (e.target === modal) {
+                closeAuthModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAuthModal();
+            }
+        });
 
         // ===== UTILITY FUNCTIONS =====
         // Helper function to convert minutes to hours:minutes format
@@ -5256,6 +5318,16 @@
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
             });
+
+            // Show/hide score hero section based on tab
+            const scoreHero = document.querySelector('.score-hero-section');
+            if (scoreHero) {
+                if (tabName === 'connections') {
+                    scoreHero.style.display = 'block';
+                } else {
+                    scoreHero.style.display = 'none';
+                }
+            }
 
             // Show target panel
             const targetPanel = document.getElementById(tabName);
