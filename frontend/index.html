@@ -2180,28 +2180,23 @@
                     const hasGarmin = !!localStorage.getItem('garmin_token');
 
                     const connected = [];
-                    const connectedNames = [];
                     if (hasGarmin) {
                         connected.push('<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
-                        connectedNames.push('Garmin');
                     }
                     if (hasStrava) {
                         connected.push('<img src="/src/images/strava.svg" alt="Strava" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
-                        connectedNames.push('Strava');
                     }
                     if (hasWhoop) {
                         connected.push('<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle; filter: invert(1) brightness(2);">');
-                        connectedNames.push('Whoop');
                     }
                     if (hasOura) {
-                        connected.push('<img src="/src/images/ourawhite.png" alt="Oura" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
-                        connectedNames.push('Oura');
+                        connected.push('<img src="/src/images/ourawhite.png" alt="Oura" style="height: 14px; width: 45px; object-fit: contain; vertical-align: middle;">');
                     }
 
                     if (connected.length === 0) {
                         guidanceEl.innerHTML = 'Connect devices for analysis';
                     } else {
-                        guidanceEl.innerHTML = `Data from ${connectedNames.join(', ')}: ${connected.join(' ')}`;
+                        guidanceEl.innerHTML = `Data from: ${connected.join(' ')}`;
                     }
                 }
                 // Update Readiness Banner on Overview
