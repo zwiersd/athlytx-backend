@@ -552,59 +552,147 @@
             <!-- Garmin Data Tab -->
             <div id="garmin" class="tab-panel" role="tabpanel" aria-labelledby="garmin-tab">
                 <!-- Garmin Attribution Header -->
-                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
-                    <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 45px; object-fit: contain;">
+                <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 24px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
+                    <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 50px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
                 </div>
 
-                <div class="analytics-card glass-card">
-                    <h3>⌚ Garmin Health & Wellness Data</h3>
-                    <div class="data-summary">
-                        <div class="summary-card glass-card">
-                            <span class="summary-value" id="garminActivities">--</span>
-                            <div class="summary-label">Activities (7d)</div>
-                        </div>
-                        <div class="summary-card glass-card">
-                            <span class="summary-value" id="garminDistance">--</span>
-                            <div class="summary-label">Total Distance</div>
-                        </div>
-                        <div class="summary-card glass-card">
-                            <span class="summary-value" id="garminAvgHR">--</span>
-                            <div class="summary-label">Avg HR</div>
-                        </div>
-                        <div class="summary-card glass-card">
-                            <span class="summary-value" id="garminTrainingTime">--</span>
-                            <div class="summary-label">Training Time</div>
-                        </div>
+                <!-- Hero Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <!-- Activities -->
+                    <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(139,92,246,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">🏃</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Activities</div>
+                        <div id="garminActivities" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div id="garminActivitiesLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Workouts</div>
+                    </div>
+
+                    <!-- Distance -->
+                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(16,185,129,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">📍</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Distance</div>
+                        <div id="garminDistance" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div id="garminDistanceLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Traveled</div>
+                    </div>
+
+                    <!-- Heart Rate -->
+                    <div style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(239,68,68,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">❤️</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Heart Rate</div>
+                        <div id="garminAvgHR" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div id="garminAvgHRLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average BPM</div>
+                    </div>
+
+                    <!-- Training Time -->
+                    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(245,158,11,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">⏱️</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Training Time</div>
+                        <div id="garminTrainingTime" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div id="garminTrainingTimeLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Duration</div>
+                    </div>
+
+                    <!-- Body Battery -->
+                    <div id="garminBodyBatteryCard" style="background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(22,163,74,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(34,197,94,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">🔋</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Body Battery</div>
+                        <div id="garminBodyBattery" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Energy Level</div>
+                    </div>
+
+                    <!-- Stress Level -->
+                    <div id="garminStressCard" style="background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(147,51,234,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(168,85,247,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">😌</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Stress Level</div>
+                        <div id="garminStressLevel" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div id="garminStressLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average</div>
+                    </div>
+
+                    <!-- HRV -->
+                    <div id="garminHRVCard" style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(59,130,246,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">💓</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">HRV</div>
+                        <div id="garminHRV" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Variability (ms)</div>
+                    </div>
+
+                    <!-- Respiration -->
+                    <div id="garminRespirationCard" style="background: linear-gradient(135deg, rgba(20,184,166,0.15), rgba(13,148,136,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(20,184,166,0.3); position: relative; overflow: hidden;">
+                        <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">🫁</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Respiration</div>
+                        <div id="garminRespiration" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Breaths/Min</div>
                     </div>
                 </div>
 
                 <div class="analytics-grid">
-                    <div class="analytics-card glass-card">
-                        <h3>Daily Health Summaries</h3>
-                        <div id="garminActivitiesList" style="max-height: 400px; overflow-y: auto;">
-                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>
+                    <!-- Activities List -->
+                    <div class="analytics-card glass-card" style="grid-column: span 2;">
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🏃‍♂️</span>
+                            Recent Activities
+                        </h3>
+                        <div id="garminActivitiesList" style="max-height: 500px; overflow-y: auto;">
+                            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">⌚</div>
+                                <div style="font-size: 1.1rem; margin-bottom: 8px;">Connect Garmin to see your activities</div>
+                                <div style="font-size: 0.9rem; opacity: 0.7;">Sync your workouts, health metrics, and more</div>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Heart Rate Zones -->
                     <div class="analytics-card glass-card">
-                        <h3>Heart Rate Zones</h3>
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">❤️</span>
+                            Heart Rate Zones
+                        </h3>
                         <div class="chart-container">
                             <canvas id="garminZonesChart"></canvas>
                         </div>
-                    </div>
-
-                    <div class="analytics-card glass-card">
-                        <h3>Calorie Breakdown</h3>
-                        <div class="chart-container">
-                            <canvas id="garminActivityTypesChart"></canvas>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 12px; text-align: center;">
+                            Time spent in each HR zone
                         </div>
                     </div>
 
+                    <!-- Body Battery Trend -->
                     <div class="analytics-card glass-card">
-                        <h3>Steps & Stress Trends</h3>
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">🔋</span>
+                            Body Battery Trend
+                        </h3>
                         <div class="chart-container">
-                            <canvas id="garminVolumeChart"></canvas>
+                            <canvas id="garminBodyBatteryChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 12px; text-align: center;">
+                            Daily energy levels (0-100)
+                        </div>
+                    </div>
+
+                    <!-- Stress Analysis -->
+                    <div class="analytics-card glass-card">
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">😌</span>
+                            Stress Distribution
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="garminStressChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 12px; text-align: center;">
+                            Time in each stress state
+                        </div>
+                    </div>
+
+                    <!-- Respiration & HRV -->
+                    <div class="analytics-card glass-card">
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">💓</span>
+                            HRV & Respiration
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="garminHRVRespirationChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 12px; text-align: center;">
+                            Recovery indicators over time
                         </div>
                     </div>
                 </div>
