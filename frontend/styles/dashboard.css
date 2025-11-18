@@ -1703,6 +1703,11 @@ button:focus-visible,
 
   .main-footer {
     padding: var(--space-3) var(--space-2);
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
   }
 
   .footer-brands {
@@ -1750,6 +1755,45 @@ button:focus-visible,
 
   .footer-text {
     font-size: 9px;
+  }
+
+  /* Hero Score Section - Mobile Responsive */
+  /* Make hero section stack vertically on mobile */
+  div[style*="display: flex"][style*="gap: 40px"] {
+    flex-direction: column !important;
+    gap: 20px !important;
+    padding: 0 16px;
+  }
+
+  /* Adjust metric cards on mobile */
+  div[style*="min-width: 110px"] {
+    min-width: 100% !important;
+    max-width: 300px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Center score circle on mobile */
+  div[style*="width: 200px"][style*="height: 200px"] {
+    width: 160px !important;
+    height: 160px !important;
+  }
+
+  /* Adjust SVG size on mobile */
+  svg[width="200"][height="200"] {
+    width: 160px !important;
+    height: 160px !important;
+  }
+
+  /* Adjust circle positions */
+  circle[cx="100"][cy="100"][r="90"] {
+    cx: 80 !important;
+    cy: 80 !important;
+    r: 70 !important;
+  }
+
+  /* Adjust score font size on mobile */
+  div[style*="font-size: 4rem"] {
+    font-size: 3rem !important;
   }
 }
 

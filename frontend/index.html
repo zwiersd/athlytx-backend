@@ -4464,6 +4464,9 @@
         }
 
         function showMessage(message, type = 'info') {
+            // On mobile, use subtle toast notifications instead of full-screen alerts
+            const isMobile = window.innerWidth <= 768;
+
             const messageDiv = document.createElement('div');
             const colors = {
                 success: 'rgba(16, 185, 129, 0.1)',
@@ -4481,38 +4484,69 @@
 
             // Count existing messages to stack them
             const existingMessages = document.querySelectorAll('.status-message');
-            const offset = existingMessages.length * 28; // Stack each message 28px above previous
+            const offset = existingMessages.length * (isMobile ? 20 : 28);
 
             messageDiv.className = 'status-message';
-            messageDiv.style.cssText = `
-                position: fixed;
-                bottom: ${80 + offset}px;
-                left: 20px;
-                background: ${colors[type]};
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                color: rgba(255, 255, 255, 0.7);
-                padding: 4px 10px;
-                border-radius: 4px;
-                border: 1px solid ${borderColors[type]};
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                max-width: 220px;
-                font-size: 0.65rem;
-                font-weight: 400;
-                transition: opacity 0.3s ease;
-                opacity: 0.5;
-                pointer-events: none;
-            `;
+
+            if (isMobile) {
+                // Mobile: small, centered, non-intrusive toast at bottom
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    bottom: ${100 + offset}px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: ${colors[type]};
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    color: rgba(255, 255, 255, 0.8);
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    border: 1px solid ${borderColors[type]};
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    z-index: 998;
+                    max-width: 200px;
+                    font-size: 0.7rem;
+                    font-weight: 400;
+                    transition: opacity 0.3s ease;
+                    opacity: 0;
+                    pointer-events: none;
+                    text-align: center;
+                `;
+            } else {
+                // Desktop: bottom-left as before
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    bottom: ${80 + offset}px;
+                    left: 20px;
+                    background: ${colors[type]};
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    color: rgba(255, 255, 255, 0.7);
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    border: 1px solid ${borderColors[type]};
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                    max-width: 220px;
+                    font-size: 0.65rem;
+                    font-weight: 400;
+                    transition: opacity 0.3s ease;
+                    opacity: 0.5;
+                    pointer-events: none;
+                `;
+            }
+
             messageDiv.textContent = message;
             document.body.appendChild(messageDiv);
 
-            // Fade in
-            setTimeout(() => messageDiv.style.opacity = '0.6', 10);
+            // Fade in - more subtle on mobile
+            setTimeout(() => messageDiv.style.opacity = isMobile ? '0.75' : '0.6', 10);
 
-            // Fade out and remove
-            setTimeout(() => messageDiv.style.opacity = '0', 1800);
-            setTimeout(() => messageDiv.remove(), 2200);
+            // Fade out and remove - faster on mobile
+            const fadeOutTime = isMobile ? 1500 : 1800;
+            const removeTime = isMobile ? 1900 : 2200;
+            setTimeout(() => messageDiv.style.opacity = '0', fadeOutTime);
+            setTimeout(() => messageDiv.remove(), removeTime);
         }
 
         // ===== CHART INITIALIZATION =====
