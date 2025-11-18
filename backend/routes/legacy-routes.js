@@ -283,8 +283,8 @@ app.get('/api/whoop/recovery', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`;
-        console.log('Fetching Whoop recovery (via cycle endpoint):', url);
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}&limit=50`;
+        console.log('Fetching Whoop recovery from cycles:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -292,15 +292,29 @@ app.get('/api/whoop/recovery', async (req, res) => {
             }
         });
 
-        const responseText = await response.text();
-        console.log('Whoop recovery response status:', response.status);
-
         if (!response.ok) {
-            throw new Error(`Whoop recovery fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
+            const errorText = await response.text();
+            console.error('Whoop recovery error response:', errorText);
+            throw new Error(`Whoop recovery fetch failed: ${response.status} - ${errorText.substring(0, 200)}`);
         }
 
-        const data = JSON.parse(responseText);
-        res.json(data);
+        const data = await response.json();
+
+        // Extract recovery data from cycles
+        const recoveryRecords = (data.records || [])
+            .filter(cycle => cycle.recovery)
+            .map(cycle => ({
+                cycle_id: cycle.id,
+                sleep_id: cycle.sleep?.id,
+                created_at: cycle.created_at,
+                updated_at: cycle.updated_at,
+                score_state: cycle.recovery?.score_state || 'SCORED',
+                score: cycle.recovery?.score,
+                user_calibrating: cycle.recovery?.user_calibrating || false,
+                recovery: cycle.recovery
+            }));
+
+        res.json({ records: recoveryRecords });
     } catch (error) {
         console.error('Whoop recovery error:', error);
         res.status(500).json({ error: error.message });
@@ -311,8 +325,9 @@ app.get('/api/whoop/sleep', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://api.prod.whoop.com/developer/v1/activity/sleep?start=${start}&end=${end}`;
-        console.log('Fetching Whoop sleep:', url);
+        // Whoop sleep data is now in cycles endpoint - extract sleep from cycles
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}&limit=50`;
+        console.log('Fetching Whoop sleep from cycles:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -320,15 +335,20 @@ app.get('/api/whoop/sleep', async (req, res) => {
             }
         });
 
-        const responseText = await response.text();
-        console.log('Whoop sleep response status:', response.status);
-
         if (!response.ok) {
-            throw new Error(`Whoop sleep fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
+            const errorText = await response.text();
+            console.error('Whoop sleep error response:', errorText);
+            throw new Error(`Whoop sleep fetch failed: ${response.status} - ${errorText.substring(0, 200)}`);
         }
 
-        const data = JSON.parse(responseText);
-        res.json(data);
+        const data = await response.json();
+
+        // Extract sleep data from cycles
+        const sleepRecords = (data.records || [])
+            .filter(cycle => cycle.sleep)
+            .map(cycle => cycle.sleep);
+
+        res.json({ records: sleepRecords });
     } catch (error) {
         console.error('Whoop sleep error:', error);
         res.status(500).json({ error: error.message });
@@ -339,8 +359,9 @@ app.get('/api/whoop/workouts', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://api.prod.whoop.com/developer/v1/activity/workout?start=${start}&end=${end}`;
-        console.log('Fetching Whoop workouts:', url);
+        // Whoop workout data is now in cycles endpoint - extract workouts from cycles
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}&limit=50`;
+        console.log('Fetching Whoop workouts from cycles:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -348,16 +369,26 @@ app.get('/api/whoop/workouts', async (req, res) => {
             }
         });
 
-        const responseText = await response.text();
-        console.log('Whoop workouts response status:', response.status);
-        console.log('Whoop workouts response:', responseText.substring(0, 500));
-
         if (!response.ok) {
-            throw new Error(`Whoop workouts fetch failed: ${response.status} - ${responseText.substring(0, 200)}`);
+            const errorText = await response.text();
+            console.error('Whoop workouts error response:', errorText);
+            throw new Error(`Whoop workouts fetch failed: ${response.status} - ${errorText.substring(0, 200)}`);
         }
 
-        const data = JSON.parse(responseText);
-        res.json(data);
+        const data = await response.json();
+
+        // Extract workout data from cycles that have workouts
+        const workoutRecords = (data.records || [])
+            .filter(cycle => cycle.score && cycle.score.strain > 5)
+            .map(cycle => ({
+                id: cycle.id,
+                start: cycle.start,
+                end: cycle.end,
+                score: cycle.score,
+                during: cycle.during
+            }));
+
+        res.json({ records: workoutRecords });
     } catch (error) {
         console.error('Whoop workouts error:', error);
         res.status(500).json({ error: error.message });
