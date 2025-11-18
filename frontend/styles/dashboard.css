@@ -1997,6 +1997,64 @@ button:focus-visible,
 }
 
 /* ============================================
+   TAB NAVIGATION WRAPPER
+   ============================================ */
+
+.tab-nav-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 0;
+  padding: var(--space-4) 0;
+  z-index: 100;
+  background: transparent;
+}
+
+.tab-nav {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  align-items: center;
+  padding: 0 var(--space-4);
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-full);
+  padding: var(--space-3) var(--space-6);
+  color: white;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  background: var(--glass-3);
+  border-color: var(--border-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.tab-button.active {
+  background: var(--glass-white-90);
+  color: var(--color-primary);
+  border-color: rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.tab-scroll-indicator {
+  display: none;
+}
+
+/* ============================================
    TAB NAVIGATION COMPATIBILITY
    ============================================ */
 
