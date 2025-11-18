@@ -641,6 +641,9 @@ app.post('/api/whoop/refresh', async (req, res) => {
 
 // ===== GARMIN ENDPOINTS (OAuth 2.0 with PKCE) =====
 app.post('/api/garmin/token', async (req, res) => {
+    const startTime = Date.now();
+    const userId = req.session?.userId || req.body.userId;
+
     try {
         const { code, code_verifier } = req.body;
 
@@ -798,15 +801,69 @@ app.post('/api/garmin/token', async (req, res) => {
 
                 console.log('✅ Garmin token saved to database for user:', userId);
                 console.log('   Provider User ID:', garminUserId);
+
+                // Log successful OAuth flow to database
+                const { logAPICall } = require('../utils/logger');
+                await logAPICall({
+                    method: 'POST',
+                    endpoint: '/api/garmin/token',
+                    statusCode: 200,
+                    durationMs: Date.now() - startTime,
+                    userId: userId,
+                    provider: 'garmin',
+                    requestBody: req.body,
+                    responseBody: data,
+                    ipAddress: req.ip,
+                    userAgent: req.get('user-agent'),
+                    isOAuthFlow: true,
+                    tags: ['oauth', 'token_exchange', 'garmin', 'success']
+                });
             }
         } catch (dbError) {
             console.error('❌ Failed to save token to database (CRITICAL):', dbError);
             console.error('   PUSH notifications will NOT work without database storage!');
+
+            // Log OAuth failure to database
+            const { logAPICall } = require('../utils/logger');
+            await logAPICall({
+                method: 'POST',
+                endpoint: '/api/garmin/token',
+                statusCode: 500,
+                durationMs: Date.now() - startTime,
+                userId: userId,
+                provider: 'garmin',
+                requestBody: req.body,
+                errorMessage: dbError.message,
+                errorStack: dbError.stack,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent'),
+                isOAuthFlow: true,
+                tags: ['oauth', 'token_exchange', 'garmin', 'error', 'database_save_failed']
+            });
         }
 
         res.json(data);
     } catch (error) {
         console.error('❌ Garmin token error:', error);
+
+        // Log OAuth error to database
+        const { logAPICall } = require('../utils/logger');
+        await logAPICall({
+            method: 'POST',
+            endpoint: '/api/garmin/token',
+            statusCode: 500,
+            durationMs: Date.now() - startTime,
+            userId: userId,
+            provider: 'garmin',
+            requestBody: req.body,
+            errorMessage: error.message,
+            errorStack: error.stack,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent'),
+            isOAuthFlow: true,
+            tags: ['oauth', 'token_exchange', 'garmin', 'error']
+        });
+
         res.status(500).json({ error: error.message });
     }
 });
