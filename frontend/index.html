@@ -294,6 +294,9 @@
                     </svg>
                 </div>
                 <nav class="tab-nav" role="tablist" aria-label="Dashboard sections" id="tabNav">
+                    <button class="tab-button account-tab" role="tab" aria-selected="false" aria-controls="account" data-tab="account" id="accountTabButton">
+                        <i class="fas fa-user"></i> <span id="accountTabText">Account</span>
+                    </button>
                     <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
                         Connections
                     </button>
@@ -331,6 +334,79 @@
 
             <!-- Tab Content Wrapper -->
             <div class="tab-content-wrapper">
+                <!-- Account Tab -->
+                <div id="account" class="tab-panel" role="tabpanel" aria-labelledby="account-tab">
+                    <!-- Guest Mode View -->
+                    <div id="guestView" class="account-view">
+                        <div class="account-card glass-card">
+                            <h2>Welcome to Athlytx</h2>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 24px;">
+                                You're currently using Athlytx as a guest. Create an account to sync your data across devices and unlock additional features.
+                            </p>
+
+                            <div class="auth-tabs">
+                                <button class="auth-tab active" onclick="showAuthForm('signup')">Sign Up</button>
+                                <button class="auth-tab" onclick="showAuthForm('login')">Login</button>
+                            </div>
+
+                            <!-- Sign Up Form -->
+                            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+                                <div class="form-group">
+                                    <label for="signup-name">Name (optional)</label>
+                                    <input type="text" id="signup-name" placeholder="Your name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signup-email">Email</label>
+                                    <input type="email" id="signup-email" required placeholder="you@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signup-password">Password</label>
+                                    <input type="password" id="signup-password" required minlength="8" placeholder="Min 8 characters">
+                                    <small style="color: rgba(255,255,255,0.6);">Must be at least 8 characters</small>
+                                </div>
+                                <button type="submit" class="auth-submit-btn">Create Account</button>
+                                <div id="signup-error" class="auth-error" style="display: none;"></div>
+                            </form>
+
+                            <!-- Login Form -->
+                            <form id="loginForm" class="auth-form" style="display: none;" onsubmit="handleLogin(event)">
+                                <div class="form-group">
+                                    <label for="login-email">Email</label>
+                                    <input type="email" id="login-email" required placeholder="you@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="login-password">Password</label>
+                                    <input type="password" id="login-password" required placeholder="Your password">
+                                </div>
+                                <button type="submit" class="auth-submit-btn">Login</button>
+                                <div id="login-error" class="auth-error" style="display: none;"></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Authenticated View -->
+                    <div id="authenticatedView" class="account-view" style="display: none;">
+                        <div class="account-card glass-card">
+                            <h2>Account</h2>
+                            <div class="account-info">
+                                <div class="info-row">
+                                    <span class="info-label">Email:</span>
+                                    <span id="user-email" class="info-value">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Name:</span>
+                                    <span id="user-name" class="info-value">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">User ID:</span>
+                                    <span id="user-id" class="info-value">-</span>
+                                </div>
+                            </div>
+                            <button onclick="handleLogout()" class="logout-btn">Logout</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Connections Tab -->
                 <div id="connections" class="tab-panel active" role="tabpanel" aria-labelledby="connections-tab">
                 <div class="devices-grid stagger-children">
@@ -5371,6 +5447,7 @@
     <script src="garmin-oauth2.js"></script>
     <script src="whoop-oauth2.js"></script>
     <script src="oauth-handler.js"></script>
+    <script src="auth-handler.js"></script>
     <script src="micro-interactions.js"></script>
 </body>
 </html>
