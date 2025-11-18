@@ -1861,6 +1861,10 @@
                 initializeCharts();
                 loadExistingConnections();
                 updateConnectionStatus();
+                // Also update analytics/displays after a brief delay to ensure data is loaded
+                setTimeout(() => {
+                    updateAnalytics();
+                }, 500);
             }, 100);
         });
 
