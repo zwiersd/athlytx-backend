@@ -2705,18 +2705,20 @@
 
                 // Animate progress ring
                 if (progressCircle) {
-                    const circumference = 2 * Math.PI * 60; // radius = 60
+                    const circumference = 2 * Math.PI * 90; // radius = 90
                     const offset = circumference - (score / 100) * circumference;
                     progressCircle.style.strokeDashoffset = offset;
 
-                    // Color code the ring based on score
-                    if (score < 40) {
-                        progressCircle.setAttribute('stroke', '#ef4444'); // Red
-                    } else if (score < 70) {
-                        progressCircle.setAttribute('stroke', '#f59e0b'); // Yellow
-                    } else {
-                        progressCircle.setAttribute('stroke', 'url(#scoreGradient)'); // Gradient
-                    }
+                    // Smooth color gradient from dark red (0) to bright green (100)
+                    // Using HSL: Hue from 0° (red) to 120° (green)
+                    // Saturation from 80% to 100% for vibrant colors
+                    // Lightness from 25% (dark) at 0 to 50% (bright) at 100
+                    const hue = (score / 100) * 120; // 0 = red, 120 = green
+                    const saturation = 80 + (score / 100) * 20; // 80% to 100%
+                    const lightness = 25 + (score / 100) * 25; // 25% (dark) to 50% (bright)
+                    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+                    progressCircle.setAttribute('stroke', color);
                 }
 
                 // Update confidence badge

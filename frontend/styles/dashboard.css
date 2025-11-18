@@ -210,7 +210,7 @@ body {
 }
 
 .score-number {
-  font-size: 4rem;
+  font-size: 6rem;
   font-weight: 800;
   line-height: 1;
   background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
@@ -365,7 +365,7 @@ body {
   }
 
   .score-number {
-    font-size: 4.5rem;
+    font-size: 6.5rem;
   }
 
   .score-max {
@@ -396,7 +396,7 @@ body {
   }
 
   .score-number {
-    font-size: 4rem;
+    font-size: 5.5rem;
   }
 
   .score-max {
