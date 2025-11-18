@@ -197,6 +197,52 @@
         </div>
     </header>
 
+    <!-- Tab Navigation (moved to top under header) -->
+    <div class="tab-nav-wrapper">
+        <div class="tab-scroll-indicator left" id="tabScrollLeft">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M12 4l-8 6 8 6V4z"/>
+            </svg>
+        </div>
+        <nav class="tab-nav" role="tablist" aria-label="Dashboard sections" id="tabNav">
+            <button class="tab-button account-tab" role="tab" aria-selected="false" aria-controls="account" data-tab="account" id="accountTabButton">
+                <i class="fas fa-user"></i> <span id="accountTabText">Account</span>
+            </button>
+            <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
+                Connections
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview">
+                Overview
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="garmin-data" data-tab="garmin-data">
+                Garmin Data
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="strava-data" data-tab="strava-data">
+                Strava Data
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="oura-data" data-tab="oura-data">
+                Oura Data
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="whoop-data" data-tab="whoop-data">
+                Whoop Data
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
+                Running
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="ai-insights" data-tab="ai-insights">
+                AI Insights
+            </button>
+            <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
+                Contact
+            </button>
+        </nav>
+        <div class="tab-scroll-indicator right" id="tabScrollRight">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 4l8 6-8 6V4z"/>
+            </svg>
+        </div>
+    </div>
+
     <div id="dashboard" class="dashboard">
         <div class="container">
 
@@ -285,51 +331,6 @@
             <div style="display: none;">
                 <div id="scoreSources"></div>
                 <div id="readinessBanner"></div>
-            </div>
-
-            <div class="tab-nav-wrapper">
-                <div class="tab-scroll-indicator left" id="tabScrollLeft">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M12 4l-8 6 8 6V4z"/>
-                    </svg>
-                </div>
-                <nav class="tab-nav" role="tablist" aria-label="Dashboard sections" id="tabNav">
-                    <button class="tab-button account-tab" role="tab" aria-selected="false" aria-controls="account" data-tab="account" id="accountTabButton">
-                        <i class="fas fa-user"></i> <span id="accountTabText">Account</span>
-                    </button>
-                    <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
-                        Connections
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview">
-                        Overview
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="garmin" data-tab="garmin">
-                        Garmin Data
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="strava" data-tab="strava">
-                        Strava Data
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="oura" data-tab="oura">
-                        Oura Data
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="whoop" data-tab="whoop">
-                        Whoop Data
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
-                        <i class="fas fa-running"></i> Running
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
-                        AI Insights
-                    </button>
-                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
-                        <i class="fas fa-envelope"></i> Contact
-                    </button>
-                </nav>
-                <div class="tab-scroll-indicator right" id="tabScrollRight">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8 4v12l8-6-8-6z"/>
-                    </svg>
-                </div>
             </div>
 
             <!-- Tab Content Wrapper -->
