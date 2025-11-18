@@ -20,7 +20,8 @@ app.post('/api/strava/token', async (req, res) => {
                 client_id: process.env.STRAVA_CLIENT_ID,
                 client_secret: process.env.STRAVA_CLIENT_SECRET,
                 code: code,
-                grant_type: 'authorization_code'
+                grant_type: 'authorization_code',
+                redirect_uri: process.env.STRAVA_REDIRECT_URI || 'https://www.athlytx.com'
             })
         });
 
