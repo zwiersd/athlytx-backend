@@ -311,8 +311,12 @@ async function processGarminPushData(data) {
         // Garmin can send either "summaries" or "dailies" - both contain daily health metrics
         const dailySummaries = summaries || dailies || [];
 
+        console.log(`🔍 PUSH data check - summaries: ${summaries?.length || 0}, dailies: ${dailies?.length || 0}`);
+        console.log(`🔍 Combined dailySummaries length: ${dailySummaries.length}`);
+
         if (dailySummaries.length > 0) {
             console.log(`📊 Processing ${dailySummaries.length} daily summaries from ${summaries ? 'summaries' : 'dailies'} array`);
+            console.log(`📊 Sample daily summary keys:`, Object.keys(dailySummaries[0]));
 
             for (const summary of dailySummaries) {
                 try {
