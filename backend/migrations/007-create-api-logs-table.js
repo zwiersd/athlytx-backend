@@ -6,9 +6,12 @@ async function createAPILogsTable(queryInterface, Sequelize) {
     try {
         logMigrationEvent('007-create-api-logs-table', 'START', `Checking if ${tableName} table exists`);
 
-        // Check if table already exists
-        const tables = await queryInterface.showAllTables();
-        if (tables.includes(tableName)) {
+        // Check if table already exists using information_schema query
+        const [results] = await queryInterface.sequelize.query(
+            `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${tableName}'`
+        );
+
+        if (results.length > 0) {
             logMigrationEvent('007-create-api-logs-table', 'SKIP', `Table ${tableName} already exists`);
             return;
         }
