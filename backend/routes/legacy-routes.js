@@ -301,6 +301,7 @@ app.get('/api/whoop/recovery', async (req, res) => {
         const data = await response.json();
 
         // Extract recovery data from cycles
+        // Frontend expects score with recovery_score and hrv_rmssd_milli fields
         const recoveryRecords = (data.records || [])
             .filter(cycle => cycle.recovery)
             .map(cycle => ({
@@ -309,9 +310,14 @@ app.get('/api/whoop/recovery', async (req, res) => {
                 created_at: cycle.created_at,
                 updated_at: cycle.updated_at,
                 score_state: cycle.recovery?.score_state || 'SCORED',
-                score: cycle.recovery?.score,
-                user_calibrating: cycle.recovery?.user_calibrating || false,
-                recovery: cycle.recovery
+                score: {
+                    recovery_score: cycle.recovery?.score?.recovery_score,
+                    hrv_rmssd_milli: cycle.recovery?.score?.hrv_rmssd_milli,
+                    resting_heart_rate: cycle.recovery?.score?.resting_heart_rate,
+                    spo2_percentage: cycle.recovery?.score?.spo2_percentage,
+                    skin_temp_celsius: cycle.recovery?.score?.skin_temp_celsius
+                },
+                user_calibrating: cycle.recovery?.user_calibrating || false
             }));
 
         res.json({ records: recoveryRecords });
@@ -344,9 +350,14 @@ app.get('/api/whoop/sleep', async (req, res) => {
         const data = await response.json();
 
         // Extract sleep data from cycles
+        // Return full sleep objects with all nested data
         const sleepRecords = (data.records || [])
             .filter(cycle => cycle.sleep)
-            .map(cycle => cycle.sleep);
+            .map(cycle => ({
+                ...cycle.sleep,
+                created_at: cycle.created_at,
+                updated_at: cycle.updated_at
+            }));
 
         res.json({ records: sleepRecords });
     } catch (error) {
@@ -399,7 +410,8 @@ app.get('/api/whoop/cycles', async (req, res) => {
     try {
         const { token, start, end } = req.query;
 
-        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}`;
+        const url = `https://api.prod.whoop.com/developer/v1/cycle?start=${start}&end=${end}&limit=50`;
+        console.log('Fetching Whoop cycles:', url);
 
         const response = await fetch(url, {
             headers: {
@@ -407,12 +419,13 @@ app.get('/api/whoop/cycles', async (req, res) => {
             }
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            throw new Error(`Whoop cycles fetch failed: ${data.message}`);
+            const errorText = await response.text();
+            console.error('Whoop cycles error response:', errorText);
+            throw new Error(`Whoop cycles fetch failed: ${response.status} - ${errorText.substring(0, 200)}`);
         }
 
+        const data = await response.json();
         res.json(data);
     } catch (error) {
         console.error('Whoop cycles error:', error);
