@@ -11,7 +11,7 @@
 
     <!-- Essential Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
     <!-- Primary Meta Tags -->
     <title>Track Athletic Performance & Power Zones | Athlytx</title>
@@ -170,7 +170,6 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/dashboard.css">
-    <link rel="stylesheet" href="/styles/responsive.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
@@ -218,13 +217,13 @@
                 </div>
             </div>
 
-            <!-- MOBILE/TABLET SCORE CARD (Hidden on Desktop 1024px+) -->
-            <div class="score-hero-mobile hide-desktop">
-                <div class="score-circle-mobile">
-                    <svg class="score-ring-mobile" viewBox="0 0 160 160">
-                        <circle class="score-ring-bg" cx="80" cy="80" r="70"/>
-                        <circle id="scoreProgressCircle" class="score-ring-progress" cx="80" cy="80" r="70"
-                                stroke-dasharray="440" stroke-dashoffset="440"/>
+            <!-- SCORE HERO - Replaces Logo Position -->
+            <div style="text-align: center; margin: 40px 0 30px 0;">
+                <!-- Circular Progress Ring -->
+                <div style="position: relative; width: 160px; height: 160px; margin: 0 auto 20px auto;">
+                    <svg width="160" height="160" style="transform: rotate(-90deg);">
+                        <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+                        <circle id="scoreProgressCircle" cx="80" cy="80" r="70" fill="none" stroke="url(#scoreGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440" style="transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;"/>
                         <defs>
                             <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
@@ -233,131 +232,47 @@
                             </linearGradient>
                         </defs>
                     </svg>
-                    <div class="score-value-container-mobile">
-                        <span class="score-value-mobile" id="athlytxScore">--</span>
-                        <span class="score-label-mobile">out of 100</span>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 3rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
+                        <div style="font-size: 0.75rem; margin-top: 4px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">out of 100</div>
                     </div>
                 </div>
-                <div class="score-details-mobile">
-                    <div class="score-status-mobile" id="scoreStatus">Connect devices</div>
-                    <div class="score-insight-mobile" id="scoreInsight">Connect your devices to see your score</div>
-                    <div class="score-trend-mobile">
-                        <span class="trend-icon" id="scoreTrendIcon">📊</span>
-                        <span id="scoreTrend">Waiting for data...</span>
-                    </div>
+
+                <!-- Status -->
+                <div id="scoreStatusContainer" style="max-width: 500px; margin: 0 auto;">
+                    <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices</div>
+                    <div id="scoreInsight" style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.75); line-height: 1.4;">Connect your devices to see your score</div>
                 </div>
             </div>
 
-            <!-- DESKTOP HERO ZONE (Hidden on Mobile/Tablet, Shown on Desktop 1024px+) -->
-            <div class="hero-zone-desktop hide-mobile">
-                <div class="hero-zone-inner">
-                    <!-- Center Score (THE BOXING RING) -->
-                    <div class="score-circle-desktop">
-                        <svg class="score-ring-desktop" viewBox="0 0 300 300">
-                            <circle class="score-ring-bg" cx="150" cy="150" r="135"/>
-                            <circle id="scoreProgressCircleDesktop" class="score-ring-progress" cx="150" cy="150" r="135"
-                                    stroke-dasharray="848" stroke-dashoffset="848"/>
-                        </svg>
-                        <div class="score-value-container-desktop">
-                            <span class="score-value-desktop" id="athlytxScoreDesktop">--</span>
-                            <span class="score-label-desktop">out of 100</span>
-                            <div class="score-status-desktop" id="scoreStatusDesktop">Connect devices</div>
-                            <div class="score-insight-desktop" id="scoreInsightDesktop">Connect your devices to see your score</div>
-                        </div>
+            <!-- Metrics Card -->
+            <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin: 0 0 20px 0; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden; max-width: 400px; margin-left: auto; margin-right: auto; padding: 12px;">
+                <!-- Square Metric Pills - ULTRA COMPACT -->
+                <div id="quickMetrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 4px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreRecovery">--</div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 2px;">Recovery</div>
                     </div>
-
-                    <!-- Top-Left Corner Metric: Recovery -->
-                    <div class="metric-corner top-left">
-                        <div class="metric-icon-mobile">💪</div>
-                        <div class="metric-label-mobile">Recovery</div>
-                        <div class="metric-value-mobile" id="cornerRecovery">--</div>
-                        <div class="metric-unit-mobile">%</div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 4px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreLoad">--</div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 2px;">Strain</div>
                     </div>
-
-                    <!-- Top-Right Corner Metric: Strain -->
-                    <div class="metric-corner top-right">
-                        <div class="metric-icon-mobile">⚡</div>
-                        <div class="metric-label-mobile">Strain</div>
-                        <div class="metric-value-mobile" id="cornerStrain">--</div>
-                        <div class="metric-unit-mobile">load</div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 4px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreSleep">--</div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 2px;">Sleep</div>
                     </div>
-
-                    <!-- Bottom-Left Corner Metric: Sleep -->
-                    <div class="metric-corner bottom-left">
-                        <div class="metric-icon-mobile">😴</div>
-                        <div class="metric-label-mobile">Sleep</div>
-                        <div class="metric-value-mobile" id="cornerSleep">--</div>
-                        <div class="metric-unit-mobile">hrs</div>
-                    </div>
-
-                    <!-- Bottom-Right Corner Metric: HRV -->
-                    <div class="metric-corner bottom-right">
-                        <div class="metric-icon-mobile">❤️</div>
-                        <div class="metric-label-mobile">HRV</div>
-                        <div class="metric-value-mobile" id="cornerHRV">--</div>
-                        <div class="metric-unit-mobile">ms</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- HORIZONTAL SCROLL METRICS (Mobile/Tablet, Hidden on Desktop 1024px+) -->
-            <div class="metrics-scroll-container hide-desktop">
-                <div class="metrics-scroll" id="metricsScroll">
-                    <!-- Metric 1: Recovery -->
-                    <div class="metric-card-mobile">
-                        <div class="metric-icon-mobile">💪</div>
-                        <div class="metric-label-mobile">Recovery</div>
-                        <div class="metric-value-mobile" id="scoreRecovery">--</div>
-                        <div class="metric-unit-mobile">%</div>
-                        <div class="metric-change-mobile neutral" id="recoveryChange">
-                            <span>→</span>
-                            <span>--</span>
-                        </div>
-                    </div>
-
-                    <!-- Metric 2: Strain -->
-                    <div class="metric-card-mobile">
-                        <div class="metric-icon-mobile">⚡</div>
-                        <div class="metric-label-mobile">Strain</div>
-                        <div class="metric-value-mobile" id="scoreLoad">--</div>
-                        <div class="metric-unit-mobile">load</div>
-                        <div class="metric-change-mobile neutral" id="strainChange">
-                            <span>→</span>
-                            <span>--</span>
-                        </div>
-                    </div>
-
-                    <!-- Metric 3: Sleep -->
-                    <div class="metric-card-mobile">
-                        <div class="metric-icon-mobile">😴</div>
-                        <div class="metric-label-mobile">Sleep</div>
-                        <div class="metric-value-mobile" id="scoreSleep">--</div>
-                        <div class="metric-unit-mobile">hrs</div>
-                        <div class="metric-change-mobile neutral" id="sleepChange">
-                            <span>→</span>
-                            <span>--</span>
-                        </div>
-                    </div>
-
-                    <!-- Metric 4: HRV -->
-                    <div class="metric-card-mobile">
-                        <div class="metric-icon-mobile">❤️</div>
-                        <div class="metric-label-mobile">HRV</div>
-                        <div class="metric-value-mobile" id="scoreHRV">--</div>
-                        <div class="metric-unit-mobile">ms</div>
-                        <div class="metric-change-mobile neutral" id="hrvChange">
-                            <span>→</span>
-                            <span>--</span>
-                        </div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 4px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreHRV">--</div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 2px;">HRV</div>
                     </div>
                 </div>
 
-                <!-- Scroll Indicators -->
-                <div class="scroll-indicators">
-                    <div class="indicator-dot active" data-index="0"></div>
-                    <div class="indicator-dot" data-index="1"></div>
-                    <div class="indicator-dot" data-index="2"></div>
-                    <div class="indicator-dot" data-index="3"></div>
+                <!-- Data Sources Badge -->
+                <div style="text-align: center;">
+                    <div id="dataSourcesBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span>📊</span>
+                        <span id="deviceGuidance">Connect devices</span>
+                    </div>
                 </div>
             </div>
 
@@ -4869,207 +4784,6 @@
                 });
             }
         });
-    </script>
-
-    <!-- BOTTOM NAVIGATION (Mobile/Tablet Only, Hidden on Desktop 1024px+) -->
-    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-        <button class="nav-item active" data-section="dashboard" aria-label="Dashboard" onclick="switchBottomNavSection('dashboard')">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-label">Dashboard</div>
-        </button>
-        <button class="nav-item" data-section="analytics" aria-label="Analytics" onclick="switchBottomNavSection('analytics')">
-            <div class="nav-icon">📊</div>
-            <div class="nav-label">Analytics</div>
-        </button>
-        <button class="nav-item" data-section="training" aria-label="Training" onclick="switchBottomNavSection('training')">
-            <div class="nav-icon">🏃</div>
-            <div class="nav-label">Training</div>
-        </button>
-        <button class="nav-item" data-section="more" aria-label="More" onclick="switchBottomNavSection('more')">
-            <div class="nav-icon">⋯</div>
-            <div class="nav-label">More</div>
-        </button>
-    </nav>
-
-    <!-- RESPONSIVE REDESIGN JAVASCRIPT -->
-    <script>
-        // ============================================
-        // ACCORDION TOGGLE FUNCTION
-        // ============================================
-        function toggleSection(headerElement) {
-            const section = headerElement.parentElement;
-            const content = section.querySelector('.section-content-accordion');
-            const isExpanded = content && content.classList.contains('expanded');
-
-            if (content) {
-                if (isExpanded) {
-                    content.classList.remove('expanded');
-                    headerElement.classList.remove('expanded');
-                    headerElement.setAttribute('aria-expanded', 'false');
-                } else {
-                    content.classList.add('expanded');
-                    headerElement.classList.add('expanded');
-                    headerElement.setAttribute('aria-expanded', 'true');
-                }
-            }
-        }
-
-        // ============================================
-        // HORIZONTAL SCROLL INDICATORS
-        // ============================================
-        function initScrollIndicators() {
-            const metricsScroll = document.getElementById('metricsScroll');
-            const indicators = document.querySelectorAll('.indicator-dot');
-
-            if (!metricsScroll || indicators.length === 0) return;
-
-            metricsScroll.addEventListener('scroll', () => {
-                const scrollLeft = metricsScroll.scrollLeft;
-                const cardWidth = 152; // 140px width + 12px gap
-                const activeIndex = Math.round(scrollLeft / cardWidth);
-
-                indicators.forEach((dot, index) => {
-                    if (index === activeIndex) {
-                        dot.classList.add('active');
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-            });
-
-            // Click to scroll to specific metric
-            indicators.forEach((dot, index) => {
-                dot.addEventListener('click', () => {
-                    const cardWidth = 152;
-                    metricsScroll.scrollTo({
-                        left: cardWidth * index,
-                        behavior: 'smooth'
-                    });
-                });
-            });
-        }
-
-        // ============================================
-        // BOTTOM NAVIGATION SECTION SWITCHING
-        // ============================================
-        function switchBottomNavSection(sectionName) {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-
-            // Remove active from all
-            navItems.forEach(nav => nav.classList.remove('active'));
-
-            // Add active to clicked
-            const activeItem = document.querySelector(`.bottom-nav .nav-item[data-section="${sectionName}"]`);
-            if (activeItem) {
-                activeItem.classList.add('active');
-            }
-
-            // Handle section visibility based on selection
-            console.log(`Bottom nav: Switched to ${sectionName}`);
-
-            // Example: Show/hide specific tabs
-            if (sectionName === 'training') {
-                const runningTab = document.querySelector('[data-tab="running"]');
-                if (runningTab) runningTab.click();
-            }
-        }
-
-        // ============================================
-        // SYNC SCORE VALUES BETWEEN MOBILE & DESKTOP
-        // ============================================
-        function updateAthlytxScoreViews(score) {
-            // Update both mobile and desktop score displays
-            const scoreMobile = document.getElementById('athlytxScore');
-            const scoreDesktop = document.getElementById('athlytxScoreDesktop');
-
-            if (scoreMobile) scoreMobile.textContent = score || '--';
-            if (scoreDesktop) scoreDesktop.textContent = score || '--';
-
-            // Update progress circles
-            const progressMobile = document.getElementById('scoreProgressCircle');
-            const progressDesktop = document.getElementById('scoreProgressCircleDesktop');
-
-            const mobileCircumference = 440; // 2 * π * 70
-            const desktopCircumference = 848; // 2 * π * 135
-
-            const mobileOffset = mobileCircumference - (score / 100) * mobileCircumference;
-            const desktopOffset = desktopCircumference - (score / 100) * desktopCircumference;
-
-            if (progressMobile) {
-                progressMobile.style.strokeDashoffset = mobileOffset;
-            }
-            if (progressDesktop) {
-                progressDesktop.style.strokeDashoffset = desktopOffset;
-            }
-        }
-
-        // ============================================
-        // SYNC METRICS BETWEEN MOBILE/TABLET & DESKTOP
-        // ============================================
-        function updateMetricsViews(recovery, strain, sleep, hrv) {
-            // Update mobile/tablet scroll metrics (IDs are reused)
-            const scoreRecovery = document.getElementById('scoreRecovery');
-            const scoreLoad = document.getElementById('scoreLoad');
-            const scoreSleep = document.getElementById('scoreSleep');
-            const scoreHRV = document.getElementById('scoreHRV');
-
-            if (scoreRecovery) scoreRecovery.textContent = recovery || '--';
-            if (scoreLoad) scoreLoad.textContent = strain || '--';
-            if (scoreSleep) scoreSleep.textContent = sleep || '--';
-            if (scoreHRV) scoreHRV.textContent = hrv || '--';
-
-            // Update desktop corner metrics
-            const cornerRecovery = document.getElementById('cornerRecovery');
-            const cornerStrain = document.getElementById('cornerStrain');
-            const cornerSleep = document.getElementById('cornerSleep');
-            const cornerHRV = document.getElementById('cornerHRV');
-
-            if (cornerRecovery) cornerRecovery.textContent = recovery || '--';
-            if (cornerStrain) cornerStrain.textContent = strain || '--';
-            if (cornerSleep) cornerSleep.textContent = sleep || '--';
-            if (cornerHRV) cornerHRV.textContent = hrv || '--';
-        }
-
-        // ============================================
-        // SYNC STATUS TEXT BETWEEN VIEWS
-        // ============================================
-        function updateStatusViews(status, insight) {
-            // Update mobile/tablet
-            const statusMobile = document.getElementById('scoreStatus');
-            const insightMobile = document.getElementById('scoreInsight');
-
-            if (statusMobile) statusMobile.textContent = status || 'Connect devices';
-            if (insightMobile) insightMobile.textContent = insight || 'Connect your devices to see your score';
-
-            // Update desktop
-            const statusDesktop = document.getElementById('scoreStatusDesktop');
-            const insightDesktop = document.getElementById('scoreInsightDesktop');
-
-            if (statusDesktop) statusDesktop.textContent = status || 'Connect devices';
-            if (insightDesktop) insightDesktop.textContent = insight || 'Connect your devices to see your score';
-        }
-
-        // ============================================
-        // INITIALIZE ON PAGE LOAD
-        // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize scroll indicators for metrics
-            initScrollIndicators();
-
-            console.log('Responsive redesign initialized!');
-            console.log('Mobile-first "Boxing Ring" layout active.');
-        });
-
-        // Override existing updateAthlytxScore if it exists to use new views
-        if (typeof updateAthlytxScore !== 'undefined') {
-            const originalUpdateScore = updateAthlytxScore;
-            updateAthlytxScore = function(score) {
-                // Call original function
-                originalUpdateScore(score);
-                // Also update new views
-                updateAthlytxScoreViews(score);
-            };
-        }
     </script>
 
     <!-- OAuth Integration Scripts -->
