@@ -241,13 +241,39 @@ async function processGarminPushData(data) {
     try {
         const { Activity, HeartRateZone, DailyMetric } = require('../models');
 
-        // Garmin Health API sends data with garminUserId, need to map to our userId
-        const { userId: garminUserId, summaries, activities, sleeps, stressDetails, userMetrics } = data;
+        // Extract userId from any array in the PUSH data
+        // Garmin sends userId inside array elements (e.g., allDayRespiration[0].userId)
+        let garminUserId = data.userId; // Try root level first
 
         if (!garminUserId) {
-            console.warn('⚠️  No userId in PUSH data');
+            // Check all possible array fields for userId
+            const arrayFields = [
+                'summaries', 'activities', 'sleeps', 'stressDetails', 'userMetrics',
+                'allDayRespiration', 'epochs', 'dailies', 'thirdPartyDailies'
+            ];
+
+            for (const field of arrayFields) {
+                if (data[field] && Array.isArray(data[field]) && data[field].length > 0) {
+                    garminUserId = data[field][0].userId;
+                    if (garminUserId) {
+                        console.log(`📍 Found userId in ${field}[0].userId: ${garminUserId}`);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!garminUserId) {
+            console.warn('⚠️  No userId found in PUSH data');
+            console.warn('Data keys:', Object.keys(data));
             return;
         }
+
+        // Extract data arrays with backward compatibility
+        const {
+            summaries, activities, sleeps, stressDetails, userMetrics,
+            allDayRespiration, epochs, dailies, thirdPartyDailies
+        } = data;
 
         // Find our internal userId from the Garmin GUID
         const token = await OAuthToken.findOne({
