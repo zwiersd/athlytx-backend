@@ -2756,12 +2756,17 @@
                     const offset = circumference - (score / 100) * circumference;
                     progressCircle.style.strokeDashoffset = offset;
 
-                    // VIBRANT color gradient: RED (0) → ORANGE (50) → GREEN (100)
-                    // Score 0   = hsl(0, 100%, 50%)   = BRIGHT RED
-                    // Score 50  = hsl(60, 100%, 50%)  = ORANGE/YELLOW
-                    // Score 100 = hsl(120, 100%, 50%) = BRIGHT GREEN
-                    const hue = (score / 100) * 120; // Smoothly transition from red to green
-                    const color = `hsl(${hue}, 100%, 50%)`; // Maximum saturation and brightness
+                    // RED zone extended to score 40 for better health visualization
+                    // Score 0-40  = RED (hue 0-15)
+                    // Score 40-70 = ORANGE/YELLOW (hue 15-60)
+                    // Score 70-100 = GREEN (hue 60-120)
+                    let hue;
+                    if (score <= 40) {
+                        hue = (score / 40) * 15; // Red zone
+                    } else {
+                        hue = 15 + ((score - 40) / 60) * 105; // Orange to green
+                    }
+                    const color = `hsl(${hue}, 100%, 50%)`;
 
                     progressCircle.setAttribute('stroke', color);
                 }
