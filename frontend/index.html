@@ -1159,6 +1159,32 @@
                 return;
             }
 
+            // CRITICAL: Ensure user exists in database before OAuth
+            try {
+                const ensureResponse = await fetch(`${API_CONFIG.backend}/api/sync/ensure-user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userId,
+                        email: 'athlete@athlytx.com',
+                        name: 'Athlytx Athlete'
+                    })
+                });
+
+                if (!ensureResponse.ok) {
+                    const errorData = await ensureResponse.json();
+                    showMessage(`Failed to initialize user: ${errorData.message || 'Unknown error'}`, 'error');
+                    return;
+                }
+
+                const userData = await ensureResponse.json();
+                console.log('✅ User ensured in database:', userData.userId);
+            } catch (error) {
+                console.error('Error ensuring user exists:', error);
+                showMessage('Failed to initialize user. Please try again.', 'error');
+                return;
+            }
+
             if (device === 'strava') {
                 // Encode userId in state parameter so it survives OAuth redirect
                 const state = JSON.stringify({ provider: 'strava', userId: userId });

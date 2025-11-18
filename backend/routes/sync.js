@@ -528,4 +528,49 @@ router.post('/clear-data', async (req, res) => {
     }
 });
 
+/**
+ * Ensure user exists in database (create if needed)
+ * POST /api/sync/ensure-user
+ * Body: { userId: 'uuid', email?: 'email', name?: 'name' }
+ */
+router.post('/ensure-user', async (req, res) => {
+    try {
+        const { userId, email, name } = req.body;
+        const { User } = require('../models');
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        // Check if user exists
+        let user = await User.findByPk(userId);
+
+        if (!user) {
+            // Create user
+            user = await User.create({
+                id: userId,
+                email: email || 'athlete@athlytx.com',
+                name: name || 'Athlytx Athlete'
+            });
+            console.log('✅ Created user:', user.id);
+        } else {
+            console.log('✅ User already exists:', user.id);
+        }
+
+        res.json({
+            success: true,
+            userId: user.id,
+            email: user.email,
+            name: user.name,
+            created: !user
+        });
+    } catch (error) {
+        console.error('Ensure user error:', error);
+        res.status(500).json({
+            error: 'Failed to ensure user exists',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;
