@@ -72,6 +72,11 @@ app.get('/athlete/onboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'athlete-onboard.html'));
 });
 
+// Password reset route
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'reset-password.html'));
+});
+
 // Invite routes
 app.get('/invite/accept', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'consent-screen.html'));

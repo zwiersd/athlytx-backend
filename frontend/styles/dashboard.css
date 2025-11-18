@@ -420,33 +420,34 @@ body {
 
 @media (max-width: 480px) {
   #garmin > div[style*="grid-template-columns: repeat(4, 1fr)"] {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
   }
 
-  /* Keep vertical layout on small mobile - cleaner, no overlap */
+  /* Compact 2x2 grid on small mobile */
   #garmin > div[style*="grid-template-columns"] > div {
-    padding: 14px 16px !important;
+    padding: 10px 12px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-start !important;
     min-height: auto !important;
   }
 
-  /* Compact but readable font sizes */
+  /* Very compact but readable font sizes for 2x2 */
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.85rem"] {
-    font-size: 0.65rem !important;
-    margin-bottom: 6px !important;
+    font-size: 0.6rem !important;
+    margin-bottom: 4px !important;
+    line-height: 1.1 !important;
   }
 
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 2.5rem"] {
-    font-size: 1.75rem !important;
+    font-size: 1.5rem !important;
     margin-bottom: 2px !important;
     line-height: 1 !important;
   }
 
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.9rem"] {
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
     line-height: 1.2 !important;
     margin-top: 2px !important;
   }
