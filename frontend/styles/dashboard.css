@@ -385,24 +385,34 @@ body {
     gap: 10px !important;
   }
 
-  /* Shrink stat cards on mobile */
+  /* Shrink stat cards on mobile with proper spacing */
   #garmin > div[style*="grid-template-columns"] > div {
-    padding: 14px !important;
+    padding: 12px 14px !important;
+    min-height: auto !important;
   }
 
-  #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 2.5rem"] {
-    font-size: 1.8rem !important;
-  }
-
+  /* Label - smaller and tighter */
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.85rem"] {
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
+    margin-bottom: 6px !important;
+    line-height: 1.2 !important;
   }
 
+  /* Value - prominent but not huge */
+  #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 2.5rem"] {
+    font-size: 1.6rem !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+  }
+
+  /* Subtitle - compact */
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.9rem"] {
-    font-size: 0.75rem !important;
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+    margin-top: 2px !important;
   }
 
-  /* Hide background icons on mobile */
+  /* Hide background icons on mobile - reduces clutter */
   #garmin > div[style*="grid-template-columns"] > div > i.fas {
     display: none !important;
   }
@@ -414,24 +424,31 @@ body {
     gap: 8px !important;
   }
 
-  /* Even more compact on small mobile */
+  /* Keep vertical layout on small mobile - cleaner, no overlap */
   #garmin > div[style*="grid-template-columns"] > div {
-    padding: 12px 16px !important;
+    padding: 14px 16px !important;
     display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    min-height: auto !important;
   }
 
-  /* Horizontal layout for stat cards on small mobile */
-  #garmin > div[style*="grid-template-columns"] > div > div:first-of-type {
-    flex: 1;
-    text-align: left !important;
+  /* Compact but readable font sizes */
+  #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.85rem"] {
+    font-size: 0.65rem !important;
+    margin-bottom: 6px !important;
   }
 
   #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 2.5rem"] {
-    font-size: 1.6rem !important;
-    margin-bottom: 0 !important;
-    text-align: right !important;
+    font-size: 1.75rem !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+  }
+
+  #garmin > div[style*="grid-template-columns"] > div > div[style*="font-size: 0.9rem"] {
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+    margin-top: 2px !important;
   }
 
   /* Make Garmin header more compact on mobile */
