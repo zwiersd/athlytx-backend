@@ -330,74 +330,82 @@
 
             <!-- Overview Tab -->
             <div id="overview" class="tab-panel" role="tabpanel" aria-labelledby="overview-tab">
-                <!-- Main Score Card -->
-                <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden;">
-                    <!-- Header Section -->
+                <!-- Main Score Card - Ultra Clean Design -->
+                <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden;">
+                    <!-- Minimal Header -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                        <div>
-                            <h2 style="color: rgba(255, 255, 255, 0.95); margin: 0 0 2px 0; font-size: 1.35rem; font-weight: 700;">⚡ Athlytx Score</h2>
-                            <p style="margin: 0; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Your unified fitness metric</p>
-                        </div>
-                        <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.8rem; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
-                            Confidence: --
+                        <h2 style="color: rgba(255, 255, 255, 0.95); margin: 0; font-size: 1.3rem; font-weight: 700;">⚡ Athlytx Score</h2>
+                        <div id="scoreConfidenceBadge" style="display:inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
+                            <span id="confidenceText">--</span>
                         </div>
                     </div>
 
-                    <!-- Score and Status Section -->
-                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; margin-bottom: 18px;">
-                        <!-- Large Score Display -->
-                        <div style="text-align: center;">
-                            <div style="font-size: 5rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
-                            <div style="font-size: 0.75rem; margin-top: 6px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">out of 100</div>
+                    <!-- Main Score + Status Layout -->
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center; margin-bottom: 16px;">
+                        <!-- Circular Progress Ring -->
+                        <div style="position: relative; width: 140px; height: 140px;">
+                            <svg width="140" height="140" style="transform: rotate(-90deg);">
+                                <!-- Background circle -->
+                                <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                                <!-- Progress circle -->
+                                <circle id="scoreProgressCircle" cx="70" cy="70" r="60" fill="none" stroke="url(#scoreGradient)" stroke-width="8" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377" style="transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;"/>
+                                <defs>
+                                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <!-- Score number in center -->
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
+                                <div style="font-size: 0.65rem; margin-top: 2px; color: rgba(255, 255, 255, 0.5); font-weight: 600;">out of 100</div>
+                            </div>
                         </div>
 
-                        <!-- Status and Insights -->
+                        <!-- Status & Action -->
                         <div>
-                            <div style="margin-bottom: 12px;">
-                                <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices to calculate your score</div>
-                                <p id="scoreInsight" style="margin: 0; color: rgba(255, 255, 255, 0.75); line-height: 1.5; font-size: 0.875rem;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
-                            </div>
-
-                            <!-- Readiness Banner -->
-                            <div id="readinessBanner" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.95); font-size: 0.875rem;">
-                                🏁 Today's Readiness: --
+                            <div id="scoreStatusContainer" style="padding: 14px 16px; border-radius: 8px; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                                <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices</div>
+                                <div id="scoreInsight" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4; margin: 0;">Connect your devices to see your performance score</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Data Sources Section -->
-                    <div style="background: rgba(0,0,0,0.15); backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                            <div>
-                                <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Data Sources</div>
-                                <div id="scoreSources" style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.85);">
-                                    Recovery: --, Strain: --, Sleep: --, HRV: --
-                                </div>
-                            </div>
-                            <div id="deviceGuidance" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.65); padding: 6px 12px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                                💡 Connect devices for full analysis
-                            </div>
+                    <!-- Quick Metrics Pills -->
+                    <div id="quickMetrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreRecovery">--</div>
+                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">💪 Recovery</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreLoad">--</div>
+                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">🔥 Strain</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreSleep">--</div>
+                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">😴 Sleep</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreHRV">--</div>
+                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">❤️ HRV</div>
+                        </div>
+                    </div>
+
+                    <!-- Compact Data Sources Badge -->
+                    <div style="text-align: center;">
+                        <div id="dataSourcesBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <span>📊</span>
+                            <span id="deviceGuidance">Connect devices for analysis</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="data-summary">
-                    <div class="summary-card glass-card">
-                        <span class="summary-value" id="scoreRecovery">--</span>
-                        <div class="summary-label">Recovery (30%)</div>
-                    </div>
-                    <div class="summary-card glass-card">
-                        <span class="summary-value" id="scoreLoad">--</span>
-                        <div class="summary-label">Strain Balance (25%)</div>
-                    </div>
-                    <div class="summary-card glass-card">
-                        <span class="summary-value" id="scoreSleep">--</span>
-                        <div class="summary-label">Sleep Quality (25%)</div>
-                    </div>
-                    <div class="summary-card glass-card">
-                        <span class="summary-value" id="scoreHRV">--</span>
-                        <div class="summary-label">HRV (20%)</div>
-                    </div>
+                <!-- Hidden elements for backward compatibility -->
+                <div style="display: none;">
+                    <div id="scoreSources"></div>
+                    <div id="readinessBanner"></div>
                 </div>
 
                 <div class="data-connections" id="overviewConnections"></div>
@@ -557,14 +565,14 @@
                     <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 50px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
                 </div>
 
-                <!-- Hero Stats Grid -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <!-- Hero Stats Grid - 4x2 even layout -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
                     <!-- Activities -->
                     <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(139,92,246,0.3); position: relative; overflow: hidden;">
                         <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">🏃</div>
                         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Activities</div>
                         <div id="garminActivities" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
-                        <div id="garminActivitiesLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Workouts</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Workouts</div>
                     </div>
 
                     <!-- Distance -->
@@ -572,7 +580,7 @@
                         <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">📍</div>
                         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Distance</div>
                         <div id="garminDistance" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
-                        <div id="garminDistanceLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Traveled</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Traveled</div>
                     </div>
 
                     <!-- Heart Rate -->
@@ -580,7 +588,7 @@
                         <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">❤️</div>
                         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Heart Rate</div>
                         <div id="garminAvgHR" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
-                        <div id="garminAvgHRLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average BPM</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average BPM</div>
                     </div>
 
                     <!-- Training Time -->
@@ -588,7 +596,7 @@
                         <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">⏱️</div>
                         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Training Time</div>
                         <div id="garminTrainingTime" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
-                        <div id="garminTrainingTimeLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Duration</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Total Duration</div>
                     </div>
 
                     <!-- Body Battery -->
@@ -604,7 +612,7 @@
                         <div style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;">😌</div>
                         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Stress Level</div>
                         <div id="garminStressLevel" style="font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 4px;">--</div>
-                        <div id="garminStressLabel" style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average</div>
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">Average</div>
                     </div>
 
                     <!-- HRV -->
@@ -2040,31 +2048,76 @@
 
         function updateAthlytxScore() {
             const { score, components, dataSources, confidence } = calculateAthlytxScore();
-            
+
             const scoreElement = document.getElementById('athlytxScore');
             const statusElement = document.getElementById('scoreStatus');
             const insightElement = document.getElementById('scoreInsight');
-            
+            const progressCircle = document.getElementById('scoreProgressCircle');
+            const confidenceText = document.getElementById('confidenceText');
+            const statusContainer = document.getElementById('scoreStatusContainer');
+
             if (score !== null) {
                 scoreElement.textContent = score;
-                
-                if (score >= 80) {
-                    statusElement.textContent = '🔋 Peak Condition';
-                    insightElement.textContent = 'You\'re in excellent shape! Your recovery is strong and training load is well-managed.';
-                } else if (score >= 60) {
-                    statusElement.textContent = '⚖️ Balanced State';
-                    insightElement.textContent = 'Good balance between training and recovery. Monitor trends closely.';
-                } else if (score >= 40) {
-                    statusElement.textContent = '⚠️ Recovery Needed';
-                    insightElement.textContent = 'Your metrics suggest you need more recovery. Consider reducing training intensity.';
-                } else {
-                    statusElement.textContent = '🔴 High Fatigue Risk';
-                    insightElement.textContent = 'Multiple metrics indicate high fatigue. Prioritize rest and recovery immediately.';
+
+                // Animate progress ring
+                if (progressCircle) {
+                    const circumference = 2 * Math.PI * 60; // radius = 60
+                    const offset = circumference - (score / 100) * circumference;
+                    progressCircle.style.strokeDashoffset = offset;
+
+                    // Color code the ring based on score
+                    if (score < 40) {
+                        progressCircle.setAttribute('stroke', '#ef4444'); // Red
+                    } else if (score < 70) {
+                        progressCircle.setAttribute('stroke', '#f59e0b'); // Yellow
+                    } else {
+                        progressCircle.setAttribute('stroke', 'url(#scoreGradient)'); // Gradient
+                    }
                 }
-                // Update confidence and sources
+
+                // Update confidence badge
+                if (confidenceText) {
+                    confidenceText.textContent = confidence + ' confidence';
+                }
+
+                // Update status with emoji and brief text
+                let statusIcon = '';
+                let statusText = '';
+                let actionText = '';
+                let bgColor = 'rgba(255,255,255,0.08)';
+
+                if (score >= 80) {
+                    statusIcon = '🔋';
+                    statusText = 'Peak Condition';
+                    actionText = 'Ready to push hard';
+                    bgColor = 'rgba(16, 185, 129, 0.15)';
+                } else if (score >= 60) {
+                    statusIcon = '⚖️';
+                    statusText = 'Balanced State';
+                    actionText = 'Maintain current training load';
+                    bgColor = 'rgba(245, 158, 11, 0.15)';
+                } else if (score >= 40) {
+                    statusIcon = '⚠️';
+                    statusText = 'Recovery Needed';
+                    actionText = 'Reduce intensity 30-50%';
+                    bgColor = 'rgba(239, 68, 68, 0.15)';
+                } else {
+                    statusIcon = '🔴';
+                    statusText = 'High Fatigue Risk';
+                    actionText = 'Prioritize rest immediately';
+                    bgColor = 'rgba(239, 68, 68, 0.2)';
+                }
+
+                // Update status elements
+                statusElement.textContent = `${statusIcon} ${statusText}`;
+                insightElement.textContent = actionText;
+                if (statusContainer) {
+                    statusContainer.style.background = bgColor;
+                }
+
+                // Update confidence badge
                 const confEl = document.getElementById('scoreConfidenceBadge');
                 if (confEl) {
-                    confEl.textContent = `Confidence: ${confidence}`;
                     confEl.style.background = confidence === 'High' ? 'rgba(16,185,129,0.25)' : (confidence === 'Medium' ? 'rgba(245,158,11,0.25)' : 'rgba(220,38,38,0.25)');
                 }
                 const sourcesEl = document.getElementById('scoreSources');
@@ -2091,7 +2144,14 @@
                     if (!hasWhoop) missing.push('Whoop');
                     if (!hasOura) missing.push('Oura');
                     if (!hasStrava) missing.push('Strava');
-                    guidanceEl.textContent = missing.length ? `💡 Connect ${missing.join(', ')} for full analysis` : '✓ All devices connected';
+
+                    if (missing.length === 0) {
+                        guidanceEl.textContent = `All devices connected • ${confidence} confidence`;
+                    } else if (missing.length === 3) {
+                        guidanceEl.textContent = 'Connect devices for analysis';
+                    } else {
+                        guidanceEl.textContent = `Missing: ${missing.join(', ')}`;
+                    }
                 }
                 // Update Readiness Banner on Overview
                 const readinessBanner = document.getElementById('readinessBanner');
@@ -2113,14 +2173,29 @@
                 }
             } else {
                 scoreElement.textContent = '--';
-                statusElement.textContent = 'Connect devices to calculate your score';
-                insightElement.textContent = 'Your unified fitness metric combining recovery, training load, sleep quality, and readiness.';
+                statusElement.textContent = 'Connect devices';
+                insightElement.textContent = 'Link your fitness trackers to see your score';
+
+                // Reset progress circle
+                if (progressCircle) {
+                    progressCircle.style.strokeDashoffset = 377;
+                }
+
+                // Reset confidence
+                if (confidenceText) {
+                    confidenceText.textContent = 'No data';
+                }
+
                 const confEl = document.getElementById('scoreConfidenceBadge');
-                if (confEl) confEl.textContent = 'Confidence: --';
+                if (confEl) {
+                    confEl.style.background = 'rgba(255,255,255,0.15)';
+                }
+
                 const sourcesEl = document.getElementById('scoreSources');
-                if (sourcesEl) sourcesEl.textContent = 'Sources — Recovery: --, Strain: --, Sleep: --, HRV: --';
+                if (sourcesEl) sourcesEl.textContent = '';
+
                 const guidanceEl = document.getElementById('deviceGuidance');
-                if (guidanceEl) guidanceEl.textContent = '💡 Connect devices for full analysis';
+                if (guidanceEl) guidanceEl.textContent = 'Connect devices for analysis';
                 const readinessBanner = document.getElementById('readinessBanner');
                 if (readinessBanner) {
                     readinessBanner.textContent = '🏁 Today’s Readiness: --';
@@ -3490,25 +3565,46 @@
                     console.log('✅ Loaded', dailySummaries.length, 'daily summaries');
                 }
 
-                // Update summary cards
+                // Update hero stat cards
                 document.getElementById('garminActivities').textContent = activities.length;
-                document.getElementById('garminActivities').parentElement.querySelector('.summary-label').textContent = 'Activities';
 
                 const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
                 document.getElementById('garminDistance').textContent = (totalDistance / 1000).toFixed(1) + ' km';
-                document.getElementById('garminDistance').parentElement.querySelector('.summary-label').textContent = 'Total Distance';
 
                 const avgHr = activities.length > 0
                     ? Math.round(activities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / activities.length)
                     : '--';
                 document.getElementById('garminAvgHR').textContent = avgHr === '--' ? avgHr : avgHr + ' bpm';
-                document.getElementById('garminAvgHR').parentElement.querySelector('.summary-label').textContent = 'Avg HR';
 
                 const totalTime = activities.reduce((sum, a) => sum + (a.durationInSeconds || 0), 0);
                 const hours = Math.floor(totalTime / 3600);
                 const minutes = Math.floor((totalTime % 3600) / 60);
                 document.getElementById('garminTrainingTime').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-                document.getElementById('garminTrainingTime').parentElement.querySelector('.summary-label').textContent = 'Training Time';
+
+                // Update new health metrics from daily summaries
+                if (dailySummaries.length > 0) {
+                    const latest = dailySummaries[0];
+
+                    // Body Battery
+                    if (latest.bodyBatteryHighestValue) {
+                        document.getElementById('garminBodyBattery').textContent = latest.bodyBatteryHighestValue;
+                    }
+
+                    // Stress Level
+                    if (latest.averageStressLevel) {
+                        document.getElementById('garminStressLevel').textContent = latest.averageStressLevel;
+                    }
+
+                    // HRV
+                    if (latest.hrvAvg) {
+                        document.getElementById('garminHRV').textContent = Math.round(latest.hrvAvg);
+                    }
+
+                    // Respiration
+                    if (latest.avgWakingRespirationValue) {
+                        document.getElementById('garminRespiration').textContent = latest.avgWakingRespirationValue.toFixed(1);
+                    }
+                }
 
                 // Update activities list with real activities
                 const activitiesList = document.getElementById('garminActivitiesList');
