@@ -91,13 +91,15 @@ function updateAuthUI(isAuthenticated) {
  * Toggle between signup and login forms
  */
 function showAuthForm(formType) {
-    const signupForm = document.getElementById('signupForm');
-    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupFormModal');
+    const loginForm = document.getElementById('loginFormModal');
     const authTabs = document.querySelectorAll('.auth-tab');
 
     // Hide error messages
-    document.getElementById('signup-error').style.display = 'none';
-    document.getElementById('login-error').style.display = 'none';
+    const signupError = document.getElementById('signup-error-modal');
+    const loginError = document.getElementById('login-error-modal');
+    if (signupError) signupError.style.display = 'none';
+    if (loginError) loginError.style.display = 'none';
 
     if (formType === 'signup') {
         signupForm.style.display = 'flex';
