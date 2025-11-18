@@ -2173,10 +2173,11 @@
                 }
                 const guidanceEl = document.getElementById('deviceGuidance');
                 if (guidanceEl) {
-                    const hasStrava = !!(fitnessData.strava && fitnessData.strava.activities && fitnessData.strava.activities.length);
-                    const hasOura = !!(fitnessData.oura && ((fitnessData.oura.sleep && fitnessData.oura.sleep.length) || (fitnessData.oura.readiness && fitnessData.oura.readiness.length)));
-                    const hasWhoop = !!(fitnessData.whoop && ((fitnessData.whoop.recovery && fitnessData.whoop.recovery.length) || (fitnessData.whoop.sleep && fitnessData.whoop.sleep.length)));
-                    const hasGarmin = !!(fitnessData.garmin && fitnessData.garmin.activities && fitnessData.garmin.activities.length);
+                    // Check localStorage tokens to show connected devices (even if no recent data)
+                    const hasStrava = !!localStorage.getItem('strava_token');
+                    const hasOura = !!localStorage.getItem('oura_token');
+                    const hasWhoop = !!localStorage.getItem('whoop_token');
+                    const hasGarmin = !!localStorage.getItem('garmin_token');
 
                     const connected = [];
                     if (hasStrava) connected.push('<img src="/src/images/strava.svg" alt="Strava" style="height: 14px; vertical-align: middle;">');
