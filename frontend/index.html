@@ -4429,32 +4429,42 @@
         function showMessage(message, type = 'info') {
             const messageDiv = document.createElement('div');
             const colors = {
-                success: '#10b981',
-                error: '#dc2626',
-                warning: '#f59e0b',
-                info: '#3b82f6'
+                success: 'rgba(16, 185, 129, 0.25)',
+                error: 'rgba(220, 38, 38, 0.25)',
+                warning: 'rgba(245, 158, 11, 0.25)',
+                info: 'rgba(59, 130, 246, 0.25)'
+            };
+
+            const borderColors = {
+                success: 'rgba(16, 185, 129, 0.4)',
+                error: 'rgba(220, 38, 38, 0.4)',
+                warning: 'rgba(245, 158, 11, 0.4)',
+                info: 'rgba(59, 130, 246, 0.4)'
             };
 
             // Count existing messages to stack them
             const existingMessages = document.querySelectorAll('.status-message');
-            const offset = existingMessages.length * 70; // Stack each message 70px below previous
+            const offset = existingMessages.length * 38; // Stack each message 38px above previous
 
             messageDiv.className = 'status-message';
             messageDiv.style.cssText = `
                 position: fixed;
-                top: ${20 + offset}px;
-                left: 50%;
-                transform: translateX(-50%);
+                bottom: ${80 + offset}px;
+                left: 20px;
                 background: ${colors[type]};
-                color: white;
-                padding: 12px 24px;
-                border-radius: 8px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                color: rgba(255, 255, 255, 0.95);
+                padding: 6px 12px;
+                border-radius: 6px;
+                border: 1px solid ${borderColors[type]};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 z-index: 1000;
-                max-width: 90%;
-                text-align: center;
+                max-width: 280px;
+                font-size: 0.75rem;
                 font-weight: 500;
                 transition: all 0.3s ease;
+                opacity: 0.9;
             `;
             messageDiv.textContent = message;
             document.body.appendChild(messageDiv);
