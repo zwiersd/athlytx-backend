@@ -46,22 +46,54 @@ curl -X POST https://athlytx-backend-production.up.railway.app/api/sync/manual \
 - ⚠️ APILog foreign key code deployed but logging middleware not active (pre-existing issue)
 - This will be addressed in a future fix
 
+## Stage 2 Fixes: ✅ DEPLOYED AND WORKING
+
+### What's Deployed:
+- ✅ Fix #3: Whoop duration validation - **WORKING**
+  - Validates `cycle.end` is not null before calculating duration
+  - Skips ongoing cycles to prevent negative durations
+  - Adds validation for non-positive durations
+- ✅ Data cleanup complete:
+  - 1 corrupted Whoop record deleted (-20410 days duration)
+  - Database now clean: 0 corrupted records remain
+
+### Test Results:
+
+**Whoop Sync Test (Fix #3):**
+```bash
+curl -X POST https://athlytx-backend-production.up.railway.app/api/sync/manual \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "3c37dd1f-25f8-4212-afcf-52a7d37f0903", "daysBack": 14}'
+```
+**Result:** ✅ Returns:
+- `"whoop": {"cyclesFetched": 10, "cyclesStored": 0}`
+- Correctly filtered out ongoing/invalid cycles
+- No negative duration errors
+
+**Data Cleanup:**
+- ✅ Found and deleted 1 corrupted Whoop activity
+- ✅ Duration was -1763436610 seconds (-20410 days)
+- ✅ Verification: 0 corrupted records remain
+
+---
+
 ## Files Modified (All on GitHub):
 
+### Stage 1:
 1. `backend/routes/sync.js` - Authentication, rate limiting, concurrency prevention
 2. `backend/models/APILog.js` - Fixed foreign key pattern
 3. `backend/routes/garmin-health.js` - Reduced logging verbosity
-4. `FIX-PLAN-2025-11-18.md` - Complete documentation
-5. `.railwayignore` - Prevent unnecessary file uploads
+4. `.railwayignore` - Prevent unnecessary file uploads
 
-## Next Steps After Deployment:
+### Stage 2:
+5. `backend/services/syncService.js` - Whoop duration validation (lines 971-987)
+6. `scripts/cleanup-whoop-data.js` - Data cleanup utility
 
-### Stage 2: Data Quality
-- Fix #3: Add Whoop duration validation
-- Clean up 2 corrupted Whoop records
-- Deploy and test
+---
 
-### Stage 3: User Features
+## Next Steps:
+
+### Stage 3: User Features (Optional)
 - Fix #5: User self-service sync endpoint
 - Deploy and test
 
