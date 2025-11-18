@@ -538,11 +538,121 @@ async function sendCoachRevocation(coachEmail, coachName, athleteName, revokedDe
     }
 }
 
+/**
+ * Send password reset email
+ * @param {string} email - Recipient email address
+ * @param {string} userName - User's name
+ * @param {string} resetUrl - Full password reset URL
+ */
+async function sendPasswordReset(email, userName, resetUrl) {
+    try {
+        const { data, error} = await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'Athlytx <noreply@athlytx.com>',
+            to: [email],
+            subject: '🔑 Reset Your Athlytx Password',
+            html: `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%); padding: 40px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.98); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+
+        <!-- Header with Logo -->
+        <div style="background: linear-gradient(135deg, #0a0e27 0%, #1e2659 50%, #2c1810 100%); padding: 50px 30px; text-align: center; border-bottom: 3px solid #667eea;">
+            <img src="https://www.athlytx.com/src/images/logo.png" alt="Athlytx" style="height: 60px; margin-bottom: 20px;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">Athlytx Elite</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0 0; font-size: 16px; font-weight: 500;">Professional Coaching Dashboard</p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 50px 40px;">
+            <h2 style="color: #0a0e27; margin: 0 0 16px 0; font-size: 26px; font-weight: 700;">Reset Your Password</h2>
+
+            <p style="color: #4a5568; font-size: 16px; line-height: 1.7; margin: 0 0 20px 0;">
+                Hi ${userName},
+            </p>
+
+            <p style="color: #4a5568; font-size: 16px; line-height: 1.7; margin: 0 0 35px 0;">
+                We received a request to reset your password. Click the button below to create a new password:
+            </p>
+
+            <!-- Reset Button -->
+            <div style="text-align: center; margin: 0 0 40px 0;">
+                <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea, #5a67d8); color: white; text-decoration: none; padding: 20px 60px; border-radius: 12px; font-weight: 700; font-size: 18px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4); transition: all 0.3s;">
+                    🔑 Reset Password
+                </a>
+            </div>
+
+            <p style="color: #718096; font-size: 14px; line-height: 1.6; margin: 0 0 25px 0; text-align: center; font-style: italic;">
+                This link will expire in 1 hour for security.
+            </p>
+
+            <!-- Security Notice -->
+            <div style="background: linear-gradient(135deg, #fff5f5, #fed7d7); border-left: 4px solid #f56565; padding: 20px 24px; border-radius: 8px; margin: 0 0 20px 0;">
+                <p style="color: #742a2a; font-size: 14px; line-height: 1.7; margin: 0;">
+                    <strong style="color: #742a2a;">⚠️ Security Notice:</strong> If you didn't request this password reset, please ignore this email. Your password will not be changed unless you click the button above and create a new password.
+                </p>
+            </div>
+
+            <p style="color: #718096; font-size: 13px; line-height: 1.6; margin: 20px 0 0 0;">
+                If the button doesn't work, copy and paste this link into your browser:<br>
+                <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: linear-gradient(135deg, #0a0e27, #1e2659); padding: 30px; text-align: center; border-top: 1px solid rgba(102, 126, 234, 0.3);">
+            <p style="color: rgba(255,255,255,0.9); font-size: 13px; margin: 0 0 8px 0; font-weight: 600;">
+                © ${new Date().getFullYear()} Athlytx Elite
+            </p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0;">
+                Advanced analytics for elite coaching performance
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+            `,
+            text: `
+Reset Your Athlytx Password
+
+Hi ${userName},
+
+We received a request to reset your password. Click the link below to create a new password:
+
+${resetUrl}
+
+This link will expire in 1 hour for security.
+
+If you didn't request this password reset, please ignore this email. Your password will not be changed unless you click the link above and create a new password.
+
+© ${new Date().getFullYear()} Athlytx Elite
+            `
+        });
+
+        if (error) {
+            console.error('❌ Resend password reset email error:', error);
+            throw error;
+        }
+
+        console.log('✅ Password reset email sent:', data);
+        return data;
+
+    } catch (error) {
+        console.error('❌ Failed to send password reset email:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     sendMagicLink,
     sendAthleteInvite,
     sendAdminNotification,
     sendAthleteConfirmation,
     sendCoachConfirmation,
-    sendCoachRevocation
+    sendCoachRevocation,
+    sendPasswordReset
 };
