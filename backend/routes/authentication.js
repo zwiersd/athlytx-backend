@@ -3,6 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { User } = require('../models');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key_for_dev');
 
 /**
  * AUTHENTICATION ROUTES
@@ -81,6 +84,36 @@ router.post('/signup', async (req, res) => {
             });
 
             console.log(`✅ Upgraded guest user ${userId} to full account: ${email}`);
+
+            // Send email notification for upgraded guest account
+            try {
+                await resend.emails.send({
+                    from: 'Athlytx Notifications <noreply@athlytx.com>',
+                    to: ['info@athlytx.com'],
+                    subject: '🎉 New Account Created - Upgraded from Guest',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #667eea;">New Account: Guest Upgraded</h2>
+
+                            <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                <p style="margin: 8px 0;"><strong>Email:</strong> ${email}</p>
+                                <p style="margin: 8px 0;"><strong>Name:</strong> ${user.name}</p>
+                                <p style="margin: 8px 0;"><strong>User ID:</strong> ${user.id}</p>
+                                <p style="margin: 8px 0;"><strong>Previous Guest ID:</strong> ${userId}</p>
+                                <p style="margin: 8px 0;"><strong>Signup Type:</strong> Guest Account Upgraded</p>
+                            </div>
+
+                            <p style="color: #718096; font-size: 12px; margin-top: 30px;">
+                                A guest user just upgraded to a full account on Athlytx. Their data has been preserved.
+                            </p>
+                        </div>
+                    `
+                });
+                console.log(`📧 Sent email notification for new account: ${email}`);
+            } catch (emailError) {
+                console.error('❌ Failed to send signup notification email:', emailError);
+                // Don't fail the signup if email fails
+            }
         } else {
             // Create new full account
             user = await User.create({
@@ -94,6 +127,35 @@ router.post('/signup', async (req, res) => {
             });
 
             console.log(`✅ Created new account: ${email}`);
+
+            // Send email notification for new account
+            try {
+                await resend.emails.send({
+                    from: 'Athlytx Notifications <noreply@athlytx.com>',
+                    to: ['info@athlytx.com'],
+                    subject: '🎉 New Account Created',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #667eea;">New Account Created</h2>
+
+                            <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                <p style="margin: 8px 0;"><strong>Email:</strong> ${email}</p>
+                                <p style="margin: 8px 0;"><strong>Name:</strong> ${user.name}</p>
+                                <p style="margin: 8px 0;"><strong>User ID:</strong> ${user.id}</p>
+                                <p style="margin: 8px 0;"><strong>Signup Type:</strong> New Account</p>
+                            </div>
+
+                            <p style="color: #718096; font-size: 12px; margin-top: 30px;">
+                                A new user just created an account on Athlytx.
+                            </p>
+                        </div>
+                    `
+                });
+                console.log(`📧 Sent email notification for new account: ${email}`);
+            } catch (emailError) {
+                console.error('❌ Failed to send signup notification email:', emailError);
+                // Don't fail the signup if email fails
+            }
         }
 
         res.json({
