@@ -122,39 +122,57 @@ function showAuthForm(formType) {
 async function handleSignup(event) {
     event.preventDefault();
 
-    const name = document.getElementById('signup-name').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-    const errorDiv = document.getElementById('signup-error');
+    const name = document.getElementById('signup-name-modal').value.trim();
+    const email = document.getElementById('signup-email-modal').value.trim();
+    const password = document.getElementById('signup-password-modal').value;
+    const errorDiv = document.getElementById('signup-error-modal');
 
-    // Get current userId from localStorage (to upgrade guest account)
-    const userId = localStorage.getItem('userId');
+    // Validate inputs
+    if (!name || !email || !password) {
+        errorDiv.textContent = 'All fields are required';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    if (password.length < 8) {
+        errorDiv.textContent = 'Password must be at least 8 characters';
+        errorDiv.style.display = 'block';
+        return;
+    }
 
     try {
-        const response = await fetch('/api/authentication/signup', {
+        const response = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId,
                 email,
                 password,
-                name: name || undefined
+                name,
+                role: 'athlete'
             })
         });
 
         const data = await response.json();
 
-        if (data.success) {
-            // Store session token
+        if (response.ok && data.success) {
+            // Store session token and user data
             sessionToken = data.sessionToken;
             localStorage.setItem('sessionToken', sessionToken);
             localStorage.setItem('sessionExpiry', data.sessionExpiry);
+            localStorage.setItem('userId', data.user.id);
+            localStorage.setItem('userEmail', data.user.email);
+            if (data.user.name) localStorage.setItem('userName', data.user.name);
 
             // Update current user
             currentUser = data.user;
 
-            // Update UI
-            updateAuthUI(true);
+            // Close modal and update UI
+            if (typeof closeAuthModal === 'function') {
+                closeAuthModal();
+            }
+            if (typeof checkAuthenticationStatus === 'function') {
+                checkAuthenticationStatus();
+            }
 
             console.log('✅ Signup successful:', currentUser.email);
 
@@ -180,12 +198,19 @@ async function handleSignup(event) {
 async function handleLogin(event) {
     event.preventDefault();
 
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errorDiv = document.getElementById('login-error');
+    const email = document.getElementById('login-email-modal').value.trim();
+    const password = document.getElementById('login-password-modal').value;
+    const errorDiv = document.getElementById('login-error-modal');
+
+    // Validate inputs
+    if (!email || !password) {
+        errorDiv.textContent = 'Email and password are required';
+        errorDiv.style.display = 'block';
+        return;
+    }
 
     try {
-        const response = await fetch('/api/authentication/login', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -193,26 +218,34 @@ async function handleLogin(event) {
 
         const data = await response.json();
 
-        if (data.success) {
-            // Store session token
+        if (response.ok && data.success) {
+            // Store session token and user data
             sessionToken = data.sessionToken;
             localStorage.setItem('sessionToken', sessionToken);
             localStorage.setItem('sessionExpiry', data.sessionExpiry);
-
-            // Update userId to match logged-in user
             localStorage.setItem('userId', data.user.id);
+            localStorage.setItem('userEmail', data.user.email);
+            if (data.user.name) localStorage.setItem('userName', data.user.name);
 
             // Update current user
             currentUser = data.user;
 
-            // Update UI
-            updateAuthUI(true);
+            // Close modal and update UI
+            if (typeof closeAuthModal === 'function') {
+                closeAuthModal();
+            }
+            if (typeof checkAuthenticationStatus === 'function') {
+                checkAuthenticationStatus();
+            }
 
             console.log('✅ Login successful:', currentUser.email);
 
             // Refresh data to show user's synced data
             if (typeof refreshAllData === 'function') {
                 refreshAllData();
+            }
+            if (typeof loadExistingConnections === 'function') {
+                await loadExistingConnections();
             }
         } else {
             // Show error
