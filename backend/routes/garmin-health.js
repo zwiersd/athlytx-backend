@@ -47,6 +47,13 @@ router.post('/push', async (req, res) => {
     try {
         const data = req.body;
 
+        // Log what data types we received
+        const dataTypes = Object.keys(data).filter(key => Array.isArray(data[key]) && data[key].length > 0);
+        console.log('📊 PUSH data types received:', dataTypes);
+        dataTypes.forEach(type => {
+            console.log(`  - ${type}: ${data[type].length} items`);
+        });
+
         console.log('PUSH data:', JSON.stringify(data, null, 2));
 
         // Return 200 immediately (within 30 seconds requirement)
