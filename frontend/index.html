@@ -1149,6 +1149,64 @@
                 .replace(/=/g, '');
         }
 
+        // ===== DATA LOADING FUNCTIONS =====
+        async function loadDashboardData() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                console.log('No userId found, skipping data load');
+                return;
+            }
+
+            try {
+                console.log('Loading dashboard data for userId:', userId);
+
+                // Fetch sync status (activity counts, last sync)
+                const statusResponse = await fetch(`${API_CONFIG.backend}/api/sync/status/${userId}`);
+                if (statusResponse.ok) {
+                    const statusData = await statusResponse.json();
+                    console.log('Sync status:', statusData);
+                    displaySyncStatus(statusData);
+                }
+
+                // Fetch heart rate zone data (last 28 days)
+                const zonesResponse = await fetch(`${API_CONFIG.backend}/api/sync/zones/${userId}?days=28`);
+                if (zonesResponse.ok) {
+                    const zonesData = await zonesResponse.json();
+                    console.log('Heart rate zones:', zonesData);
+                    displayZoneData(zonesData);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function displaySyncStatus(data) {
+            console.log(`Found ${data.totalActivities} activities, ${data.totalZoneRecords} zone records`);
+
+            // Update a status indicator if it exists
+            const statusEl = document.getElementById('syncStatus');
+            if (statusEl) {
+                statusEl.textContent = `${data.totalActivities} activities synced`;
+            }
+        }
+
+        function displayZoneData(data) {
+            if (!data.data || data.data.length === 0) {
+                console.log('No zone data to display');
+                return;
+            }
+
+            console.log(`Displaying ${data.data.length} zone records`);
+
+            // TODO: Update charts and UI with zone data
+            // For now, just log the data so user can see it's being fetched
+            data.data.forEach((zone, index) => {
+                if (index < 5) { // Log first 5 records
+                    console.log(`Activity ${index + 1}:`, zone.activityType, zone.durationMinutes, 'mins', zone.provider);
+                }
+            });
+        }
+
         // ===== DEVICE CONNECTION FUNCTIONS =====
         async function connectDevice(device) {
             const button = event.target;
@@ -5202,7 +5260,8 @@
                 });
             }
 
-            // Removed dummy Garmin data - using real data only
+            // Load dashboard data on page load
+            loadDashboardData();
 
             // Contact form handler
             const contactForm = document.getElementById('contactForm');
