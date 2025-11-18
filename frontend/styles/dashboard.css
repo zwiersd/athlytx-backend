@@ -261,11 +261,21 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Hide readiness on desktop - it will only show on mobile */
+.score-hero-container .readiness-status-hero {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .score-hero-container {
     flex-direction: column;
     gap: 0;
     padding: 0 16px;
+  }
+
+  /* Show readiness on mobile only */
+  .score-hero-container .readiness-status-hero {
+    display: flex;
   }
 
   /* Mobile order: Score -> Readiness -> Recovery/Strain -> Sleep/HRV */
