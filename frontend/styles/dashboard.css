@@ -623,7 +623,7 @@ body {
 .header-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-2) var(--space-6);
   display: flex;
   justify-content: space-between;
   align-items: center;

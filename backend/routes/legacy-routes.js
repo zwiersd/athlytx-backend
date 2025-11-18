@@ -27,6 +27,47 @@ app.post('/api/strava/token', async (req, res) => {
             throw new Error(`Strava token exchange failed: ${data.message}`);
         }
 
+        // **CRITICAL:** Save token to database so data can be associated with user
+        try {
+            console.log('\n💾 === SAVING STRAVA TOKEN TO DATABASE ===');
+
+            const { OAuthToken } = require('../models');
+            const { encrypt } = require('../utils/encryption');
+
+            const userId = req.session?.userId || req.body.userId;
+
+            if (!userId) {
+                console.error('❌ CRITICAL: No userId available - token will NOT be saved to database!');
+                console.error('   User will need to reconnect! This is a BUG that must be fixed!');
+                return res.status(400).json({
+                    error: 'No user session',
+                    message: 'You must be logged in to connect Strava'
+                });
+            }
+
+            const expiryTimestamp = Date.now() + (data.expires_in * 1000);
+            const stravaUserId = data.athlete?.id?.toString();
+
+            await OAuthToken.upsert({
+                userId: userId,
+                provider: 'strava',
+                providerUserId: stravaUserId,
+                accessTokenEncrypted: encrypt(data.access_token),
+                refreshTokenEncrypted: data.refresh_token ? encrypt(data.refresh_token) : null,
+                expiresAt: new Date(expiryTimestamp),
+                scopes: data.scope || null
+            });
+
+            console.log('✅ Strava token saved to database for user:', userId);
+            console.log('   Athlete ID:', stravaUserId);
+        } catch (dbError) {
+            console.error('❌ CRITICAL: Failed to save Strava token to database:', dbError);
+            return res.status(500).json({
+                error: 'Database error',
+                message: 'Failed to save connection. Please try again.'
+            });
+        }
+
         res.json(data);
     } catch (error) {
         console.error('Strava token error:', error);
@@ -104,6 +145,58 @@ app.post('/api/oura/token', async (req, res) => {
 
         if (!response.ok) {
             throw new Error(`Oura token exchange failed: ${data.error || data.message}`);
+        }
+
+        // **CRITICAL:** Save token to database so data can be associated with user
+        try {
+            console.log('\n💾 === SAVING OURA TOKEN TO DATABASE ===');
+
+            const { OAuthToken } = require('../models');
+            const { encrypt } = require('../utils/encryption');
+
+            const userId = req.session?.userId || req.body.userId;
+
+            if (!userId) {
+                console.error('❌ CRITICAL: No userId available - token will NOT be saved to database!');
+                console.error('   User will need to reconnect! This is a BUG that must be fixed!');
+                return res.status(400).json({
+                    error: 'No user session',
+                    message: 'You must be logged in to connect Oura'
+                });
+            }
+
+            const expiryTimestamp = Date.now() + (data.expires_in * 1000);
+
+            // Get Oura user ID from personal info endpoint
+            let ouraUserId = null;
+            try {
+                const personalResponse = await fetch('https://api.ouraring.com/v2/usercollection/personal_info', {
+                    headers: { 'Authorization': `Bearer ${data.access_token}` }
+                });
+                const personalData = await personalResponse.json();
+                ouraUserId = personalData.id;
+            } catch (e) {
+                console.warn('⚠️ Could not fetch Oura user ID:', e.message);
+            }
+
+            await OAuthToken.upsert({
+                userId: userId,
+                provider: 'oura',
+                providerUserId: ouraUserId,
+                accessTokenEncrypted: encrypt(data.access_token),
+                refreshTokenEncrypted: data.refresh_token ? encrypt(data.refresh_token) : null,
+                expiresAt: new Date(expiryTimestamp),
+                scopes: null
+            });
+
+            console.log('✅ Oura token saved to database for user:', userId);
+            console.log('   Oura User ID:', ouraUserId);
+        } catch (dbError) {
+            console.error('❌ CRITICAL: Failed to save Oura token to database:', dbError);
+            return res.status(500).json({
+                error: 'Database error',
+                message: 'Failed to save connection. Please try again.'
+            });
         }
 
         res.json(data);
@@ -247,6 +340,58 @@ app.post('/api/whoop/token', async (req, res) => {
 
         if (!response.ok) {
             throw new Error(`Whoop token exchange failed: ${data.error || data.message}`);
+        }
+
+        // **CRITICAL:** Save token to database so data can be associated with user
+        try {
+            console.log('\n💾 === SAVING WHOOP TOKEN TO DATABASE ===');
+
+            const { OAuthToken } = require('../models');
+            const { encrypt } = require('../utils/encryption');
+
+            const userId = req.session?.userId || req.body.userId;
+
+            if (!userId) {
+                console.error('❌ CRITICAL: No userId available - token will NOT be saved to database!');
+                console.error('   User will need to reconnect! This is a BUG that must be fixed!');
+                return res.status(400).json({
+                    error: 'No user session',
+                    message: 'You must be logged in to connect Whoop'
+                });
+            }
+
+            const expiryTimestamp = Date.now() + (data.expires_in * 1000);
+
+            // Get Whoop user ID from profile endpoint
+            let whoopUserId = null;
+            try {
+                const profileResponse = await fetch('https://api.prod.whoop.com/developer/v2/user/profile/basic', {
+                    headers: { 'Authorization': `Bearer ${data.access_token}` }
+                });
+                const profileData = await profileResponse.json();
+                whoopUserId = profileData.user_id?.toString();
+            } catch (e) {
+                console.warn('⚠️ Could not fetch Whoop user ID:', e.message);
+            }
+
+            await OAuthToken.upsert({
+                userId: userId,
+                provider: 'whoop',
+                providerUserId: whoopUserId,
+                accessTokenEncrypted: encrypt(data.access_token),
+                refreshTokenEncrypted: data.refresh_token ? encrypt(data.refresh_token) : null,
+                expiresAt: new Date(expiryTimestamp),
+                scopes: data.scope || null
+            });
+
+            console.log('✅ Whoop token saved to database for user:', userId);
+            console.log('   Whoop User ID:', whoopUserId);
+        } catch (dbError) {
+            console.error('❌ CRITICAL: Failed to save Whoop token to database:', dbError);
+            return res.status(500).json({
+                error: 'Database error',
+                message: 'Failed to save connection. Please try again.'
+            });
         }
 
         res.json(data);
@@ -543,14 +688,13 @@ app.post('/api/garmin/token', async (req, res) => {
 
             console.log('Registration URL (PUSH):', pushRegUrl);
 
+            // Request body must be empty for initial registration per Garmin Health API spec
             const pushRegResponse = await fetch(pushRegUrl, {
                 method: 'POST',
                 headers: {
                     Authorization: pushAuthHeader,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
+                    Accept: 'application/json'
+                }
             });
 
             const pushRegText = await pushRegResponse.text();
@@ -567,6 +711,40 @@ app.post('/api/garmin/token', async (req, res) => {
 
         } catch (regError) {
             console.error('⚠️ PUSH registration error (non-fatal):', regError);
+        }
+
+        // **CRITICAL:** Save token to database so PUSH webhooks can find the user
+        try {
+            console.log('\n💾 === SAVING GARMIN TOKEN TO DATABASE ===');
+
+            const { OAuthToken } = require('../models');
+            const { encrypt } = require('../utils/encryption');
+
+            // Get userId from session or request
+            const userId = req.session?.userId || req.body.userId;
+
+            if (!userId) {
+                console.warn('⚠️ No userId available - token will not be saved to database');
+                console.warn('   PUSH notifications will not work without database storage!');
+            } else {
+                const expiryTimestamp = Date.now() + (data.expires_in * 1000);
+
+                await OAuthToken.upsert({
+                    userId: userId,
+                    provider: 'garmin',
+                    providerUserId: garminUserId,
+                    accessTokenEncrypted: encrypt(data.access_token),
+                    refreshTokenEncrypted: data.refresh_token ? encrypt(data.refresh_token) : null,
+                    expiresAt: new Date(expiryTimestamp),
+                    scopes: data.scope || null
+                });
+
+                console.log('✅ Garmin token saved to database for user:', userId);
+                console.log('   Provider User ID:', garminUserId);
+            }
+        } catch (dbError) {
+            console.error('❌ Failed to save token to database (CRITICAL):', dbError);
+            console.error('   PUSH notifications will NOT work without database storage!');
         }
 
         res.json(data);
@@ -592,10 +770,8 @@ app.post('/api/garmin/v2/register', async (req, res) => {
         console.log('🔐 Token prefix:', token.substring(0, 20) + '...');
 
         const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/user/registration', 'POST', token, {}, {
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({})
-        });
+        // Empty body per Garmin Health API spec - user registration doesn't require request body
+        const response = await signAndFetch('/user/registration', 'POST', token, {});
 
         const responseText = await response.text();
         console.log('📝 Registration response:', {
