@@ -376,7 +376,7 @@
                                 <img src="/src/images/GarminConnect.png" alt="Garmin Connect" onerror="this.style.display='none'; this.parentNode.innerHTML='G';">
                             </div>
                             <div class="device-info">
-                                <h3>Garmin Connect</h3>
+                                <h3>Garmin Connect™</h3>
                                 <p>Activities, body battery, and wellness</p>
                             </div>
                         </div>
@@ -2180,15 +2180,28 @@
                     const hasGarmin = !!localStorage.getItem('garmin_token');
 
                     const connected = [];
-                    if (hasStrava) connected.push('<img src="/src/images/strava.svg" alt="Strava" style="height: 16px; vertical-align: middle;">');
-                    if (hasOura) connected.push('<img src="/src/images/ourawhite.png" alt="Oura" style="height: 16px; vertical-align: middle;">');
-                    if (hasWhoop) connected.push('<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 16px; vertical-align: middle; filter: invert(1) brightness(2);">');
-                    if (hasGarmin) connected.push('<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 16px; vertical-align: middle;">');
+                    const connectedNames = [];
+                    if (hasGarmin) {
+                        connected.push('<img src="/src/images/Garmin.svg" alt="Garmin" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
+                        connectedNames.push('Garmin');
+                    }
+                    if (hasStrava) {
+                        connected.push('<img src="/src/images/strava.svg" alt="Strava" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
+                        connectedNames.push('Strava');
+                    }
+                    if (hasWhoop) {
+                        connected.push('<img src="/src/images/WHOOP.svg" alt="Whoop" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle; filter: invert(1) brightness(2);">');
+                        connectedNames.push('Whoop');
+                    }
+                    if (hasOura) {
+                        connected.push('<img src="/src/images/ourawhite.png" alt="Oura" style="height: 16px; width: 50px; object-fit: contain; vertical-align: middle;">');
+                        connectedNames.push('Oura');
+                    }
 
                     if (connected.length === 0) {
                         guidanceEl.innerHTML = 'Connect devices for analysis';
                     } else {
-                        guidanceEl.innerHTML = `Connected to: ${connected.join(' ')}`;
+                        guidanceEl.innerHTML = `Data from ${connectedNames.join(', ')}: ${connected.join(' ')}`;
                     }
                 }
                 // Update Readiness Banner on Overview
@@ -3700,8 +3713,11 @@
                             </div>` : ''}
                             ${activity.deviceModel ? `<div>
                                 <span style="color: #9ca3af;">Device:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${activity.deviceModel}</strong>
-                            </div>` : ''}
+                                <strong style="color: #ffffff; margin-left: 5px;">Garmin ${activity.deviceModel}</strong>
+                            </div>` : `<div>
+                                <span style="color: #9ca3af;">Device:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">Garmin</strong>
+                            </div>`}
                         </div>
                     </div>
                 `).join('');
