@@ -381,8 +381,25 @@
                                 <input type="password" id="login-password-modal" required placeholder="Your password">
                                 <small id="login-password-helper" class="form-helper" style="display: none;"></small>
                             </div>
+                            <div style="text-align: right; margin-bottom: 16px;">
+                                <a href="#" onclick="showForgotPasswordForm(); return false;" style="color: #667eea; font-size: 14px; text-decoration: none;">Forgot Password?</a>
+                            </div>
                             <button type="submit" class="auth-submit-btn">Login</button>
                             <div id="login-error-modal" class="auth-error" style="display: none;"></div>
+                        </form>
+
+                        <!-- Forgot Password Form -->
+                        <form id="forgotPasswordForm" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
+                            <button type="button" onclick="showAuthForm('login')" style="background: none; border: none; color: #667eea; cursor: pointer; margin-bottom: 16px; font-size: 14px;">← Back to Login</button>
+                            <h3 style="margin-bottom: 16px;">Reset Password</h3>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 24px; font-size: 14px;">Enter your email and we'll send you a link to reset your password.</p>
+                            <div class="form-group">
+                                <label for="forgot-email">Email</label>
+                                <input type="email" id="forgot-email" required placeholder="you@example.com">
+                            </div>
+                            <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                            <div id="forgot-success" class="auth-success" style="display: none; padding: 12px; background: rgba(16,185,129,0.2); border-radius: 8px; color: #10b981; margin-top: 16px;"></div>
+                            <div id="forgot-error" class="auth-error" style="display: none;"></div>
                         </form>
                     </div>
                 </div>
@@ -1444,6 +1461,53 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Login';
+            }
+        }
+
+        // ===== FORGOT PASSWORD FUNCTIONS =====
+        function showForgotPasswordForm() {
+            document.getElementById('signupFormModal').style.display = 'none';
+            document.getElementById('loginFormModal').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('forgot-email').value.trim();
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const successDiv = document.getElementById('forgot-success');
+            const errorDiv = document.getElementById('forgot-error');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            successDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_CONFIG.backend}/api/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = 'Password reset link sent! Check your email.';
+                    successDiv.style.display = 'block';
+                    document.getElementById('forgot-email').value = '';
+                } else {
+                    errorDiv.textContent = data.error || 'Failed to send reset link';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Reset Link';
             }
         }
 
