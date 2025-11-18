@@ -124,6 +124,17 @@ app.get('/admin/migrate-oauth-tokens', async (req, res) => {
     }
 });
 
+// Guest mode migration endpoint
+app.get('/admin/migrate-guest-mode', async (req, res) => {
+    try {
+        const migrate = require('./backend/migrations/add-guest-mode-fields');
+        await migrate();
+        res.json({ success: true, message: 'Guest mode migration completed' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message, stack: error.stack });
+    }
+});
+
 // Import legacy routes (existing OAuth endpoints)
 const legacyRoutes = require('./backend/routes/legacy-routes');
 legacyRoutes(app);
@@ -142,11 +153,13 @@ app.use('/api/garmin/admin', garminRegisterRoutes);
 
 // Import authentication, coach, athlete, invite, and device routes
 const authRoutes = require('./backend/routes/auth');
+const authenticationRoutes = require('./backend/routes/authentication'); // Optional guest mode auth
 const coachRoutes = require('./backend/routes/coach');
 const athleteRoutes = require('./backend/routes/athlete');
 const inviteRoutes = require('./backend/routes/invite');
 const deviceRoutes = require('./backend/routes/devices');
 app.use('/api/auth', authRoutes);
+app.use('/api/authentication', authenticationRoutes); // Guest mode + optional signup
 app.use('/api/coach', coachRoutes);
 app.use('/api/athlete', athleteRoutes);
 app.use('/api/invite', inviteRoutes);

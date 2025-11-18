@@ -9,15 +9,24 @@ const User = sequelize.define('User', {
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true, // Allow null for guest users
         unique: true,
         validate: {
             isEmail: true
         }
     },
+    passwordHash: {
+        type: DataTypes.STRING,
+        allowNull: true // Null for guest users
+    },
     name: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    isGuest: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true, // Start as guest, become false when they sign up
+        allowNull: false
     },
     role: {
         type: DataTypes.ENUM('athlete', 'coach'),
