@@ -1455,11 +1455,15 @@
         async function handleStravaCallback(code) {
             try {
                 showMessage('Processing Strava authorization...', 'info');
-                
+
+                const userId = localStorage.getItem('userId');
                 const response = await fetch(`${API_CONFIG.backend}/api/strava/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({
+                        code,
+                        userId: userId  // CRITICAL: Required for database persistence
+                    })
                 });
 
                 if (!response.ok) {
@@ -1500,11 +1504,15 @@
         async function handleOuraCallback(code) {
             try {
                 showMessage('Processing Oura authorization...', 'info');
-                
+
+                const userId = localStorage.getItem('userId');
                 const response = await fetch(`${API_CONFIG.backend}/api/oura/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({
+                        code,
+                        userId: userId  // CRITICAL: Required for database persistence
+                    })
                 });
 
                 if (!response.ok) {
@@ -1555,14 +1563,16 @@
                 const codeVerifier = localStorage.getItem('garmin_code_verifier') || sessionStorage.getItem('garmin_code_verifier');
                 
                 // Your backend should exchange the code with Garmin's token endpoint
+                const userId = localStorage.getItem('userId');
                 const response = await fetch(`${API_CONFIG.backend}/api/garmin/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         code,
                         client_id: API_CONFIG.garmin.clientId,
                         redirect_uri: API_CONFIG.garmin.redirectUri,
-                        code_verifier: codeVerifier  // PKCE verifier for OAuth 2.0
+                        code_verifier: codeVerifier,  // PKCE verifier for OAuth 2.0
+                        userId: userId  // CRITICAL: Required for database persistence
                     })
                 });
 
