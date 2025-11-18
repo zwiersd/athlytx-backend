@@ -3789,6 +3789,7 @@
 
                 updateConnectionStatus();
                 showMessage('Garmin connected! Data loaded from PUSH webhooks.', 'success');
+                updateAnalytics(); // Trigger UI update to display Garmin data
 
             } catch (error) {
                 console.error('Garmin data fetch error:', error);
