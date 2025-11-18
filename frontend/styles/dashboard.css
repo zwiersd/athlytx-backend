@@ -268,6 +268,19 @@ body {
     padding: 0 16px;
   }
 
+  /* Reorder: Score first, then metrics below */
+  .score-center {
+    order: 1;
+  }
+
+  .metrics-side-card:first-child {
+    order: 2; /* Recovery/Strain below score */
+  }
+
+  .metrics-side-card:last-child {
+    order: 3; /* Sleep/HRV last */
+  }
+
   .metrics-side-card {
     width: 100%;
     max-width: 320px;
@@ -283,16 +296,16 @@ body {
   }
 
   .score-circle-wrapper {
-    width: 180px;
-    height: 180px;
+    width: 220px;
+    height: 220px;
   }
 
   .score-number {
-    font-size: 3.5rem;
+    font-size: 4.5rem;
   }
 
   .score-max {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
   }
 
   .score-status-title {
@@ -314,16 +327,16 @@ body {
 
 @media (max-width: 480px) {
   .score-circle-wrapper {
-    width: 160px;
-    height: 160px;
+    width: 200px;
+    height: 200px;
   }
 
   .score-number {
-    font-size: 3rem;
+    font-size: 4rem;
   }
 
   .score-max {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
   }
 
   .metrics-side-card {
