@@ -1,0 +1,997 @@
+/**
+ * ATHLYTX RESPONSIVE REDESIGN
+ * "The Boxing Ring" Layout - Mobile-First Approach
+ * Form Follows Function - Data Accessibility First
+ * Version: 3.0.0
+ */
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE VARIABLES
+   ============================================ */
+
+:root {
+  /* Mobile-specific sizes */
+  --mobile-header-height: 60px;
+  --mobile-bottom-nav-height: 60px;
+  --mobile-score-size: 160px;
+  --tablet-score-size: 200px;
+  --desktop-score-size: 300px;
+
+  /* Safe area insets for iPhone notch */
+  --safe-area-top: env(safe-area-inset-top, 0);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0);
+  --safe-area-left: env(safe-area-inset-left, 0);
+  --safe-area-right: env(safe-area-inset-right, 0);
+}
+
+/* ============================================
+   BASE MOBILE LAYOUT (320px+)
+   ============================================ */
+
+/* Override body padding for new layout */
+body {
+  padding-top: calc(var(--mobile-header-height) + var(--safe-area-top));
+  padding-bottom: calc(var(--mobile-bottom-nav-height) + var(--safe-area-bottom));
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
+}
+
+/* Main header - slimmer on mobile */
+.main-header {
+  height: var(--mobile-header-height);
+  padding-top: var(--safe-area-top);
+}
+
+/* ============================================
+   MOBILE HERO SCORE CARD (320px+)
+   ============================================ */
+
+.score-hero-mobile {
+  background: var(--glass-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-lg);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  /* Subtle radial glow */
+  position: relative;
+  overflow: hidden;
+}
+
+.score-hero-mobile::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(102, 126, 234, 0.1) 0%,
+    transparent 50%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.score-hero-mobile > * {
+  position: relative;
+  z-index: 1;
+}
+
+.score-circle-mobile {
+  flex-shrink: 0;
+  width: var(--mobile-score-size);
+  height: var(--mobile-score-size);
+  position: relative;
+}
+
+.score-ring-mobile {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring-bg {
+  fill: none;
+  stroke: var(--glass-3);
+  stroke-width: 10;
+}
+
+.score-ring-progress {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 440;
+  stroke-dashoffset: 440;
+  transition: stroke-dashoffset 1s var(--ease-out), stroke 0.3s ease;
+}
+
+.score-value-container-mobile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+}
+
+.score-value-mobile {
+  font-size: clamp(48px, 12vw, 56px);
+  font-weight: var(--weight-extrabold);
+  line-height: 1;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+.score-label-mobile {
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-semibold);
+}
+
+.score-details-mobile {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.score-status-mobile {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--status-fresh);
+  line-height: 1.2;
+}
+
+.score-insight-mobile {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.score-trend-mobile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-1);
+}
+
+.trend-icon {
+  font-size: var(--text-sm);
+}
+
+/* ============================================
+   HORIZONTAL SCROLL METRICS (Mobile)
+   ============================================ */
+
+.metrics-scroll-container {
+  margin-bottom: var(--space-4);
+  position: relative;
+}
+
+.metrics-scroll {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-1) 0 var(--space-4) 0;
+  margin: 0 calc(var(--space-4) * -1);
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.metrics-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.metric-card-mobile {
+  min-width: 140px;
+  width: 140px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+
+  background: var(--glass-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.metric-card-mobile:active {
+  transform: scale(0.98);
+  background: var(--glass-4);
+}
+
+.metric-icon-mobile {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  color: white;
+  font-size: var(--text-lg);
+}
+
+.metric-label-mobile {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+}
+
+.metric-value-mobile {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.metric-unit-mobile {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-top: calc(var(--space-1) * -1);
+}
+
+.metric-change-mobile {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-semibold);
+}
+
+.metric-change-mobile.positive {
+  color: var(--status-fresh);
+}
+
+.metric-change-mobile.negative {
+  color: var(--status-danger);
+}
+
+.metric-change-mobile.neutral {
+  color: var(--text-tertiary);
+}
+
+/* Scroll indicators */
+.scroll-indicators {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+  opacity: 0.3;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.indicator-dot.active {
+  opacity: 1;
+  background: var(--color-primary);
+  transform: scale(1.3);
+}
+
+/* ============================================
+   COLLAPSIBLE ACCORDION SECTIONS
+   ============================================ */
+
+.data-section {
+  background: var(--glass-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.section-header-accordion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  min-height: 56px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.section-header-accordion:active {
+  background: var(--glass-3);
+}
+
+.section-title-accordion {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.section-icon {
+  font-size: var(--text-xl);
+  flex-shrink: 0;
+}
+
+.section-badge {
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  padding: var(--space-1) var(--space-2);
+  background: var(--status-fresh-dim);
+  color: var(--status-fresh);
+  border-radius: var(--radius-full);
+  margin-left: var(--space-2);
+}
+
+.expand-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-tertiary);
+  transition: transform var(--duration-moderate) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.section-header-accordion.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.section-content-accordion {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--duration-moderate) var(--ease-out);
+}
+
+.section-content-accordion.expanded {
+  max-height: 3000px;
+}
+
+.section-content-inner {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+/* ============================================
+   BOTTOM NAVIGATION BAR (Mobile)
+   ============================================ */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-bottom-nav-height);
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border-top: 1px solid var(--border-1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding-bottom: var(--safe-area-bottom);
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+
+  min-height: 60px;
+  padding: var(--space-2) var(--space-1);
+
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  line-height: 1.2;
+
+  transition: all var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+.nav-item.active {
+  color: var(--color-primary);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+}
+
+.nav-label {
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Hide bottom nav on desktop */
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+
+  body {
+    padding-bottom: 80px;
+  }
+}
+
+/* ============================================
+   HIDE ELEMENTS ON MOBILE
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Hide readiness hero on mobile - fold into header pill */
+  .readiness-status-hero {
+    display: none !important;
+  }
+
+  /* Hide tab navigation - replaced with accordion + bottom nav */
+  .tab-nav {
+    display: none !important;
+  }
+
+  /* Hide desktop hero layout elements */
+  .hero-zone-desktop {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   TABLET BREAKPOINT (640px+)
+   ============================================ */
+
+@media (min-width: 640px) {
+  /* Enlarge score on larger phones */
+  .score-circle-mobile {
+    width: 180px;
+    height: 180px;
+  }
+
+  /* 2x2 grid for metrics instead of horizontal scroll */
+  .metrics-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    gap: var(--space-3);
+  }
+
+  .metric-card-mobile {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Hide scroll indicators */
+  .scroll-indicators {
+    display: none;
+  }
+}
+
+/* ============================================
+   TABLET LANDSCAPE (768px+)
+   ============================================ */
+
+@media (min-width: 768px) {
+  .score-circle-mobile {
+    width: var(--tablet-score-size);
+    height: var(--tablet-score-size);
+  }
+
+  /* 4-column grid for metrics */
+  .metrics-scroll {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+
+  .metric-card-mobile {
+    padding: var(--space-5);
+  }
+
+  /* Show some sections expanded by default on tablet */
+  .section-content-accordion.important {
+    max-height: 3000px;
+  }
+}
+
+/* ============================================
+   DESKTOP HERO ZONE (1024px+)
+   "The Boxing Ring" Layout
+   ============================================ */
+
+@media (min-width: 1024px) {
+  body {
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+
+  .main-header {
+    height: 60px;
+  }
+
+  /* Hide mobile score card */
+  .score-hero-mobile {
+    display: none;
+  }
+
+  /* Hide mobile metrics scroll */
+  .metrics-scroll-container {
+    display: none;
+  }
+
+  /* Show desktop hero zone */
+  .hero-zone-desktop {
+    display: block !important;
+    position: relative;
+    min-height: 500px;
+    margin-bottom: var(--space-12);
+    padding: var(--space-12) 0;
+
+    /* Radial gradient background emanating from center */
+    background: radial-gradient(
+      circle at center,
+      rgba(102, 126, 234, 0.15) 0%,
+      rgba(102, 126, 234, 0.08) 30%,
+      transparent 60%
+    );
+  }
+
+  .hero-zone-inner {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 500px;
+  }
+
+  /* Center score (THE BOXING RING) */
+  .score-circle-desktop {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--desktop-score-size);
+    height: var(--desktop-score-size);
+    z-index: 10;
+
+    /* Prominent glow */
+    filter: drop-shadow(0 0 40px rgba(102, 126, 234, 0.4));
+  }
+
+  .score-ring-desktop {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .score-value-container-desktop {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 100%;
+  }
+
+  .score-value-desktop {
+    font-size: clamp(72px, 6vw, 96px);
+    font-weight: var(--weight-black);
+    line-height: 1;
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+  }
+
+  .score-label-desktop {
+    font-size: var(--text-sm);
+    margin-top: var(--space-2);
+    color: var(--text-tertiary);
+    font-weight: var(--weight-semibold);
+  }
+
+  .score-status-desktop {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    color: var(--status-fresh);
+    margin-top: var(--space-4);
+  }
+
+  .score-insight-desktop {
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+
+  /* 4 Corner Metrics */
+  .metric-corner {
+    position: absolute;
+    width: 140px;
+    background: var(--glass-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .metric-corner:hover {
+    background: var(--glass-4);
+    border-color: var(--border-2);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .metric-corner.top-left {
+    top: 0;
+    left: 0;
+  }
+
+  .metric-corner.top-right {
+    top: 0;
+    right: 0;
+  }
+
+  .metric-corner.bottom-left {
+    bottom: 0;
+    left: 0;
+  }
+
+  .metric-corner.bottom-right {
+    bottom: 0;
+    right: 0;
+  }
+
+  .metric-corner .metric-icon-mobile {
+    width: 36px;
+    height: 36px;
+  }
+
+  .metric-corner .metric-value-mobile {
+    font-size: var(--text-2xl);
+  }
+
+  /* Show readiness as compact pill in header on desktop */
+  .readiness-status-hero {
+    display: none;
+  }
+
+  /* Replace tabs with sections */
+  .tab-nav {
+    display: none !important;
+  }
+
+  /* Bento grid layout for data sections */
+  .data-sections-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+
+  .data-section {
+    background: var(--glass-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: 0;
+  }
+
+  .data-section.span-12 { grid-column: span 12; }
+  .data-section.span-8 { grid-column: span 8; }
+  .data-section.span-6 { grid-column: span 6; }
+  .data-section.span-4 { grid-column: span 4; }
+
+  /* Sections are expanded by default on desktop */
+  .section-header-accordion {
+    cursor: default;
+  }
+
+  .section-content-accordion {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .expand-icon {
+    display: none;
+  }
+}
+
+/* ============================================
+   LARGE DESKTOP (1440px+)
+   ============================================ */
+
+@media (min-width: 1440px) {
+  .hero-zone-inner {
+    max-width: 1400px;
+  }
+
+  .metric-corner {
+    width: 160px;
+    padding: var(--space-5);
+  }
+
+  .data-sections-grid {
+    gap: var(--space-8);
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY: TAP TARGETS
+   ============================================ */
+
+/* Ensure all interactive elements meet 44x44px minimum */
+.nav-item,
+.section-header-accordion,
+.metric-card-mobile {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+button,
+.connect-btn,
+.disconnect-btn,
+.refresh-btn {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
+}
+
+/* ============================================
+   ACCESSIBILITY: FOCUS STATES
+   ============================================ */
+
+.nav-item:focus-visible,
+.section-header-accordion:focus-visible,
+.metric-card-mobile:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================
+   ACCESSIBILITY: SCREEN READER ONLY
+   ============================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================
+   PERFORMANCE: GPU ACCELERATION
+   ============================================ */
+
+.score-hero-mobile,
+.metric-card-mobile,
+.data-section,
+.bottom-nav,
+.score-circle-desktop,
+.metric-corner {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ============================================
+   SKELETON LOADERS (Performance)
+   ============================================ */
+
+.skeleton-score {
+  width: var(--mobile-score-size);
+  height: var(--mobile-score-size);
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    90deg,
+    var(--glass-2) 0%,
+    var(--glass-3) 50%,
+    var(--glass-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-metric {
+  width: 140px;
+  height: 120px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--glass-2) 0%,
+    var(--glass-3) 50%,
+    var(--glass-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-section {
+  height: 60px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--glass-2) 0%,
+    var(--glass-3) 50%,
+    var(--glass-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  margin-bottom: var(--space-3);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+
+  .show-mobile-only {
+    display: none;
+  }
+}
+
+.hide-tablet {
+  display: block;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none;
+  }
+}
+
+.hide-desktop {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* ============================================
+   TOUCH OPTIMIZATION
+   ============================================ */
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .metric-card-mobile:hover,
+  .data-section:hover,
+  .metric-corner:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Use :active instead for touch feedback */
+  .metric-card-mobile:active {
+    background: var(--glass-4);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton-score,
+  .skeleton-metric,
+  .skeleton-section {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .score-ring-progress {
+    transition: none;
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  .score-hero-mobile,
+  .metric-card-mobile,
+  .data-section {
+    border-width: 2px;
+    border-color: var(--text-primary);
+  }
+
+  .score-value-mobile,
+  .score-value-desktop {
+    -webkit-text-fill-color: var(--text-primary);
+  }
+}
