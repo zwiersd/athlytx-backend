@@ -261,21 +261,38 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Hide readiness on desktop - it will only show on mobile */
+/* Position readiness on desktop - above the score */
 .score-hero-container .readiness-status-hero {
-  display: none;
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-width: 400px;
+}
+
+.score-hero-section {
+  position: relative;
 }
 
 @media (max-width: 768px) {
+  .score-hero-section {
+    margin-top: 80px; /* Ensure it clears the fixed header */
+  }
+
   .score-hero-container {
     flex-direction: column;
     gap: 0;
     padding: 0 16px;
   }
 
-  /* Show readiness on mobile only */
+  /* Reset readiness positioning on mobile - make it part of flex flow */
   .score-hero-container .readiness-status-hero {
-    display: flex;
+    position: static;
+    transform: none;
+    left: auto;
+    top: auto;
+    min-width: auto;
   }
 
   /* Mobile order: Score -> Readiness -> Recovery/Strain -> Sleep/HRV */
