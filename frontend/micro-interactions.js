@@ -282,7 +282,13 @@
         document.addEventListener('mousedown', (e) => {
             const button = e.target.closest('button, .connect-btn, .disconnect-btn, .refresh-btn, .nav-tab');
             if (button) {
-                createRipple(e);
+                // Create a synthetic event with the button as currentTarget
+                const syntheticEvent = {
+                    currentTarget: button,
+                    clientX: e.clientX,
+                    clientY: e.clientY
+                };
+                createRipple(syntheticEvent);
             }
         });
     }
