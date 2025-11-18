@@ -460,6 +460,45 @@ app.post('/api/whoop/token', async (req, res) => {
     }
 });
 
+// Get user's saved OAuth tokens from database
+app.get('/api/user/tokens', async (req, res) => {
+    try {
+        const userId = req.query.userId || req.session?.userId;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'No userId provided' });
+        }
+
+        const { OAuthToken } = require('../models');
+        const { decrypt } = require('../utils/encryption');
+
+        // Fetch all tokens for this user
+        const tokens = await OAuthToken.findAll({
+            where: { userId },
+            attributes: ['provider', 'accessTokenEncrypted', 'refreshTokenEncrypted', 'expiresAt', 'scopes']
+        });
+
+        // Decrypt and format tokens for frontend
+        const decryptedTokens = {};
+        for (const token of tokens) {
+            decryptedTokens[token.provider] = {
+                access_token: decrypt(token.accessTokenEncrypted),
+                refresh_token: token.refreshTokenEncrypted ? decrypt(token.refreshTokenEncrypted) : null,
+                expires_at: token.expiresAt,
+                expiry: token.expiresAt ? new Date(token.expiresAt).getTime() : null,
+                scopes: token.scopes
+            };
+        }
+
+        console.log(`✅ Loaded ${Object.keys(decryptedTokens).length} saved tokens for user ${userId}`);
+
+        res.json({ tokens: decryptedTokens });
+    } catch (error) {
+        console.error('❌ Error loading user tokens:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/whoop/profile', async (req, res) => {
     try {
         const { token } = req.query;

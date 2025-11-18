@@ -1558,8 +1558,38 @@
         }
 
         // ===== CONNECTION MANAGEMENT =====
-        function loadExistingConnections() {
-            console.log(' Loading existing connections...');
+        async function loadExistingConnections() {
+            console.log('🔍 Loading existing connections...');
+
+            // FIRST: Try to load tokens from database (persistent across sessions)
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+                try {
+                    console.log('📦 Loading tokens from database for user:', userId);
+                    const response = await fetch(`${API_CONFIG.backend}/api/user/tokens?userId=${userId}`);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Loaded tokens from database:', Object.keys(data.tokens));
+
+                        // Store database tokens in localStorage for quick access
+                        for (const [provider, tokenData] of Object.entries(data.tokens)) {
+                            localStorage.setItem(`${provider}_token`, tokenData.access_token);
+                            if (tokenData.refresh_token) {
+                                localStorage.setItem(`${provider}_refresh_token`, tokenData.refresh_token);
+                            }
+                            if (tokenData.expiry) {
+                                localStorage.setItem(`${provider}_expiry`, tokenData.expiry);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Could not load tokens from database:', error.message);
+                    console.log('   Falling back to localStorage tokens');
+                }
+            }
+
+            // Now check localStorage for tokens (either from DB or previously stored)
             const stravaToken = localStorage.getItem('strava_token');
             const ouraToken = localStorage.getItem('oura_token');
             const garminToken = localStorage.getItem('garmin_token');
@@ -1571,7 +1601,7 @@
 
             const now = Date.now();
 
-            console.log(' Found tokens:', {
+            console.log('🔑 Found tokens:', {
                 strava: !!stravaToken,
                 oura: !!ouraToken,
                 garmin: !!garminToken,
