@@ -14,6 +14,9 @@ html {
 
 body {
   background: linear-gradient(135deg, #0a0e27 0%, #1e2659 30%, #2c1810 70%, #0f0a1a 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
   min-height: 100vh;
   width: 100%;
   color: white;
