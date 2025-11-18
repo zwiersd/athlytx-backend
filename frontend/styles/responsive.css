@@ -476,10 +476,10 @@ body {
     display: none !important;
   }
 
-  /* Hide tab navigation - replaced with accordion + bottom nav */
-  .tab-nav {
+  /* KEEP TABS VISIBLE - Don't hide them */
+  /* .tab-nav {
     display: none !important;
-  }
+  } */
 
   /* Hide desktop hero layout elements */
   .hero-zone-desktop {
@@ -574,9 +574,9 @@ body {
   .hero-zone-desktop {
     display: block !important;
     position: relative;
-    min-height: 500px;
+    min-height: 600px;
     margin-bottom: var(--space-12);
-    padding: var(--space-12) 0;
+    padding: var(--space-12) var(--space-8);
 
     /* Radial gradient background emanating from center */
     background: radial-gradient(
@@ -589,9 +589,12 @@ body {
 
   .hero-zone-inner {
     position: relative;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    height: 500px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Center score (THE BOXING RING) */
@@ -661,42 +664,43 @@ body {
   /* 4 Corner Metrics */
   .metric-corner {
     position: absolute;
-    width: 140px;
+    width: 160px;
     background: var(--glass-3);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
-    padding: var(--space-4);
+    padding: var(--space-5);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     transition: all var(--duration-normal) var(--ease-out);
+    box-shadow: var(--shadow-md);
   }
 
   .metric-corner:hover {
     background: var(--glass-4);
     border-color: var(--border-2);
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
   }
 
   .metric-corner.top-left {
-    top: 0;
-    left: 0;
+    top: 50px;
+    left: 50px;
   }
 
   .metric-corner.top-right {
-    top: 0;
-    right: 0;
+    top: 50px;
+    right: 50px;
   }
 
   .metric-corner.bottom-left {
-    bottom: 0;
-    left: 0;
+    bottom: 50px;
+    left: 50px;
   }
 
   .metric-corner.bottom-right {
-    bottom: 0;
-    right: 0;
+    bottom: 50px;
+    right: 50px;
   }
 
   .metric-corner .metric-icon-mobile {
