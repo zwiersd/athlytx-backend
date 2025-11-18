@@ -8,6 +8,11 @@ const { APILog } = require('../models');
  * In production, you'd want proper authentication middleware
  */
 function requireAuth(req, res, next) {
+    // TEMPORARY: Disable auth for testing - REMOVE IN PRODUCTION
+    if (process.env.DISABLE_LOGS_AUTH === 'true') {
+        return next();
+    }
+
     const userId = req.session?.userId || req.query.userId || req.body.userId;
 
     if (!userId) {
