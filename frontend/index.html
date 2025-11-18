@@ -1353,6 +1353,11 @@
                     checkAuthenticationStatus();
 
                     showMessage('Account created successfully!', 'success');
+
+                    // Load any existing connections (in case user had tokens before signup)
+                    if (typeof loadExistingConnections === 'function') {
+                        await loadExistingConnections();
+                    }
                 } else {
                     errorDiv.textContent = data.error || 'Signup failed';
                     errorDiv.style.display = 'block';
