@@ -5221,12 +5221,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize userId if it doesn't exist
             if (!localStorage.getItem('userId')) {
-                // Use your production userId
+                // Use your production userId with all the data
                 const userId = '3c37dd1f-25f8-4212-afcf-52a7d37f0903';
                 localStorage.setItem('userId', userId);
                 console.log('Initialized with production userId:', userId);
             } else {
-                console.log('Existing userId found:', localStorage.getItem('userId'));
+                const currentUserId = localStorage.getItem('userId');
+                // If using the empty userId, switch to the one with data
+                if (currentUserId === 'bcc86a51-60d4-4ce4-9084-dc98296b711b') {
+                    const userIdWithData = '3c37dd1f-25f8-4212-afcf-52a7d37f0903';
+                    localStorage.setItem('userId', userIdWithData);
+                    console.log('Switched from empty userId to userId with data:', userIdWithData);
+                    location.reload(); // Reload to fetch data with correct userId
+                } else {
+                    console.log('Existing userId found:', currentUserId);
+                }
             }
 
             // Initialize tab event listeners
