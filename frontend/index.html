@@ -2069,36 +2069,28 @@
                 let statusIcon = '';
                 let statusText = '';
                 let actionText = '';
-                let bgColor = 'rgba(255,255,255,0.08)';
 
                 if (score >= 80) {
                     statusIcon = '🔋';
                     statusText = 'Peak Condition';
                     actionText = 'Ready to push hard';
-                    bgColor = 'rgba(16, 185, 129, 0.15)';
                 } else if (score >= 60) {
                     statusIcon = '⚖️';
                     statusText = 'Balanced State';
                     actionText = 'Maintain current training load';
-                    bgColor = 'rgba(245, 158, 11, 0.15)';
                 } else if (score >= 40) {
                     statusIcon = '⚠️';
                     statusText = 'Recovery Needed';
                     actionText = 'Reduce intensity 30-50%';
-                    bgColor = 'rgba(239, 68, 68, 0.15)';
                 } else {
                     statusIcon = '🔴';
                     statusText = 'High Fatigue Risk';
                     actionText = 'Prioritize rest immediately';
-                    bgColor = 'rgba(239, 68, 68, 0.2)';
                 }
 
                 // Update status elements
                 statusElement.textContent = `${statusIcon} ${statusText}`;
                 insightElement.textContent = actionText;
-                if (statusContainer) {
-                    statusContainer.style.background = bgColor;
-                }
 
                 // Update confidence badge
                 const confEl = document.getElementById('scoreConfidenceBadge');
