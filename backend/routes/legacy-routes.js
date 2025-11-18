@@ -461,121 +461,65 @@ app.post('/api/garmin/token', async (req, res) => {
 
         let garminUserId = null;
 
+        // PRIMARY METHOD: Extract Garmin User ID from JWT access token (most reliable)
+        console.log('\n📝 === EXTRACTING GARMIN USER ID FROM JWT ===');
+        try {
+            const [, payloadBase64] = data.access_token.split('.');
+            const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+            console.log('📝 JWT payload keys:', Object.keys(payload));
+
+            garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
+
+            if (garminUserId) {
+                console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
+                data.garminUserId = garminUserId;
+            } else {
+                console.warn('⚠️ Could not find Garmin User ID in JWT payload');
+                console.warn('JWT payload:', JSON.stringify(payload, null, 2));
+            }
+        } catch (jwtError) {
+            console.error('⚠️ Failed to decode JWT:', jwtError.message);
+        }
+
+        // Register user for PUSH notifications
         try {
             const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-            // Use Health API registration endpoint instead of Wellness API
-            const baseUrl = 'https://apis.garmin.com/wellness-api/rest/user/id';
-
-            console.log('Registration URL:', baseUrl);
-
             const signer = new GarminOAuth1Hybrid(
                 process.env.GARMIN_CONSUMER_KEY,
                 process.env.GARMIN_CONSUMER_SECRET
             );
-            const authHeader = signer.generateAuthHeader('GET', baseUrl, {}, data.access_token);
 
-            const registrationResponse = await fetch(baseUrl, {
-                method: 'GET',
+            // **CRITICAL:** Register user for Health API PUSH notifications
+            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS ===');
+            const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
+            const pushAuthHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, data.access_token);
+
+            console.log('Registration URL (PUSH):', pushRegUrl);
+
+            const pushRegResponse = await fetch(pushRegUrl, {
+                method: 'POST',
                 headers: {
-                    Authorization: authHeader,
-                    Accept: 'application/json'
-                }
+                    Authorization: pushAuthHeader,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
             });
 
-            const regResponseText = await registrationResponse.text();
-            console.log('📝 User ID endpoint response:', {
-                status: registrationResponse.status,
-                headers: Object.fromEntries(registrationResponse.headers.entries()),
-                body: regResponseText
+            const pushRegText = await pushRegResponse.text();
+            console.log('📝 Push registration response:', {
+                status: pushRegResponse.status,
+                body: pushRegText
             });
 
-            if (registrationResponse.ok) {
-                try {
-                    const regData = JSON.parse(regResponseText);
-                    garminUserId = regData.userId || regData.userAccessToken;
-                    console.log('✅ Extracted Garmin User ID:', garminUserId);
-
-                    // Add garminUserId to response data
-                    data.garminUserId = garminUserId;
-
-                    // **CRITICAL:** Register user for Health API PUSH notifications
-                    console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS ===');
-                    const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
-                    const pushAuthHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, data.access_token);
-
-                    console.log('Registration URL (PUSH):', pushRegUrl);
-
-                    const pushRegResponse = await fetch(pushRegUrl, {
-                        method: 'POST',
-                        headers: {
-                            Authorization: pushAuthHeader,
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({})
-                    });
-
-                    const pushRegText = await pushRegResponse.text();
-                    console.log('📝 Push registration response:', {
-                        status: pushRegResponse.status,
-                        body: pushRegText
-                    });
-
-                    if (pushRegResponse.ok || pushRegResponse.status === 409) {
-                        console.log('✅ User registered for PUSH notifications (or already registered)');
-                    } else {
-                        console.warn('⚠️ Push registration failed (non-fatal):', pushRegText);
-                    }
-
-                } catch (e) {
-                    console.warn('⚠️ Could not parse registration response:', e);
-                }
+            if (pushRegResponse.ok || pushRegResponse.status === 409) {
+                console.log('✅ User registered for PUSH notifications (or already registered)');
             } else {
-                console.error('⚠️ User ID fetch failed:', {
-                    status: registrationResponse.status,
-                    body: regResponseText
-                });
-
-                // Fallback: Extract from JWT access token
-                console.log('🔄 Attempting to extract Garmin User ID from JWT...');
-                try {
-                    const [, payloadBase64] = data.access_token.split('.');
-                    const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-                    console.log('📝 JWT payload keys:', Object.keys(payload));
-
-                    garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
-
-                    if (garminUserId) {
-                        console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
-                        data.garminUserId = garminUserId;
-                    } else {
-                        console.warn('⚠️ Could not find Garmin User ID in JWT payload');
-                    }
-                } catch (jwtError) {
-                    console.error('⚠️ Failed to decode JWT:', jwtError.message);
-                }
+                console.warn('⚠️ Push registration failed (non-fatal):', pushRegText);
             }
+
         } catch (regError) {
-            console.error('⚠️ User registration error (non-fatal):', regError);
-
-            // Fallback: Extract from JWT access token
-            console.log('🔄 Attempting to extract Garmin User ID from JWT (fallback)...');
-            try {
-                const [, payloadBase64] = data.access_token.split('.');
-                const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-                console.log('📝 JWT payload keys:', Object.keys(payload));
-
-                garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
-
-                if (garminUserId) {
-                    console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
-                    data.garminUserId = garminUserId;
-                } else {
-                    console.warn('⚠️ Could not find Garmin User ID in JWT payload');
-                }
-            } catch (jwtError) {
-                console.error('⚠️ Failed to decode JWT:', jwtError.message);
-            }
+            console.error('⚠️ PUSH registration error (non-fatal):', regError);
         }
 
         res.json(data);
