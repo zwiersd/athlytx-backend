@@ -330,18 +330,52 @@
 
             <!-- Overview Tab -->
             <div id="overview" class="tab-panel" role="tabpanel" aria-labelledby="overview-tab">
-                <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);">
-                    <div style="text-align: center;">
-                        <h2 style="color: rgba(255, 255, 255, 0.95); margin-bottom: 20px; font-size: 1.8rem; font-weight: 700;">⚡ Athlytx Score</h2>
-                        <div style="font-size: 5rem; font-weight: 800; margin: 30px 0; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
-                        <div style="font-size: 1.1rem; margin-bottom: 16px; color: rgba(255, 255, 255, 0.85);" id="scoreStatus">Connect devices to calculate your score</div>
-                        <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.9rem; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.2);">Confidence: --</div>
-                        <div style="background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); padding: 20px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255, 255, 255, 0.12);">
-                            <p id="scoreInsight" style="margin: 0; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
-                            <p id="scoreSources" style="margin: 12px 0 0 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.75);">Sources — Recovery: --, Strain: --, Sleep: --, HRV: --</p>
-                            <p id="deviceGuidance" style="margin: 8px 0 0 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.65);">💡 Tip: Connect Strava, Oura, and Whoop for highest confidence.</p>
-                            <div id="readinessBanner" style="margin-top: 16px; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.95);">
+                <!-- Main Score Card -->
+                <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden;">
+                    <!-- Header Section -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <div>
+                            <h2 style="color: rgba(255, 255, 255, 0.95); margin: 0 0 2px 0; font-size: 1.35rem; font-weight: 700;">⚡ Athlytx Score</h2>
+                            <p style="margin: 0; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Your unified fitness metric</p>
+                        </div>
+                        <div id="scoreConfidenceBadge" style="display:inline-block; font-size: 0.8rem; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
+                            Confidence: --
+                        </div>
+                    </div>
+
+                    <!-- Score and Status Section -->
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; margin-bottom: 18px;">
+                        <!-- Large Score Display -->
+                        <div style="text-align: center;">
+                            <div style="font-size: 5rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
+                            <div style="font-size: 0.75rem; margin-top: 6px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">out of 100</div>
+                        </div>
+
+                        <!-- Status and Insights -->
+                        <div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices to calculate your score</div>
+                                <p id="scoreInsight" style="margin: 0; color: rgba(255, 255, 255, 0.75); line-height: 1.5; font-size: 0.875rem;">Your unified fitness metric combining recovery, training load, sleep quality, and readiness.</p>
+                            </div>
+
+                            <!-- Readiness Banner -->
+                            <div id="readinessBanner" style="padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.95); font-size: 0.875rem;">
                                 🏁 Today's Readiness: --
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Sources Section -->
+                    <div style="background: rgba(0,0,0,0.15); backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Data Sources</div>
+                                <div id="scoreSources" style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.85);">
+                                    Recovery: --, Strain: --, Sleep: --, HRV: --
+                                </div>
+                            </div>
+                            <div id="deviceGuidance" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.65); padding: 6px 12px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                💡 Connect devices for full analysis
                             </div>
                         </div>
                     </div>
@@ -1966,10 +2000,10 @@
                     const hasOura = !!(fitnessData.oura && ((fitnessData.oura.sleep && fitnessData.oura.sleep.length) || (fitnessData.oura.readiness && fitnessData.oura.readiness.length)));
                     const hasWhoop = !!(fitnessData.whoop && ((fitnessData.whoop.recovery && fitnessData.whoop.recovery.length) || (fitnessData.whoop.sleep && fitnessData.whoop.sleep.length)));
                     const missing = [];
-                    if (!hasWhoop) missing.push('Whoop for recovery/HRV');
-                    if (!hasOura) missing.push('Oura for sleep validation');
-                    if (!hasStrava) missing.push('Strava for training load');
-                    guidanceEl.textContent = missing.length ? `Tip: Connect ${missing.join(', ')} to improve accuracy.` : 'All devices connected. Full spectrum analysis active.';
+                    if (!hasWhoop) missing.push('Whoop');
+                    if (!hasOura) missing.push('Oura');
+                    if (!hasStrava) missing.push('Strava');
+                    guidanceEl.textContent = missing.length ? `💡 Connect ${missing.join(', ')} for full analysis` : '✓ All devices connected';
                 }
                 // Update Readiness Banner on Overview
                 const readinessBanner = document.getElementById('readinessBanner');
@@ -1998,7 +2032,7 @@
                 const sourcesEl = document.getElementById('scoreSources');
                 if (sourcesEl) sourcesEl.textContent = 'Sources — Recovery: --, Strain: --, Sleep: --, HRV: --';
                 const guidanceEl = document.getElementById('deviceGuidance');
-                if (guidanceEl) guidanceEl.textContent = 'Tip: Connect Strava, Oura, and Whoop for highest confidence.';
+                if (guidanceEl) guidanceEl.textContent = '💡 Connect devices for full analysis';
                 const readinessBanner = document.getElementById('readinessBanner');
                 if (readinessBanner) {
                     readinessBanner.textContent = '🏁 Today’s Readiness: --';
