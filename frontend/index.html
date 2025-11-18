@@ -405,6 +405,31 @@
                 </div>
             </div>
 
+            <!-- Reset Password Modal (shown when user clicks email link) -->
+            <div id="resetPasswordModal" class="auth-modal-overlay" style="display: none;">
+                <div class="auth-modal-container">
+                    <button class="auth-modal-close" onclick="closeResetPasswordModal()">&times;</button>
+                    <div class="auth-modal-content">
+                        <h2>Reset Your Password</h2>
+                        <p style="color: rgba(255,255,255,0.7); margin-bottom: 24px;">Enter your new password below.</p>
+                        <form id="resetPasswordForm" onsubmit="handleResetPassword(event)">
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" required minlength="8" placeholder="Min 8 characters">
+                                <small class="form-helper">Must be at least 8 characters</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" required minlength="8" placeholder="Confirm password">
+                            </div>
+                            <button type="submit" class="auth-submit-btn">Reset Password</button>
+                            <div id="reset-success" class="auth-success" style="display: none; padding: 12px; background: rgba(16,185,129,0.2); border-radius: 8px; color: #10b981; margin-top: 16px;"></div>
+                            <div id="reset-error" class="auth-error" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab Content Wrapper -->
             <div class="tab-content-wrapper">
                 <!-- Account Tab -->
@@ -1471,6 +1496,11 @@
             document.getElementById('forgotPasswordForm').style.display = 'block';
         }
 
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
         async function handleForgotPassword(event) {
             event.preventDefault();
 
@@ -1510,6 +1540,78 @@
                 submitBtn.textContent = 'Send Reset Link';
             }
         }
+
+        async function handleResetPassword(event) {
+            event.preventDefault();
+
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const successDiv = document.getElementById('reset-success');
+            const errorDiv = document.getElementById('reset-error');
+
+            // Get token from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('resetToken') || urlParams.get('token');
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Resetting...';
+            successDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_CONFIG.backend}/api/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = 'Password reset successful! You can now login.';
+                    successDiv.style.display = 'block';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('confirm-password').value = '';
+
+                    // Close modal after 2 seconds and redirect to home
+                    setTimeout(() => {
+                        closeResetPasswordModal();
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        showMessage('Password reset successful! Please login.', 'success');
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.error || 'Failed to reset password';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Reset Password';
+            }
+        }
+
+        // Check for reset token in URL on page load
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resetToken = urlParams.get('resetToken') || urlParams.get('token');
+
+            if (resetToken) {
+                // Show reset password modal
+                document.getElementById('resetPasswordModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
 
         // Close modal when clicking outside
         document.addEventListener('click', function(e) {
