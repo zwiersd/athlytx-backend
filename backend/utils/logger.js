@@ -213,7 +213,9 @@ async function logAPICall(logData) {
         }
     } catch (error) {
         // Don't throw - logging failures shouldn't crash the app
-        console.error('Failed to log API call:', error.message);
+        console.error('❌ CRITICAL: Failed to log API call:', error.message);
+        console.error('❌ Error details:', error);
+        console.error('❌ Stack:', error.stack);
     }
 }
 
