@@ -461,11 +461,14 @@ async function processGarminPushData(data) {
         // Process epochs (intraday HRV measurements)
         if (epochs && epochs.length > 0) {
             console.log(`⏱️ Processing ${epochs.length} epochs (intraday HRV)`);
+            console.log(`📊 Sample epoch keys:`, Object.keys(epochs[0]));
+            console.log(`📊 Sample epoch data:`, JSON.stringify(epochs[0], null, 2));
             // Epochs contain granular HRV data throughout the day
             // For now, we'll calculate daily average from epochs
 
             const epochsByDate = {};
             epochs.forEach(epoch => {
+                console.log(`🔍 Epoch hrvValue: ${epoch.hrvValue}, heartRateVariability: ${epoch.heartRateVariability}`);
                 if (epoch.hrvValue || epoch.heartRateVariability) {
                     const date = new Date(epoch.timestampGMT || epoch.startTimeInSeconds * 1000)
                         .toISOString().split('T')[0];
