@@ -309,20 +309,44 @@ async function processGarminPushData(data) {
                     await DailyMetric.upsert({
                         userId: ourUserId,
                         date: summary.calendarDate || summary.summaryDate,
-                        provider: 'garmin',
+                        // Basic metrics
                         steps: summary.steps,
                         totalKilocalories: summary.totalKilocalories,
-                        activeKilocalories: summary.activeKilocalories,
+                        activeCalories: summary.activeKilocalories,
                         bmrKilocalories: summary.bmrKilocalories,
-                        restingHeartRate: summary.restingHeartRate,
+                        // Heart rate
+                        restingHr: summary.restingHeartRate,
                         minHeartRate: summary.minHeartRate,
                         maxHeartRate: summary.maxHeartRate,
+                        // Stress
                         averageStressLevel: summary.averageStressLevel,
                         maxStressLevel: summary.maxStressLevel,
-                        sleepSeconds: summary.sleepingSeconds,
+                        restStressDuration: summary.restStressDurationInSeconds,
+                        activityStressDuration: summary.activityStressDurationInSeconds,
+                        lowStressDuration: summary.lowStressDurationInSeconds,
+                        mediumStressDuration: summary.mediumStressDurationInSeconds,
+                        highStressDuration: summary.highStressDurationInSeconds,
+                        // Sleep
+                        sleepingSeconds: summary.sleepingSeconds,
+                        sleepHours: summary.sleepingSeconds ? summary.sleepingSeconds / 3600 : null,
+                        // Activity intensity
                         moderateIntensityMinutes: summary.moderateIntensityMinutes,
                         vigorousIntensityMinutes: summary.vigorousIntensityMinutes,
-                        rawData: summary
+                        // Movement
+                        floorsAscended: summary.floorsAscended,
+                        floorsDescended: summary.floorsDescended,
+                        distanceMeters: summary.totalDistanceMeters,
+                        // Body Battery
+                        bodyBatteryChargedValue: summary.bodyBatteryChargedValue,
+                        bodyBatteryDrainedValue: summary.bodyBatteryDrainedValue,
+                        bodyBatteryHighestValue: summary.bodyBatteryHighestValue,
+                        bodyBatteryLowestValue: summary.bodyBatteryLowestValue,
+                        // Respiration
+                        avgWakingRespirationValue: summary.avgWakingRespirationValue,
+                        highestRespirationValue: summary.highestRespirationValue,
+                        lowestRespirationValue: summary.lowestRespirationValue,
+                        avgSleepRespirationValue: summary.avgSleepRespirationValue,
+                        abnormalRespirationSeconds: summary.abnormalRespirationDurationInSeconds
                     });
                     stored++;
                 } catch (err) {

@@ -71,6 +71,134 @@ const DailyMetric = sequelize.define('DailyMetric', {
         allowNull: true
     },
 
+    // Garmin-specific health metrics
+    totalKilocalories: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Total calories burned (active + BMR)'
+    },
+    bmrKilocalories: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Basal metabolic rate calories'
+    },
+    minHeartRate: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    maxHeartRate: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    averageStressLevel: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Average stress level (0-100)'
+    },
+    maxStressLevel: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Maximum stress level (0-100)'
+    },
+    restStressDuration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Time in rest/recovery state (seconds)'
+    },
+    activityStressDuration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Time in activity stress state (seconds)'
+    },
+    lowStressDuration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Time in low stress state (seconds)'
+    },
+    mediumStressDuration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Time in medium stress state (seconds)'
+    },
+    highStressDuration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Time in high stress state (seconds)'
+    },
+    sleepingSeconds: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Total sleep duration in seconds'
+    },
+    moderateIntensityMinutes: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Minutes of moderate intensity activity'
+    },
+    vigorousIntensityMinutes: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Minutes of vigorous intensity activity'
+    },
+    floorsAscended: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    floorsDescended: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    distanceMeters: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: 'Total distance traveled in meters'
+    },
+    bodyBatteryChargedValue: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Body Battery gained (Garmin metric)'
+    },
+    bodyBatteryDrainedValue: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Body Battery lost (Garmin metric)'
+    },
+    bodyBatteryHighestValue: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Highest Body Battery level (0-100)'
+    },
+    bodyBatteryLowestValue: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Lowest Body Battery level (0-100)'
+    },
+    avgWakingRespirationValue: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: 'Average waking respiration rate (breaths/min)'
+    },
+    highestRespirationValue: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: 'Highest respiration rate (breaths/min)'
+    },
+    lowestRespirationValue: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: 'Lowest respiration rate (breaths/min)'
+    },
+    avgSleepRespirationValue: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        comment: 'Average sleep respiration rate (breaths/min)'
+    },
+    abnormalRespirationSeconds: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Seconds of abnormal respiration patterns'
+    },
+
     // Metadata
     dataSources: {
         type: DataTypes.JSON,
