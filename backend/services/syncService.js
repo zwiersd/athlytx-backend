@@ -968,10 +968,23 @@ async function syncWhoopData(userId, tokenRecord, daysBack) {
     let stored = 0;
     for (const cycle of cycles) {
         try {
+            // Skip ongoing cycles - cycle.end will be null if the cycle hasn't finished yet
+            // This prevents negative duration calculations (new Date(null) = 0 = Unix epoch)
+            if (!cycle.end || cycle.end === null) {
+                console.log(`  ⏭️  Skipping ongoing cycle (no end time): ${cycle.id}`);
+                continue;
+            }
+
             // Skip full-day cycles - we only want actual workout sessions
             // Cycles over 4 hours are likely full day tracking, not individual workouts
             const durationSeconds = Math.round((new Date(cycle.end) - new Date(cycle.start)) / 1000);
             const durationHours = durationSeconds / 3600;
+
+            // Additional validation: Skip negative or zero duration cycles
+            if (durationSeconds <= 0) {
+                console.log(`  ⏭️  Skipping invalid cycle (non-positive duration): ${cycle.id} (${durationSeconds}s)`);
+                continue;
+            }
 
             if (durationHours > 4) {
                 console.log(`  ⏭️  Skipping long cycle: ${durationHours.toFixed(1)} hours`);
