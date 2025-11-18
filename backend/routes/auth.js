@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const { User, MagicLink, CoachAthlete } = require('../models');
 const { sendMagicLink, sendAthleteInvite, sendAdminNotification } = require('../utils/email');
 const { Op } = require('sequelize');
 
 /**
  * Authentication Routes for Coaches & Athletes
- * Using passwordless magic link authentication
+ * Simple email/password authentication + legacy magic link support
  */
 
 // Test endpoint to check database setup
@@ -111,6 +112,198 @@ router.delete('/cleanup/:email', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/auth/signup
+ * Simple email/password signup (coaches and athletes)
+ */
+router.post('/signup', async (req, res) => {
+    try {
+        const { email, password, name, role } = req.body;
+
+        console.log('[SIGNUP] Request received:', { email, role });
+
+        // Validation
+        if (!email || !password || !name || !role) {
+            return res.status(400).json({
+                error: 'Email, password, name, and role are required'
+            });
+        }
+
+        if (!['coach', 'athlete'].includes(role)) {
+            return res.status(400).json({
+                error: 'Role must be either "coach" or "athlete"'
+            });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                error: 'Password must be at least 8 characters'
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { email: normalizedEmail } });
+        if (existingUser) {
+            return res.status(400).json({
+                error: 'An account with this email already exists'
+            });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create user
+        const user = await User.create({
+            email: normalizedEmail,
+            passwordHash,
+            name: name.trim(),
+            role,
+            isActive: true,
+            onboarded: true // Mark as onboarded since they filled out signup form
+        });
+
+        console.log('[SIGNUP] User created:', user.id);
+
+        // Create session
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        const sessionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+        await user.update({
+            sessionToken,
+            sessionExpiry,
+            lastLogin: new Date()
+        });
+
+        // Send admin notification
+        try {
+            await sendAdminNotification(user.email, user.name, user.role, user.id);
+        } catch (notificationError) {
+            console.warn('[SIGNUP] Admin notification failed:', notificationError.message);
+        }
+
+        console.log('[SIGNUP] Success, session created');
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                onboarded: true
+            },
+            sessionToken,
+            sessionExpiry
+        });
+
+    } catch (error) {
+        console.error('[SIGNUP] Error:', error);
+        res.status(500).json({
+            error: 'Signup failed',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * POST /api/auth/login
+ * Simple email/password login
+ */
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        console.log('[LOGIN] Request received:', { email });
+
+        // Validation
+        if (!email || !password) {
+            return res.status(400).json({
+                error: 'Email and password are required'
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Find user
+        const user = await User.findOne({ where: { email: normalizedEmail } });
+
+        if (!user || !user.passwordHash) {
+            return res.status(401).json({
+                error: 'Invalid email or password'
+            });
+        }
+
+        // Verify password
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!passwordValid) {
+            return res.status(401).json({
+                error: 'Invalid email or password'
+            });
+        }
+
+        console.log('[LOGIN] Password verified for:', user.email);
+
+        // Create new session
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        const sessionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+        await user.update({
+            sessionToken,
+            sessionExpiry,
+            lastLogin: new Date()
+        });
+
+        // Get relationships
+        let relationships = [];
+        if (user.role === 'coach') {
+            relationships = await CoachAthlete.findAll({
+                where: {
+                    coachId: user.id,
+                    status: { [Op.in]: ['pending', 'active'] }
+                }
+            });
+        } else {
+            relationships = await CoachAthlete.findAll({
+                where: {
+                    athleteId: user.id,
+                    status: 'active'
+                }
+            });
+        }
+
+        console.log('[LOGIN] Success, session created');
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                onboarded: user.onboarded || true
+            },
+            sessionToken,
+            sessionExpiry,
+            relationships: relationships.map(r => ({
+                coachId: r.coachId,
+                athleteId: r.athleteId,
+                status: r.status,
+                createdAt: r.createdAt
+            }))
+        });
+
+    } catch (error) {
+        console.error('[LOGIN] Error:', error);
+        res.status(500).json({
+            error: 'Login failed',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 // Generate secure token
 function generateToken() {
     return crypto.randomBytes(32).toString('hex');
@@ -144,6 +337,17 @@ router.post('/magic-link', async (req, res) => {
 
         let isNewUser = false;
         if (!user) {
+            // COACH ONBOARDING FIX: Don't allow new coaches to bypass onboarding
+            if (role === 'coach') {
+                console.log('[AUTH] New coach detected - directing to onboarding');
+                return res.status(400).json({
+                    error: 'No account found. Please sign up first.',
+                    redirectTo: '/coach/onboard',
+                    isNewCoach: true
+                });
+            }
+
+            // For athletes, allow auto-creation (existing behavior)
             console.log('[AUTH] User not found, creating new user...');
             user = await User.create({
                 email: normalizedEmail,
@@ -307,26 +511,51 @@ router.post('/verify', async (req, res) => {
         // Get user's coach/athlete relationships
         let relationships = [];
         if (user.role === 'coach') {
-            // Get coach's athletes
+            // Get coach's athletes - include both PENDING and ACTIVE
+            // (Frontend will handle displaying them differently)
             try {
                 relationships = await CoachAthlete.findAll({
-                    where: { coachId: magicLink.userId }
+                    where: {
+                        coachId: magicLink.userId,
+                        status: { [Op.in]: ['pending', 'active'] }
+                    }
                 });
-                console.log('[VERIFY] Found', relationships.length, 'athlete relationships');
+                console.log('[VERIFY] Found', relationships.length, 'athlete relationships (pending + active)');
             } catch (relError) {
                 console.warn('[VERIFY] Could not load relationships:', relError.message);
                 relationships = [];
             }
         } else {
-            // Get athlete's coaches
+            // Get athlete's coaches - ONLY ACTIVE relationships
             try {
                 relationships = await CoachAthlete.findAll({
-                    where: { athleteId: magicLink.userId }
+                    where: {
+                        athleteId: magicLink.userId,
+                        status: 'active'
+                    }
                 });
-                console.log('[VERIFY] Found', relationships.length, 'coach relationships');
+                console.log('[VERIFY] Found', relationships.length, 'active coach relationships');
             } catch (relError) {
                 console.warn('[VERIFY] Could not load relationships:', relError.message);
                 relationships = [];
+            }
+        }
+
+        // COACH ONBOARDING FIX: Check if coach has completed onboarding
+        let needsOnboarding = false;
+        if (user.role === 'coach') {
+            // Check if name looks like an email prefix (auto-generated)
+            // OR if name doesn't contain a space (missing lastName)
+            const nameIsEmailPrefix = user.name && user.name === user.email.split('@')[0];
+            const nameMissingLastName = user.name && !user.name.includes(' ');
+
+            if (nameIsEmailPrefix || nameMissingLastName) {
+                needsOnboarding = true;
+                console.log('[VERIFY] Coach needs to complete onboarding:', {
+                    name: user.name,
+                    isEmailPrefix: nameIsEmailPrefix,
+                    missingLastName: nameMissingLastName
+                });
             }
         }
 
@@ -338,7 +567,8 @@ router.post('/verify', async (req, res) => {
                 email: user.email,
                 name: user.name,
                 role: user.role,
-                onboarded: user.onboarded || false
+                onboarded: user.onboarded || false,
+                needsOnboarding
             },
             sessionToken,
             sessionExpiry,
@@ -390,8 +620,12 @@ router.post('/session', async (req, res) => {
         // Get relationships
         let relationships = [];
         if (user.role === 'coach') {
+            // Include both pending and active relationships for coaches
             relationships = await CoachAthlete.findAll({
-                where: { coachId: user.id, status: 'active' },
+                where: {
+                    coachId: user.id,
+                    status: { [Op.in]: ['pending', 'active'] }
+                },
                 include: [{
                     model: User,
                     as: 'Athlete',
@@ -399,6 +633,7 @@ router.post('/session', async (req, res) => {
                 }]
             });
         } else {
+            // Only active relationships for athletes
             relationships = await CoachAthlete.findAll({
                 where: { athleteId: user.id, status: 'active' },
                 include: [{

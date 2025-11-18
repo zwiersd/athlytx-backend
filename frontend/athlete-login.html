@@ -413,6 +413,26 @@
                         localStorage.setItem('athlytx_session', JSON.stringify(session));
                     }
 
+                    // ATHLETE ONBOARDING FIX: Check if athlete needs to complete onboarding
+                    if (data.user && !data.user.onboarded) {
+                        messageDiv.innerHTML = `
+                            <div class="success-state">
+                                <div class="success-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h3>Welcome!</h3>
+                                <p>Let's set up your profile...</p>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.href = '/athlete/onboard';
+                        }, 1000);
+                        return;
+                    }
+
                     // Success! Show success message and redirect
                     messageDiv.innerHTML = `
                         <div class="success-state">

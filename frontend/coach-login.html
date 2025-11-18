@@ -306,7 +306,7 @@
             <div class="logo">
                 <div class="logo-text">Athlytx Elite</div>
             </div>
-            <h2 class="subtitle">Coach Login</h2>
+            <h2 class="subtitle">Existing Coach Login</h2>
 
             <div id="message"></div>
 
@@ -338,8 +338,15 @@
             </div>
 
             <div class="link-section">
-                <p>Don't have an account? <a href="/coach/onboard">Sign up as a coach</a></p>
-                <p style="margin-top: var(--spacing-sm)">
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary);">
+                    <a href="/coach/onboard" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        New Coach? Sign up here
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </p>
+                <p style="margin-top: var(--spacing-md); font-size: 0.9rem;">
                     <a href="/athlete">Athlete login</a>
                 </p>
             </div>
@@ -387,6 +394,26 @@
                             user: data.user
                         };
                         localStorage.setItem('athlytx_session', JSON.stringify(session));
+                    }
+
+                    // COACH ONBOARDING FIX: Check if coach needs to complete onboarding
+                    if (data.user && data.user.needsOnboarding) {
+                        messageDiv.innerHTML = `
+                            <div class="success-state">
+                                <div class="success-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                                        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h3>Welcome!</h3>
+                                <p>Let's complete your profile...</p>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.href = '/coach/onboard?complete=true';
+                        }, 1000);
+                        return;
                     }
 
                     // Success! Show success message and redirect
@@ -448,7 +475,15 @@
                     // Show success state
                     showSuccessState(email);
                 } else {
-                    showMessage(data.error || 'Failed to send magic link', 'error');
+                    // COACH ONBOARDING FIX: Handle new coach redirect
+                    if (data.isNewCoach && data.redirectTo) {
+                        showMessage(
+                            `${data.error} <a href="${data.redirectTo}" style="color: var(--primary); text-decoration: underline;">Click here to create your account</a>`,
+                            'error'
+                        );
+                    } else {
+                        showMessage(data.error || 'Failed to send magic link', 'error');
+                    }
                     submitBtn.disabled = false;
                     loading.style.display = 'none';
                 }

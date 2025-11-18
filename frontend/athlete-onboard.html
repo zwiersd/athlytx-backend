@@ -799,8 +799,8 @@
                         await acceptInvitation();
                     }
 
-                    // Redirect to dashboard
-                    window.location.href = 'athlete-dashboard.html';
+                    // Redirect to dashboard using absolute path
+                    window.location.href = '/athlete/dashboard';
                 } else {
                     throw new Error(data.error || 'Failed to complete onboarding');
                 }

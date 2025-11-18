@@ -37,7 +37,12 @@ app.get('/access', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'access.html'));
 });
 
-// Coach routes
+// Coach routes - SIMPLE AUTH (new)
+app.get('/coach-simple', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'coach-simple-auth.html'));
+});
+
+// Coach routes - LEGACY MAGIC LINK (old)
 app.get('/coach', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-login.html'));
 });
@@ -50,7 +55,12 @@ app.get('/coach/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'coach-elite.html'));
 });
 
-// Athlete routes
+// Athlete routes - SIMPLE AUTH (new)
+app.get('/athlete-simple', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'athlete-simple-auth.html'));
+});
+
+// Athlete routes - LEGACY MAGIC LINK (old)
 app.get('/athlete', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'athlete-login.html'));
 });
