@@ -276,7 +276,6 @@
                 <!-- Data Sources Badge -->
                 <div class="score-badge-container">
                     <div id="dataSourcesBadge" class="data-sources-badge">
-                        <span>📊</span>
                         <span id="deviceGuidance">Connect devices</span>
                     </div>
                 </div>
@@ -840,7 +839,7 @@
 
                 <!-- Training Load Analysis -->
                 <div class="analytics-card glass-card">
-                    <h3>📊 Training Load Analysis</h3>
+                    <h3>Training Load Analysis</h3>
                     <div class="chart-container">
                         <canvas id="runningLoadChart"></canvas>
                     </div>
@@ -930,7 +929,7 @@
                         <h3 style="color: white;">🤖 AI-Powered Insights</h3>
                         <div id="aiInsights">
                             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
-                                <strong>📊 Data Analysis:</strong> Connect your devices to get personalized insights based on your multi-stream data.
+                                <strong>Data Analysis:</strong> Connect your devices to get personalized insights based on your multi-stream data.
                             </div>
                         </div>
                     </div>
@@ -2188,7 +2187,7 @@
                     if (connected.length === 0) {
                         guidanceEl.innerHTML = 'Connect devices for analysis';
                     } else {
-                        guidanceEl.innerHTML = `Connected: ${connected.join(' ')}`;
+                        guidanceEl.innerHTML = `Connected to: ${connected.join(' ')}`;
                     }
                 }
                 // Update Readiness Banner on Overview
@@ -2922,7 +2921,7 @@
                     });
                 } else if (workloadRatio < INSIGHT_THRESHOLDS.workloadRatioLow && previousLoad > 100) {
                     insights.push({
-                        title: '📊 Significant Load Reduction',
+                        title: 'Significant Load Reduction',
                         message: `Training load dropped ${Math.round((1 - workloadRatio) * 100)}%. While recovery is important, maintain at least 50% of your usual load to prevent detraining.`,
                         priority: 'medium'
                     });
@@ -3093,7 +3092,7 @@
 
             if (insights.length === 0) {
                 insights.push({
-                    title: '📊 Waiting for Data',
+                    title: 'Waiting for Data',
                     message: 'Connect more devices to unlock personalized insights about your training and recovery patterns.',
                     priority: 'low'
                 });
@@ -3243,7 +3242,7 @@
                     fetchWithRetry(`${API_CONFIG.backend}/api/whoop/cycles?token=${token}&start=${startDate}&end=${endDate}`).catch(e => ({ ok: false, error: e }))
                 ]);
 
-                console.log('📊 Backend responses:', {
+                console.log('Backend responses:', {
                     profile: profileResponse.status,
                     recovery: recoveryResponse.status,
                     workout: workoutResponse.status,
@@ -3360,7 +3359,7 @@
             // Update recovery data
             if (recovery && recovery.length > 0) {
                 const latestRecovery = recovery[recovery.length - 1];
-                console.log('📊 Latest recovery data:', latestRecovery);
+                console.log('Latest recovery data:', latestRecovery);
 
                 const recoveryScore = latestRecovery.score?.recovery_score;
                 if (recoveryScore !== undefined) {
@@ -3588,8 +3587,8 @@
                 }
 
                 // Fetch real data from database (received via PUSH webhooks)
-                console.log('📊 Fetching Garmin data from database for user:', userId);
-                console.log('📊 API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
+                console.log('Fetching Garmin data from database for user:', userId);
+                console.log('API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
 
                 const [activitiesResponse, dailiesResponse] = await Promise.allSettled([
                     fetch(`${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`),
@@ -3790,7 +3789,7 @@
                 }
 
                 // Body Battery, Stress, HRV charts will show once daily summaries arrive via PUSH
-                console.log('📊 Charts ready - waiting for daily summary data from PUSH notifications');
+                console.log('Charts ready - waiting for daily summary data from PUSH notifications');
 
             } catch (error) {
                 console.error('❌ Error updating Garmin display:', error);
