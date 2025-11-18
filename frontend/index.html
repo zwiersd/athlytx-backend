@@ -1370,7 +1370,7 @@
 
         // ===== CONNECTION MANAGEMENT =====
         function loadExistingConnections() {
-            console.log('🔍 Loading existing connections...');
+            console.log(' Loading existing connections...');
             const stravaToken = localStorage.getItem('strava_token');
             const ouraToken = localStorage.getItem('oura_token');
             const garminToken = localStorage.getItem('garmin_token');
@@ -1382,7 +1382,7 @@
 
             const now = Date.now();
 
-            console.log('🔑 Found tokens:', {
+            console.log(' Found tokens:', {
                 strava: !!stravaToken,
                 oura: !!ouraToken,
                 garmin: !!garminToken,
@@ -1393,12 +1393,12 @@
             if (stravaToken && (!stravaExpiry || now < parseInt(stravaExpiry))) {
                 fetchStravaData(stravaToken);
             } else if (stravaToken && stravaExpiry && now >= parseInt(stravaExpiry)) {
-                console.log('⏰ Strava token expired, attempting to refresh...');
+                console.log(' Strava token expired, attempting to refresh...');
                 const refreshToken = localStorage.getItem('strava_refresh_token');
                 if (refreshToken) {
                     refreshStravaToken(refreshToken);
                 } else {
-                    console.log('❌ No Strava refresh token available, clearing...');
+                    console.log(' No Strava refresh token available, clearing...');
                     localStorage.removeItem('strava_token');
                     localStorage.removeItem('strava_expiry');
                 }
@@ -1408,12 +1408,12 @@
             if (ouraToken && (!ouraExpiry || now < parseInt(ouraExpiry))) {
                 fetchOuraData(ouraToken);
             } else if (ouraToken && ouraExpiry && now >= parseInt(ouraExpiry)) {
-                console.log('⏰ Oura token expired, attempting to refresh...');
+                console.log(' Oura token expired, attempting to refresh...');
                 const refreshToken = localStorage.getItem('oura_refresh_token');
                 if (refreshToken) {
                     refreshOuraToken(refreshToken);
                 } else {
-                    console.log('❌ No Oura refresh token available, clearing...');
+                    console.log(' No Oura refresh token available, clearing...');
                     localStorage.removeItem('oura_token');
                     localStorage.removeItem('oura_expiry');
                 }
@@ -1424,12 +1424,12 @@
             if (garminToken && (!garminExpiry || now < parseInt(garminExpiry))) {
                 fetchGarminData();
             } else if (garminToken && garminExpiry && now >= parseInt(garminExpiry)) {
-                console.log('⏰ Garmin token expired, attempting to refresh...');
+                console.log(' Garmin token expired, attempting to refresh...');
                 const refreshToken = localStorage.getItem('garmin_refresh_token');
                 if (refreshToken) {
                     refreshGarminToken(refreshToken);
                 } else {
-                    console.log('❌ No Garmin refresh token available, clearing...');
+                    console.log(' No Garmin refresh token available, clearing...');
                     localStorage.removeItem('garmin_token');
                     localStorage.removeItem('garmin_expiry');
                 }
@@ -1437,15 +1437,15 @@
 
             // Check Whoop OAuth 2.0 token
             if (whoopToken && (!whoopExpiry || now < parseInt(whoopExpiry))) {
-                console.log('✅ Found valid Whoop token, fetching data...');
+                console.log(' Found valid Whoop token, fetching data...');
                 fetchWhoopData(whoopToken);
             } else if (whoopToken && whoopExpiry && now >= parseInt(whoopExpiry)) {
-                console.log('⏰ Whoop token expired, attempting to refresh...');
+                console.log(' Whoop token expired, attempting to refresh...');
                 const refreshToken = localStorage.getItem('whoop_refresh_token');
                 if (refreshToken) {
                     refreshWhoopToken(refreshToken);
                 } else {
-                    console.log('❌ No refresh token available, clearing...');
+                    console.log(' No refresh token available, clearing...');
                     localStorage.removeItem('whoop_token');
                     localStorage.removeItem('whoop_expiry');
                 }
@@ -1593,20 +1593,20 @@
                     // First, try to get it from the backend response (from User ID endpoint)
                     if (data.garminUserId) {
                         garminUserId = data.garminUserId;
-                        console.log('✅ Got Garmin User ID from backend:', garminUserId);
+                        console.log(' Got Garmin User ID from backend:', garminUserId);
                     } else {
                         // Fallback: Try to extract from JWT token
                         try {
                             const payload = JSON.parse(atob(data.access_token.split('.')[1]));
-                            console.log('🔍 Full JWT payload:', JSON.stringify(payload, null, 2));
+                            console.log(' Full JWT payload:', JSON.stringify(payload, null, 2));
 
                             // Try multiple possible field names for Garmin user ID
                             garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
 
-                            console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
+                            console.log(' Extracted Garmin User ID from JWT:', garminUserId);
                             console.log('Available fields in token:', Object.keys(payload));
                         } catch (e) {
-                            console.warn('⚠️  Could not extract Garmin User ID from token:', e);
+                            console.warn('  Could not extract Garmin User ID from token:', e);
                         }
                     }
 
@@ -2109,7 +2109,7 @@
                 hrv: fitnessData.whoop?.recovery ? 'Whoop' : (fitnessData.oura?.sleep ? 'Oura' : null)
             };
 
-            console.log('🎯 Athlytx Score Calculation:', {
+            console.log('Athlytx Score Calculation:', {
                 score: athlytxScore,
                 components,
                 weights,
@@ -2906,7 +2906,7 @@
                         });
                     } else if (hrvTrend > 0.1) {
                         insights.push({
-                            title: '📈 Improving Recovery Capacity',
+                            title: 'Improving Recovery Capacity',
                             message: `Your HRV has increased ${Math.round(hrvTrend * 10)}% this week! Your body is adapting well to training. This is an optimal time to maintain or slightly increase training intensity.`,
                             priority: 'positive'
                         });
@@ -3115,7 +3115,7 @@
                     });
                 } else if (dayOfWeek === 5 && components.strain > 70) { // Friday
                     insights.push({
-                        title: '🎯 Weekend Training Strategy',
+                        title: 'Weekend Training Strategy',
                         message: `High training load heading into the weekend. If planning long sessions, ensure proper fueling and consider scheduling easier efforts for early next week.`,
                         priority: 'medium'
                     });
@@ -3282,13 +3282,13 @@
                     localStorage.setItem('strava_expiry', expiryTime);
                 }
 
-                console.log('✅ Strava token refreshed successfully');
+                console.log(' Strava token refreshed successfully');
 
                 // Fetch data with new token
                 fetchStravaData(data.access_token);
 
             } catch (error) {
-                console.error('❌ Failed to refresh Strava token:', error);
+                console.error(' Failed to refresh Strava token:', error);
                 showMessage('Strava connection expired. Please reconnect.', 'warning');
                 localStorage.removeItem('strava_token');
                 localStorage.removeItem('strava_expiry');
@@ -3330,13 +3330,13 @@
                     localStorage.setItem('oura_expiry', expiryTime);
                 }
 
-                console.log('✅ Oura token refreshed successfully');
+                console.log(' Oura token refreshed successfully');
 
                 // Fetch data with new token
                 fetchOuraData(data.access_token);
 
             } catch (error) {
-                console.error('❌ Failed to refresh Oura token:', error);
+                console.error(' Failed to refresh Oura token:', error);
                 showMessage('Oura connection expired. Please reconnect.', 'warning');
                 localStorage.removeItem('oura_token');
                 localStorage.removeItem('oura_expiry');
@@ -3375,13 +3375,13 @@
                     localStorage.setItem('garmin_expiry', expiryTime);
                 }
 
-                console.log('✅ Garmin token refreshed successfully');
+                console.log(' Garmin token refreshed successfully');
 
                 // Fetch data with new token
                 fetchGarminData();
 
             } catch (error) {
-                console.error('❌ Failed to refresh Garmin token:', error);
+                console.error(' Failed to refresh Garmin token:', error);
                 showMessage('Garmin connection expired. Please reconnect.', 'warning');
                 localStorage.removeItem('garmin_token');
                 localStorage.removeItem('garmin_expiry');
@@ -3420,13 +3420,13 @@
                     localStorage.setItem('whoop_expiry', expiryTime);
                 }
 
-                console.log('✅ Whoop token refreshed successfully');
+                console.log(' Whoop token refreshed successfully');
 
                 // Fetch data with new token
                 fetchWhoopData(data.access_token);
 
             } catch (error) {
-                console.error('❌ Failed to refresh Whoop token:', error);
+                console.error(' Failed to refresh Whoop token:', error);
                 showMessage('Whoop connection expired. Please reconnect.', 'warning');
                 localStorage.removeItem('whoop_token');
                 localStorage.removeItem('whoop_expiry');
@@ -3444,7 +3444,7 @@
                 button.disabled = true;
 
                 const token = tokenParam || localStorage.getItem('whoop_token');
-                console.log('🔑 Using token:', token ? token.substring(0, 20) + '...' : 'none');
+                console.log(' Using token:', token ? token.substring(0, 20) + '...' : 'none');
 
                 if (!token) {
                     throw new Error('No Whoop access token found');
@@ -3587,7 +3587,7 @@
 
                 const recoveryScore = latestRecovery.score?.recovery_score;
                 if (recoveryScore !== undefined) {
-                    console.log('🔍 Raw recovery score:', recoveryScore);
+                    console.log(' Raw recovery score:', recoveryScore);
                     // If value is > 1, it's already a percentage (36.0), if < 1, it's decimal (0.36)
                     const displayValue = recoveryScore > 1 ? Math.round(recoveryScore) : Math.round(recoveryScore * 100);
                     updateStat('whoopRecovery', displayValue, '%');
@@ -3603,7 +3603,7 @@
 
                 const sleepPerformance = latestSleep.score?.sleep_performance_percentage;
                 if (sleepPerformance !== undefined) {
-                    console.log('🔍 Raw sleep performance:', sleepPerformance);
+                    console.log(' Raw sleep performance:', sleepPerformance);
                     // If value is > 1, it's already a percentage (46.0), if < 1, it's decimal (0.46)
                     const displayValue = sleepPerformance > 1 ? Math.round(sleepPerformance) : Math.round(sleepPerformance * 100);
                     updateStat('whoopSleep', displayValue, '%');
@@ -3613,7 +3613,7 @@
             // Update strain from cycles data (and extract recovery/sleep if not already set)
             if (cycles && cycles.length > 0) {
                 const latestCycle = cycles[cycles.length - 1];
-                console.log('🔥 Latest cycle data:', latestCycle);
+                console.log(' Latest cycle data:', latestCycle);
 
                 updateStat('whoopStrain', latestCycle.score?.strain?.toFixed(1), '');
 
@@ -3659,7 +3659,7 @@
             updateWhoopRecoveryTrendChart();
             updateWhoopStrainTarget();
 
-            console.log('✅ Whoop display updated successfully');
+            console.log(' Whoop display updated successfully');
         }
 
         // Update Whoop Trend Chart with Sleep & Recovery data
@@ -3743,7 +3743,7 @@
 
             charts.whoopTrend.update();
 
-            console.log('📈 Whoop trend chart updated:', {
+            console.log('Whoop trend chart updated:', {
                 recoveryPoints: recoveryData.filter(v => v !== null).length,
                 sleepPoints: sleepData.filter(v => v !== null).length
             });
@@ -3791,20 +3791,20 @@
 
         // Update Garmin display
         async function updateGarminDisplay() {
-            console.log('🔥 UPDATE GARMIN DISPLAY CALLED');
+            console.log(' UPDATE GARMIN DISPLAY CALLED');
             try {
                 const userId = localStorage.getItem('userId');
-                console.log('🔥 userId:', userId);
+                console.log(' userId:', userId);
                 if (!userId) {
-                    console.log('❌ No userId - returning');
+                    console.log(' No userId - returning');
                     return;
                 }
 
                 // Check if user has Garmin connected (using correct key name)
                 const garminToken = localStorage.getItem('garmin_token');
-                console.log('🔥 garminToken exists:', !!garminToken);
+                console.log(' garminToken exists:', !!garminToken);
                 if (!garminToken) {
-                    console.log('❌ No Garmin token - showing connect message');
+                    console.log(' No Garmin token - showing connect message');
                     document.getElementById('garminActivitiesList').innerHTML =
                         '<div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>';
                     return;
@@ -3822,26 +3822,26 @@
                 let activities = [];
                 let dailySummaries = [];
 
-                console.log('🔥 activitiesResponse:', activitiesResponse);
+                console.log(' activitiesResponse:', activitiesResponse);
                 if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
                     const data = await activitiesResponse.value.json();
                     activities = data.activities || [];
-                    console.log('✅ Loaded', activities.length, 'Garmin activities', activities);
+                    console.log(' Loaded', activities.length, 'Garmin activities', activities);
                 } else {
-                    console.log('❌ Activities fetch failed:', activitiesResponse);
+                    console.log(' Activities fetch failed:', activitiesResponse);
                 }
 
-                console.log('🔥 dailiesResponse:', dailiesResponse);
+                console.log(' dailiesResponse:', dailiesResponse);
                 if (dailiesResponse.status === 'fulfilled' && dailiesResponse.value.ok) {
                     const data = await dailiesResponse.value.json();
                     dailySummaries = data.dailies || [];
-                    console.log('✅ Loaded', dailySummaries.length, 'daily summaries');
+                    console.log(' Loaded', dailySummaries.length, 'daily summaries');
                 } else {
-                    console.log('❌ Dailies fetch failed:', dailiesResponse);
+                    console.log(' Dailies fetch failed:', dailiesResponse);
                 }
 
                 // Update hero stat cards
-                console.log('🔥 Setting garminActivities to:', activities.length);
+                console.log(' Setting garminActivities to:', activities.length);
                 document.getElementById('garminActivities').textContent = activities.length;
 
                 const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
@@ -4019,7 +4019,7 @@
                 console.log('Charts ready - waiting for daily summary data from PUSH notifications');
 
             } catch (error) {
-                console.error('❌ Error updating Garmin display:', error);
+                console.error(' Error updating Garmin display:', error);
                 console.error('Error stack:', error.stack);
             }
         }
@@ -4753,7 +4753,7 @@
             // On mobile, skip connection success messages to avoid distraction
             const isMobile = window.innerWidth <= 768;
             if (isMobile && type === 'success' && message.toLowerCase().includes('connect')) {
-                console.log('📱 Mobile: Skipping connection alert:', message);
+                console.log(' Mobile: Skipping connection alert:', message);
                 return; // Don't show connection alerts on mobile
             }
 
@@ -5005,12 +5005,12 @@
                     updateRunningAnalytics();
                 }
                 if (tabName === 'garmin') {
-                    console.log('🔥 Garmin tab detected, typeof updateGarminDisplay:', typeof updateGarminDisplay);
+                    console.log(' Garmin tab detected, typeof updateGarminDisplay:', typeof updateGarminDisplay);
                     if (typeof updateGarminDisplay === 'function') {
-                        console.log('🔥 Calling updateGarminDisplay NOW!');
+                        console.log(' Calling updateGarminDisplay NOW!');
                         updateGarminDisplay();
                     } else {
-                        console.log('❌ updateGarminDisplay is not a function!');
+                        console.log(' updateGarminDisplay is not a function!');
                     }
                 }
             }
