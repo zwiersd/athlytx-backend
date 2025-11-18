@@ -1860,6 +1860,30 @@
             // Check if user is logged in and update Account tab
             checkAuthenticationStatus();
 
+            // MOBILE: Move tabs below Connections on mobile devices
+            function handleTabPositionForMobile() {
+                const tabNav = document.querySelector('.tab-nav-wrapper');
+                const connectionsTab = document.getElementById('connections');
+                const isMobile = window.innerWidth < 768;
+
+                if (isMobile && tabNav && connectionsTab) {
+                    // Insert tabs as first child of connections tab content
+                    connectionsTab.insertBefore(tabNav, connectionsTab.firstChild);
+                    tabNav.style.marginBottom = '24px';
+                } else if (!isMobile && tabNav) {
+                    // On desktop, move tabs back to top (before #dashboard)
+                    const dashboard = document.getElementById('dashboard');
+                    if (dashboard && dashboard.previousElementSibling !== tabNav) {
+                        dashboard.parentNode.insertBefore(tabNav, dashboard);
+                    }
+                    tabNav.style.marginBottom = '';
+                }
+            }
+
+            // Run on load and resize
+            handleTabPositionForMobile();
+            window.addEventListener('resize', handleTabPositionForMobile);
+
             // Add small delay to ensure Chart.js is loaded
             setTimeout(() => {
                 console.log('🚀 Page initialization started');
