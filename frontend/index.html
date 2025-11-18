@@ -214,9 +214,82 @@
                 </div>
             </div>
 
-            <!-- Main Logo -->
-            <div class="main-logo-container">
-                <img src="src/images/AthlytxLogoGlass.png" alt="Athlytx" class="main-logo">
+            <!-- Main Score Card - PRIME POSITION -->
+            <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin: 30px 0 30px 0; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden;">
+                <!-- Minimal Header -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h2 style="color: rgba(255, 255, 255, 0.95); margin: 0; font-size: 1.3rem; font-weight: 700;">⚡ Athlytx Score</h2>
+                    <div id="scoreConfidenceBadge" style="display:inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
+                        <span id="confidenceText">--</span>
+                    </div>
+                </div>
+
+                <!-- Main Score + Status Layout -->
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center; margin-bottom: 16px;">
+                    <!-- Circular Progress Ring -->
+                    <div style="position: relative; width: 140px; height: 140px;">
+                        <svg width="140" height="140" style="transform: rotate(-90deg);">
+                            <!-- Background circle -->
+                            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                            <!-- Progress circle -->
+                            <circle id="scoreProgressCircle" cx="70" cy="70" r="60" fill="none" stroke="url(#scoreGradient)" stroke-width="8" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377" style="transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;"/>
+                            <defs>
+                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <!-- Score number in center -->
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
+                            <div style="font-size: 0.65rem; margin-top: 2px; color: rgba(255, 255, 255, 0.5); font-weight: 600;">out of 100</div>
+                        </div>
+                    </div>
+
+                    <!-- Status & Action -->
+                    <div>
+                        <div id="scoreStatusContainer" style="padding: 14px 16px; border-radius: 8px; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices</div>
+                            <div id="scoreInsight" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4; margin: 0;">Connect your devices to see your performance score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Metrics Pills -->
+                <div id="quickMetrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreRecovery">--</div>
+                        <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">💪 Recovery</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreLoad">--</div>
+                        <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">🔥 Strain</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreSleep">--</div>
+                        <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">😴 Sleep</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreHRV">--</div>
+                        <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">❤️ HRV</div>
+                    </div>
+                </div>
+
+                <!-- Compact Data Sources Badge -->
+                <div style="text-align: center;">
+                    <div id="dataSourcesBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span>📊</span>
+                        <span id="deviceGuidance">Connect devices for analysis</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden elements for backward compatibility -->
+            <div style="display: none;">
+                <div id="scoreSources"></div>
+                <div id="readinessBanner"></div>
             </div>
 
             <nav class="tab-nav" role="tablist" aria-label="Dashboard sections">
@@ -330,84 +403,6 @@
 
             <!-- Overview Tab -->
             <div id="overview" class="tab-panel" role="tabpanel" aria-labelledby="overview-tab">
-                <!-- Main Score Card - Ultra Clean Design -->
-                <div class="analytics-card glass-card" style="background: rgba(102, 126, 234, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(102, 126, 234, 0.3); color: white; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2); overflow: hidden;">
-                    <!-- Minimal Header -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                        <h2 style="color: rgba(255, 255, 255, 0.95); margin: 0; font-size: 1.3rem; font-weight: 700;">⚡ Athlytx Score</h2>
-                        <div id="scoreConfidenceBadge" style="display:inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
-                            <span id="confidenceText">--</span>
-                        </div>
-                    </div>
-
-                    <!-- Main Score + Status Layout -->
-                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center; margin-bottom: 16px;">
-                        <!-- Circular Progress Ring -->
-                        <div style="position: relative; width: 140px; height: 140px;">
-                            <svg width="140" height="140" style="transform: rotate(-90deg);">
-                                <!-- Background circle -->
-                                <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
-                                <!-- Progress circle -->
-                                <circle id="scoreProgressCircle" cx="70" cy="70" r="60" fill="none" stroke="url(#scoreGradient)" stroke-width="8" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377" style="transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;"/>
-                                <defs>
-                                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <!-- Score number in center -->
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                                <div style="font-size: 2.5rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
-                                <div style="font-size: 0.65rem; margin-top: 2px; color: rgba(255, 255, 255, 0.5); font-weight: 600;">out of 100</div>
-                            </div>
-                        </div>
-
-                        <!-- Status & Action -->
-                        <div>
-                            <div id="scoreStatusContainer" style="padding: 14px 16px; border-radius: 8px; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);">
-                                <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices</div>
-                                <div id="scoreInsight" style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); line-height: 1.4; margin: 0;">Connect your devices to see your performance score</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Metrics Pills -->
-                    <div id="quickMetrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
-                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreRecovery">--</div>
-                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">💪 Recovery</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreLoad">--</div>
-                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">🔥 Strain</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreSleep">--</div>
-                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">😴 Sleep</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="font-size: 1.4rem; font-weight: 700; color: rgba(255,255,255,0.95);" id="scoreHRV">--</div>
-                            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 2px;">❤️ HRV</div>
-                        </div>
-                    </div>
-
-                    <!-- Compact Data Sources Badge -->
-                    <div style="text-align: center;">
-                        <div id="dataSourcesBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                            <span>📊</span>
-                            <span id="deviceGuidance">Connect devices for analysis</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hidden elements for backward compatibility -->
-                <div style="display: none;">
-                    <div id="scoreSources"></div>
-                    <div id="readinessBanner"></div>
-                </div>
-
                 <div class="data-connections" id="overviewConnections"></div>
 
                 <div class="analytics-grid">
