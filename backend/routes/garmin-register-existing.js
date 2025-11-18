@@ -8,6 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const { OAuthToken } = require('../models');
+const { decrypt } = require('../utils/encryption');
 
 router.post('/register-existing-users', async (req, res) => {
     console.log('\n' + '='.repeat(60));
@@ -39,13 +40,27 @@ router.post('/register-existing-users', async (req, res) => {
             console.log(`\nRegistering user ${token.userId} (Garmin ID: ${token.providerUserId || 'unknown'})...`);
 
             try {
+                // Decrypt the access token
+                const accessToken = decrypt(token.accessTokenEncrypted);
+
+                if (!accessToken) {
+                    console.log(`  ❌ User ${token.userId} has no access token - skipping`);
+                    results.push({
+                        userId: token.userId,
+                        garminUserId: token.providerUserId,
+                        success: false,
+                        error: 'No access token found'
+                    });
+                    continue;
+                }
+
                 const signer = new GarminOAuth1Hybrid(
                     process.env.GARMIN_CONSUMER_KEY,
                     process.env.GARMIN_CONSUMER_SECRET
                 );
 
                 const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
-                const authHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, token.accessToken);
+                const authHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, accessToken);
 
                 console.log('  Calling:', pushRegUrl);
 

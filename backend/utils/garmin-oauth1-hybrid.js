@@ -66,12 +66,16 @@ class GarminOAuth1Hybrid {
      * @returns {string} Authorization header value
      */
     generateAuthHeader(method, url, queryParams = {}, oauth2Token) {
+        if (!oauth2Token) {
+            throw new Error('OAuth2 token is required but was null or undefined');
+        }
+
         console.log('\n🔐 === OAuth 1.0a Signature Generation Debug ===');
         console.log('Method:', method);
         console.log('URL:', url);
         console.log('Query Params:', queryParams);
-        console.log('OAuth2 Token Length:', oauth2Token ? oauth2Token.length : 0);
-        console.log('OAuth2 Token Prefix:', oauth2Token ? oauth2Token.substring(0, 50) + '...' : 'null');
+        console.log('OAuth2 Token Length:', oauth2Token.length);
+        console.log('OAuth2 Token Prefix:', oauth2Token.substring(0, 50) + '...');
 
         // Generate OAuth parameters
         const oauthParams = {
@@ -85,7 +89,7 @@ class GarminOAuth1Hybrid {
 
         console.log('OAuth Parameters:', {
             ...oauthParams,
-            oauth_token: oauthParams.oauth_token.substring(0, 50) + '...'
+            oauth_token: oauthParams.oauth_token.substring(0, Math.min(50, oauthParams.oauth_token.length)) + '...'
         });
 
         // Combine OAuth and query parameters for signature
