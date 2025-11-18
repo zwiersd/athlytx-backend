@@ -666,6 +666,85 @@ app.get('/api/garmin/v2/sleep', async (req, res) => {
     });
 });
 
+// NEW: Database-backed endpoints for displaying Garmin data (compliant with PUSH-only)
+// These endpoints fetch data that was received via PUSH webhooks, not from Garmin API
+
+app.get('/api/garmin/db/activities', async (req, res) => {
+    try {
+        const { Activity } = require('../models');
+        const userId = req.query.userId;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        const activities = await Activity.findAll({
+            where: {
+                userId: userId,
+                provider: 'garmin'
+            },
+            order: [['startTime', 'DESC']],
+            limit: 30
+        });
+
+        console.log(`✅ Fetched ${activities.length} Garmin activities from database for user ${userId}`);
+
+        res.json({
+            activities: activities.map(a => ({
+                activityId: a.externalId,
+                activityType: a.activityType,
+                activityName: a.activityName,
+                startTimeInSeconds: Math.floor(new Date(a.startTime).getTime() / 1000),
+                durationInSeconds: a.durationSeconds,
+                distanceInMeters: a.distanceMeters,
+                activeKilocalories: a.calories,
+                averageHeartRateInBeatsPerMinute: a.avgHr,
+                maxHeartRateInBeatsPerMinute: a.maxHr,
+                deviceModel: a.deviceModel
+            }))
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching Garmin activities from database:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/garmin/db/dailies', async (req, res) => {
+    try {
+        const { DailyMetric } = require('../models');
+        const userId = req.query.userId;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        const dailyMetrics = await DailyMetric.findAll({
+            where: {
+                userId: userId
+            },
+            order: [['date', 'DESC']],
+            limit: 30
+        });
+
+        console.log(`✅ Fetched ${dailyMetrics.length} Garmin daily summaries from database for user ${userId}`);
+
+        res.json({
+            dailies: dailyMetrics.map(d => ({
+                calendarDate: d.date,
+                steps: d.steps,
+                totalKilocalories: d.totalKilocalories,
+                restingHr: d.restingHr,
+                sleepHours: d.sleepHours
+            }))
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching Garmin dailies from database:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 console.log('✅ Legacy OAuth routes loaded');
 
 }; // End of module.exports

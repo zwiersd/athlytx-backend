@@ -2911,14 +2911,22 @@
                     throw new Error('No Garmin access token found');
                 }
 
-                // NOTE: PULL requests disabled for Garmin production compliance
-                // Garmin requires PUSH-only notifications. Data comes via webhook.
-                // Display connection status without making forbidden PULL requests.
+                // NOTE: Fetch data from database (received via PUSH webhooks)
+                // This is compliant - we're NOT making PULL requests to Garmin API
+                const userId = localStorage.getItem('userId');
 
-                // Mark as connected - data will come from PUSH webhooks
+                const [activitiesResponse, dailiesResponse] = await Promise.allSettled([
+                    fetchWithRetry(`${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`),
+                    fetchWithRetry(`${API_CONFIG.backend}/api/garmin/db/dailies?userId=${userId}`)
+                ]);
+
                 fitnessData.garmin = {
-                    dailySummary: null,
-                    activities: null,
+                    dailySummary: dailiesResponse.status === 'fulfilled' && dailiesResponse.value.ok
+                        ? await dailiesResponse.value.json()
+                        : null,
+                    activities: activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok
+                        ? await activitiesResponse.value.json()
+                        : null,
                     sleep: null,
                     connected: true,
                     pushOnly: true
@@ -2935,7 +2943,7 @@
                 }
 
                 updateConnectionStatus();
-                showMessage('Garmin connected! Data will sync automatically via PUSH webhooks when you record activities.', 'success');
+                showMessage('Garmin connected! Data loaded from PUSH webhooks.', 'success');
 
             } catch (error) {
                 console.error('Garmin data fetch error:', error);
