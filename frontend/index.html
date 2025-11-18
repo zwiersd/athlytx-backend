@@ -5532,11 +5532,15 @@
 
             // Show/hide score hero section based on tab
             const scoreHero = document.querySelector('.score-hero-section');
+            const tabContentWrapper = document.querySelector('.tab-content-wrapper');
             if (scoreHero) {
                 if (tabName === 'connections') {
                     scoreHero.style.display = 'block';
+                    if (tabContentWrapper) tabContentWrapper.style.marginTop = 'var(--space-4)';
                 } else {
                     scoreHero.style.display = 'none';
+                    // When score hero is hidden, remove top margin to bring content up
+                    if (tabContentWrapper) tabContentWrapper.style.marginTop = '0';
                 }
             }
 
