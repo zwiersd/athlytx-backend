@@ -1094,6 +1094,65 @@
   display: none;
 }
 
+/* Tab Navigation Wrapper for Scroll Indicators */
+.tab-nav-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Scroll Indicators - Only visible on mobile when scrollable */
+.tab-scroll-indicator {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tab-scroll-indicator.left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-base) 0%, transparent 100%);
+}
+
+.tab-scroll-indicator.right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-base) 0%, transparent 100%);
+}
+
+.tab-scroll-indicator.visible {
+  display: flex;
+  opacity: 0.8;
+  animation: pulseArrow 2s ease-in-out infinite;
+}
+
+.tab-scroll-indicator svg {
+  color: rgba(255, 255, 255, 0.7);
+  filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.5));
+}
+
+@keyframes pulseArrow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Hide scroll indicators on desktop */
+@media (min-width: 768px) {
+  .tab-scroll-indicator {
+    display: none !important;
+  }
+}
+
 /* Centered layout on desktop */
 @media (min-width: 768px) {
   .tab-nav {

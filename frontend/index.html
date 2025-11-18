@@ -288,35 +288,47 @@
                 <div id="readinessBanner"></div>
             </div>
 
-            <nav class="tab-nav" role="tablist" aria-label="Dashboard sections">
-                <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
-                    Connections
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview">
-                    Overview
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="strava" data-tab="strava">
-                    Strava Data
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="oura" data-tab="oura">
-                    Oura Data
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="garmin" data-tab="garmin">
-                    Garmin Data
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="whoop" data-tab="whoop">
-                    Whoop Data
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
-                    🏃 Running
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
-                    AI Insights
-                </button>
-                <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
-                    📧 Contact
-                </button>
-            </nav>
+            <div class="tab-nav-wrapper">
+                <div class="tab-scroll-indicator left" id="tabScrollLeft">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M12 4l-8 6 8 6V4z"/>
+                    </svg>
+                </div>
+                <nav class="tab-nav" role="tablist" aria-label="Dashboard sections" id="tabNav">
+                    <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
+                        Connections
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview">
+                        Overview
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="strava" data-tab="strava">
+                        Strava Data
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="oura" data-tab="oura">
+                        Oura Data
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="garmin" data-tab="garmin">
+                        Garmin Data
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="whoop" data-tab="whoop">
+                        Whoop Data
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
+                        🏃 Running
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
+                        AI Insights
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
+                        📧 Contact
+                    </button>
+                </nav>
+                <div class="tab-scroll-indicator right" id="tabScrollRight">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 4v12l8-6-8-6z"/>
+                    </svg>
+                </div>
+            </div>
 
             <!-- Tab Content Wrapper -->
             <div class="tab-content-wrapper">
@@ -4736,6 +4748,42 @@
             console.log('=== SWITCH TAB END ===');
         }
 
+        // Tab scroll indicators for mobile
+        function updateTabScrollIndicators() {
+            const tabNav = document.getElementById('tabNav');
+            const leftIndicator = document.getElementById('tabScrollLeft');
+            const rightIndicator = document.getElementById('tabScrollRight');
+
+            if (!tabNav || !leftIndicator || !rightIndicator) return;
+
+            // Only show on mobile when content is scrollable
+            const isMobile = window.innerWidth < 768;
+            const isScrollable = tabNav.scrollWidth > tabNav.clientWidth;
+
+            if (!isMobile || !isScrollable) {
+                leftIndicator.classList.remove('visible');
+                rightIndicator.classList.remove('visible');
+                return;
+            }
+
+            const scrollLeft = tabNav.scrollLeft;
+            const maxScroll = tabNav.scrollWidth - tabNav.clientWidth;
+
+            // Show left arrow if not at start
+            if (scrollLeft > 10) {
+                leftIndicator.classList.add('visible');
+            } else {
+                leftIndicator.classList.remove('visible');
+            }
+
+            // Show right arrow if not at end
+            if (scrollLeft < maxScroll - 10) {
+                rightIndicator.classList.add('visible');
+            } else {
+                rightIndicator.classList.remove('visible');
+            }
+        }
+
         // Set correlation window selector and re-generate insights on change
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize tab event listeners
@@ -4749,6 +4797,15 @@
                     }
                 });
             });
+
+            // Initialize tab scroll indicators
+            const tabNav = document.getElementById('tabNav');
+            if (tabNav) {
+                tabNav.addEventListener('scroll', updateTabScrollIndicators);
+                window.addEventListener('resize', updateTabScrollIndicators);
+                // Initial check
+                setTimeout(updateTabScrollIndicators, 100);
+            }
 
             const sel = document.getElementById('correlationWindow');
             if (sel) {
