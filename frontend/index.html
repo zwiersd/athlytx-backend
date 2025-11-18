@@ -3525,13 +3525,20 @@
 
         // Update Garmin display
         async function updateGarminDisplay() {
+            console.log('🔥 UPDATE GARMIN DISPLAY CALLED');
             try {
                 const userId = localStorage.getItem('userId');
-                if (!userId) return;
+                console.log('🔥 userId:', userId);
+                if (!userId) {
+                    console.log('❌ No userId - returning');
+                    return;
+                }
 
                 // Check if user has Garmin connected
                 const garminToken = localStorage.getItem('garmin_access_token');
+                console.log('🔥 garminToken exists:', !!garminToken);
                 if (!garminToken) {
+                    console.log('❌ No Garmin token - showing connect message');
                     document.getElementById('garminActivitiesList').innerHTML =
                         '<div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>';
                     return;
@@ -3539,6 +3546,7 @@
 
                 // Fetch real data from database (received via PUSH webhooks)
                 console.log('📊 Fetching Garmin data from database for user:', userId);
+                console.log('📊 API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
 
                 const [activitiesResponse, dailiesResponse] = await Promise.allSettled([
                     fetch(`${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`),
@@ -3548,19 +3556,26 @@
                 let activities = [];
                 let dailySummaries = [];
 
+                console.log('🔥 activitiesResponse:', activitiesResponse);
                 if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
                     const data = await activitiesResponse.value.json();
                     activities = data.activities || [];
-                    console.log('✅ Loaded', activities.length, 'Garmin activities');
+                    console.log('✅ Loaded', activities.length, 'Garmin activities', activities);
+                } else {
+                    console.log('❌ Activities fetch failed:', activitiesResponse);
                 }
 
+                console.log('🔥 dailiesResponse:', dailiesResponse);
                 if (dailiesResponse.status === 'fulfilled' && dailiesResponse.value.ok) {
                     const data = await dailiesResponse.value.json();
                     dailySummaries = data.dailies || [];
                     console.log('✅ Loaded', dailySummaries.length, 'daily summaries');
+                } else {
+                    console.log('❌ Dailies fetch failed:', dailiesResponse);
                 }
 
                 // Update hero stat cards
+                console.log('🔥 Setting garminActivities to:', activities.length);
                 document.getElementById('garminActivities').textContent = activities.length;
 
                 const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
