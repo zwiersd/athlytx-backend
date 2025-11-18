@@ -160,6 +160,10 @@ app.use('/api/agent', agentRoutes);
 const contactRoutes = require('./backend/routes/contact');
 app.use('/api/contact', contactRoutes);
 
+// Import API logs routes
+const logsRoutes = require('./backend/routes/logs');
+app.use('/api/logs', logsRoutes);
+
 // OAuth callback handlers (server-side processing)
 app.get('/auth/garmin/callback', async (req, res) => {
     const { code, state, error } = req.query;

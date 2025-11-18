@@ -5,6 +5,9 @@ module.exports = function(app) {
 
 // ===== STRAVA ENDPOINTS =====
 app.post('/api/strava/token', async (req, res) => {
+    const startTime = Date.now();
+    const userId = req.session?.userId || req.body.userId;
+
     try {
         const { code } = req.body;
 
@@ -60,8 +63,44 @@ app.post('/api/strava/token', async (req, res) => {
 
             console.log('✅ Strava token saved to database for user:', userId);
             console.log('   Athlete ID:', stravaUserId);
+
+            // Log successful OAuth flow to database
+            const { logAPICall } = require('../utils/logger');
+            await logAPICall({
+                method: 'POST',
+                endpoint: '/api/strava/token',
+                statusCode: 200,
+                durationMs: Date.now() - startTime,
+                userId: userId,
+                provider: 'strava',
+                requestBody: req.body,
+                responseBody: data,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent'),
+                isOAuthFlow: true,
+                tags: ['oauth', 'token_exchange', 'strava']
+            });
         } catch (dbError) {
             console.error('❌ CRITICAL: Failed to save Strava token to database:', dbError);
+
+            // Log OAuth failure to database
+            const { logAPICall } = require('../utils/logger');
+            await logAPICall({
+                method: 'POST',
+                endpoint: '/api/strava/token',
+                statusCode: 500,
+                durationMs: Date.now() - startTime,
+                userId: userId,
+                provider: 'strava',
+                requestBody: req.body,
+                errorMessage: dbError.message,
+                errorStack: dbError.stack,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent'),
+                isOAuthFlow: true,
+                tags: ['oauth', 'token_exchange', 'strava', 'error', 'database_save_failed']
+            });
+
             return res.status(500).json({
                 error: 'Database error',
                 message: 'Failed to save connection. Please try again.'
@@ -71,6 +110,25 @@ app.post('/api/strava/token', async (req, res) => {
         res.json(data);
     } catch (error) {
         console.error('Strava token error:', error);
+
+        // Log OAuth error to database
+        const { logAPICall } = require('../utils/logger');
+        await logAPICall({
+            method: 'POST',
+            endpoint: '/api/strava/token',
+            statusCode: 500,
+            durationMs: Date.now() - startTime,
+            userId: userId,
+            provider: 'strava',
+            requestBody: req.body,
+            errorMessage: error.message,
+            errorStack: error.stack,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent'),
+            isOAuthFlow: true,
+            tags: ['oauth', 'token_exchange', 'strava', 'error']
+        });
+
         res.status(500).json({ error: error.message });
     }
 });
@@ -675,26 +733,23 @@ app.post('/api/garmin/token', async (req, res) => {
 
         // Register user for PUSH notifications
         try {
-            const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-            const signer = new GarminOAuth1Hybrid(
-                process.env.GARMIN_CONSUMER_KEY,
-                process.env.GARMIN_CONSUMER_SECRET
-            );
-
             // **CRITICAL:** Register user for Health API PUSH notifications
             console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS ===');
             const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
-            const pushAuthHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, data.access_token);
 
             console.log('Registration URL (PUSH):', pushRegUrl);
+            console.log('Using OAuth 2.0 Bearer token authentication');
 
-            // Request body must be empty for initial registration per Garmin Health API spec
+            // **FIX:** Use OAuth 2.0 Bearer token authentication (NOT OAuth 1.0a)
+            // Garmin Health API supports OAuth 2.0 when using OAuth 2.0 tokens
             const pushRegResponse = await fetch(pushRegUrl, {
                 method: 'POST',
                 headers: {
-                    Authorization: pushAuthHeader,
-                    Accept: 'application/json'
-                }
+                    'Authorization': `Bearer ${data.access_token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})  // Empty body as per Garmin spec
             });
 
             const pushRegText = await pushRegResponse.text();
@@ -707,10 +762,12 @@ app.post('/api/garmin/token', async (req, res) => {
                 console.log('✅ User registered for PUSH notifications (or already registered)');
             } else {
                 console.warn('⚠️ Push registration failed (non-fatal):', pushRegText);
+                console.warn('⚠️ This means new activities will NOT auto-push from Garmin');
             }
 
         } catch (regError) {
             console.error('⚠️ PUSH registration error (non-fatal):', regError);
+            console.error('⚠️ This means new activities will NOT auto-push from Garmin');
         }
 
         // **CRITICAL:** Save token to database so PUSH webhooks can find the user

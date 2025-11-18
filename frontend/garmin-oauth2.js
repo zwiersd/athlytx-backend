@@ -140,6 +140,9 @@ class GarminOAuth2 {
         }
 
         try {
+            // **CRITICAL:** Get userId from localStorage for database persistence
+            const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('userId') : null;
+
             // Use backend API for token exchange (same pattern as Whoop)
             const response = await fetch('/api/garmin/token', {
                 method: 'POST',
@@ -150,7 +153,8 @@ class GarminOAuth2 {
                     code: authorizationCode,
                     client_id: this.clientId,
                     redirect_uri: this.redirectUri,
-                    code_verifier: verifier
+                    code_verifier: verifier,
+                    userId: userId  // CRITICAL: Required for database persistence
                 })
             });
 

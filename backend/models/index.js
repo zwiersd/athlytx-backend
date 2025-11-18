@@ -11,6 +11,8 @@ const TrainingSummary = require('./TrainingSummary');
 // New models for invite system
 const Invite = require('./Invite');
 const DeviceShare = require('./DeviceShare');
+// API logging model
+const APILog = require('./APILog');
 
 // Define associations
 User.hasMany(MagicLink, { foreignKey: 'userId' });
@@ -114,6 +116,8 @@ async function initializeDatabase() {
             // New models for invite system
             await Invite.sync();
             await DeviceShare.sync();
+            // API logging model
+            await APILog.sync();
             console.log('✅ Database models synchronized');
         } catch (syncError) {
             console.warn('⚠️  Some sync issues, continuing anyway:', syncError.message);
@@ -179,7 +183,14 @@ async function initializeDatabase() {
             console.warn('⚠️  Migration 006 warning:', migrationError.message);
         }
 
-        console.log('✅ All invite system migrations complete!');
+        try {
+            const createAPILogsTable = require('../migrations/007-create-api-logs-table');
+            await createAPILogsTable(sequelize.getQueryInterface(), sequelize.Sequelize);
+        } catch (migrationError) {
+            console.warn('⚠️  Migration 007 warning:', migrationError.message);
+        }
+
+        console.log('✅ All migrations complete!');
 
         return true;
     } catch (error) {
@@ -202,5 +213,7 @@ module.exports = {
     // New models for invite system
     Invite,
     DeviceShare,
+    // API logging model
+    APILog,
     initializeDatabase
 };
