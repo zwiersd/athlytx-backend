@@ -261,10 +261,8 @@
                     const latestMessage = messages[messages.length - 1];
 
                     if (latestMessage && !prefersReducedMotion) {
-                        // Add pulse ring for success messages
-                        if (type === 'success') {
-                            addPulseRing(latestMessage);
-                        }
+                        // Removed pulse ring for success messages to eliminate green flash
+                        // Just let the message fade naturally
 
                         // Add shake for error messages
                         if (type === 'error') {
