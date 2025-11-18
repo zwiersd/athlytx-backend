@@ -3651,21 +3651,31 @@
                 `).join('');
                 }
 
-                // Create Heart Rate Zones chart using health data
+                // Create Heart Rate Zones chart from activity data
                 const zonesCtx = document.getElementById('garminZonesChart');
-                if (zonesCtx) {
-                    // Calculate HR zones based on resting and max HR
-                    const restingHR = recentData.restingHeartRate;
-                    const maxHR = recentData.maxHeartRate;
-                    const hrReserve = maxHR - restingHR;
+                if (zonesCtx && activities.length > 0) {
+                    // Get HR data from activities
+                    const avgHRValue = Math.round(activities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / activities.length);
+                    const maxHRValue = Math.max(...activities.map(a => a.maxHeartRateInBeatsPerMinute || 0));
+
+                    // Calculate zones (estimate based on max HR)
+                    const zone1 = Math.round(maxHRValue * 0.5); // Recovery
+                    const zone2 = Math.round(maxHRValue * 0.6); // Fat burn
+                    const zone3 = Math.round(maxHRValue * 0.7); // Cardio
+                    const zone4 = Math.round(maxHRValue * 0.8); // Threshold
+                    const zone5 = maxHRValue; // Peak
+
+                    // Destroy existing chart if it exists
+                    const existingChart = Chart.getChart(zonesCtx);
+                    if (existingChart) existingChart.destroy();
 
                     new Chart(zonesCtx.getContext('2d'), {
                         type: 'bar',
                         data: {
-                            labels: ['Resting', 'Light', 'Moderate', 'Vigorous', 'Peak'],
+                            labels: ['Recovery', 'Fat Burn', 'Cardio', 'Threshold', 'Peak'],
                             datasets: [{
-                                label: 'Heart Rate Range',
-                                data: [restingHR, restingHR + hrReserve * 0.3, restingHR + hrReserve * 0.5, restingHR + hrReserve * 0.7, maxHR],
+                                label: 'Heart Rate (bpm)',
+                                data: [zone1, zone2, zone3, zone4, zone5],
                                 backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336']
                             }]
                         },
@@ -3673,88 +3683,26 @@
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: false, min: 40 } }
-                        }
-                    });
-                }
-
-                // Daily metrics breakdown
-                const typesCtx = document.getElementById('garminActivityTypesChart');
-                if (typesCtx) {
-                    new Chart(typesCtx.getContext('2d'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Active Calories', 'Resting Calories'],
-                            datasets: [{
-                                data: [recentData.activeCalories, recentData.calories - recentData.activeCalories],
-                                backgroundColor: ['#667eea', '#a78bfa']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'bottom' },
-                                title: {
-                                    display: true,
-                                    text: `Total: ${recentData.calories} calories`
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Steps and stress trend
-                const volumeCtx = document.getElementById('garminVolumeChart');
-                if (volumeCtx) {
-                    new Chart(volumeCtx.getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels: sampleHealthData.dailySummaries.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-                            datasets: [{
-                                label: 'Steps',
-                                data: sampleHealthData.dailySummaries.map(d => d.steps),
-                                borderColor: '#667eea',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                yAxisID: 'y'
-                            }, {
-                                label: 'Stress Level',
-                                data: sampleHealthData.dailySummaries.map(d => d.averageStressLevel),
-                                borderColor: '#ef4444',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                yAxisID: 'y1'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
                             scales: {
                                 y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    title: { display: true, text: 'Steps' }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: { display: true, text: 'Stress %' },
-                                    min: 0,
-                                    max: 100,
-                                    grid: { drawOnChartArea: false }
+                                    beginAtZero: false,
+                                    min: 40,
+                                    title: { display: true, text: 'Heart Rate (bpm)' }
                                 }
                             }
                         }
                     });
+                } else if (zonesCtx) {
+                    // Show placeholder
+                    zonesCtx.getContext('2d').clearRect(0, 0, zonesCtx.width, zonesCtx.height);
                 }
 
+                // Body Battery, Stress, HRV charts will show once daily summaries arrive via PUSH
+                console.log('📊 Charts ready - waiting for daily summary data from PUSH notifications');
+
             } catch (error) {
-                console.error('Error updating Garmin display:', error);
+                console.error('❌ Error updating Garmin display:', error);
+                console.error('Error stack:', error.stack);
             }
         }
 
