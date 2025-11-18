@@ -47,14 +47,21 @@ router.post('/push', async (req, res) => {
     try {
         const data = req.body;
 
-        // Log what data types we received
+        // Log what data types we received (summary only, not full payload)
         const dataTypes = Object.keys(data).filter(key => Array.isArray(data[key]) && data[key].length > 0);
         console.log('📊 PUSH data types received:', dataTypes);
         dataTypes.forEach(type => {
             console.log(`  - ${type}: ${data[type].length} items`);
         });
 
-        console.log('PUSH data:', JSON.stringify(data, null, 2));
+        // Only log first item of each array type for debugging (not entire 100MB payload)
+        if (process.env.NODE_ENV === 'development') {
+            dataTypes.forEach(type => {
+                if (data[type].length > 0) {
+                    console.log(`📝 Sample ${type}:`, JSON.stringify(data[type][0], null, 2));
+                }
+            });
+        }
 
         // Return 200 immediately (within 30 seconds requirement)
         res.status(200).json({

@@ -4,32 +4,154 @@ const { syncUserData, syncAllUsers } = require('../services/syncService');
 const { HeartRateZone, TrainingSummary, Activity } = require('../models');
 
 /**
+ * Authentication middleware - checks for userId in session or body
+ * For sync endpoints, we require authentication to prevent abuse
+ */
+function requireAuth(req, res, next) {
+    const userId = req.session?.userId || req.body.userId || req.query.userId;
+
+    if (!userId) {
+        return res.status(401).json({
+            error: 'Unauthorized',
+            message: 'You must be logged in to use sync endpoints'
+        });
+    }
+
+    req.authenticatedUserId = userId;
+    next();
+}
+
+/**
+ * Simple rate limiting for sync endpoints
+ * Prevents abuse by limiting sync requests per user
+ */
+const syncRequestTracker = new Map();
+
+function rateLimitSync(maxRequests = 5, windowMs = 15 * 60 * 1000) {
+    return (req, res, next) => {
+        const userId = req.authenticatedUserId;
+        const now = Date.now();
+
+        if (!syncRequestTracker.has(userId)) {
+            syncRequestTracker.set(userId, []);
+        }
+
+        const userRequests = syncRequestTracker.get(userId);
+
+        // Remove old requests outside the window
+        const recentRequests = userRequests.filter(time => now - time < windowMs);
+
+        if (recentRequests.length >= maxRequests) {
+            return res.status(429).json({
+                error: 'Too Many Requests',
+                message: `Maximum ${maxRequests} sync requests per ${Math.round(windowMs / 60000)} minutes. Please try again later.`,
+                retryAfter: Math.ceil((recentRequests[0] + windowMs - now) / 1000)
+            });
+        }
+
+        recentRequests.push(now);
+        syncRequestTracker.set(userId, recentRequests);
+        next();
+    };
+}
+
+/**
+ * Track active syncs to prevent concurrent operations
+ */
+const activeSyncs = new Set();
+
+/**
+ * Admin authentication middleware - requires userId and validates admin status
+ * For admin-only endpoints like sync all users
+ */
+function requireAdmin(req, res, next) {
+    const userId = req.session?.userId || req.body.userId || req.query.userId;
+
+    if (!userId) {
+        return res.status(401).json({
+            error: 'Unauthorized',
+            message: 'You must be logged in to use admin endpoints'
+        });
+    }
+
+    // For now, we'll use a simple admin list from env var
+    // In production, this should check a database role/permission
+    const adminUserIds = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+
+    if (adminUserIds.length === 0) {
+        return res.status(403).json({
+            error: 'Forbidden',
+            message: 'Admin endpoints are disabled. Set ADMIN_USER_IDS environment variable.'
+        });
+    }
+
+    if (!adminUserIds.includes(userId)) {
+        return res.status(403).json({
+            error: 'Forbidden',
+            message: 'This endpoint requires admin privileges'
+        });
+    }
+
+    req.authenticatedUserId = userId;
+    next();
+}
+
+function preventConcurrentSync(req, res, next) {
+    const userId = req.authenticatedUserId;
+
+    if (activeSyncs.has(userId)) {
+        return res.status(429).json({
+            error: 'Sync In Progress',
+            message: 'A sync is already running for this user. Please wait for it to complete.',
+            retryAfter: 60 // Estimate 1 minute
+        });
+    }
+
+    activeSyncs.add(userId);
+
+    // Cleanup on response finish
+    res.on('finish', () => {
+        activeSyncs.delete(userId);
+    });
+
+    next();
+}
+
+/**
  * Manually trigger sync for a specific user
  * POST /api/sync/manual
  * Body: { userId: "uuid", daysBack: 7 }
+ *
+ * Requires authentication and rate limiting (5 requests per 15 minutes)
  */
-router.post('/manual', async (req, res) => {
+router.post('/manual', requireAuth, rateLimitSync(), preventConcurrentSync, async (req, res) => {
     try {
-        const { userId, daysBack = 7 } = req.body;
+        const userId = req.authenticatedUserId;
+        const { daysBack = 7 } = req.body;
 
-        if (!userId) {
-            return res.status(400).json({ error: 'userId required' });
+        // Validate daysBack parameter
+        if (typeof daysBack !== 'number' || daysBack < 1 || daysBack > 90) {
+            return res.status(400).json({
+                error: 'Invalid Parameter',
+                message: 'daysBack must be a number between 1 and 90'
+            });
         }
 
-        console.log(`🔄 Manual sync requested for user ${userId}`);
+        console.log(`🔄 Manual sync requested for user ${userId}, ${daysBack} days back`);
 
         const results = await syncUserData(userId, daysBack);
 
         res.json({
             success: true,
             message: `Synced ${daysBack} days of data`,
+            userId,
             results
         });
     } catch (error) {
         console.error('Sync error:', error);
         res.status(500).json({
             error: 'Sync failed',
-            message: error.message
+            message: 'An error occurred during sync. Please try again later.'
         });
     }
 });
@@ -151,10 +273,13 @@ router.get('/zones/:userId', async (req, res) => {
 /**
  * Sync all users (admin only - for testing)
  * POST /api/sync/all
+ *
+ * Requires admin authentication and strict rate limiting (2 requests per hour)
  */
-router.post('/all', async (req, res) => {
+router.post('/all', requireAdmin, rateLimitSync(2, 60 * 60 * 1000), async (req, res) => {
     try {
-        console.log('🔄 Syncing all users...');
+        const adminUserId = req.authenticatedUserId;
+        console.log(`🔄 Admin ${adminUserId} triggered sync for all users...`);
 
         // Run async (don't wait for completion)
         syncAllUsers().catch(err => {
@@ -163,7 +288,8 @@ router.post('/all', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Sync started for all users'
+            message: 'Sync started for all users',
+            triggeredBy: adminUserId
         });
     } catch (error) {
         console.error('Sync all error:', error);

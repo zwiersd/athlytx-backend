@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database');
-const User = require('./User');
 
 const APILog = sequelize.define('APILog', {
     id: {
@@ -12,9 +11,11 @@ const APILog = sequelize.define('APILog', {
         type: DataTypes.UUID,
         allowNull: true,
         references: {
-            model: User,
+            model: 'users',
             key: 'id'
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
         comment: 'User who made the request (null for unauthenticated)'
     },
 
