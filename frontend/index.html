@@ -1211,13 +1211,16 @@
         }
 
         function showAuthForm(formType) {
+            console.log('🔄 showAuthForm called with:', formType);
             const signupForm = document.getElementById('signupFormModal');
             const loginForm = document.getElementById('loginFormModal');
             const signupTab = document.querySelector('.auth-modal-content .auth-tab:first-child');
             const loginTab = document.querySelector('.auth-modal-content .auth-tab:last-child');
 
+            console.log('Forms found:', { signupForm: !!signupForm, loginForm: !!loginForm });
+
             if (!signupForm || !loginForm) {
-                console.error('Auth forms not found');
+                console.error('❌ Auth forms not found');
                 return;
             }
 
