@@ -1152,13 +1152,23 @@
         // ===== DEVICE CONNECTION FUNCTIONS =====
         async function connectDevice(device) {
             const button = event.target;
-            
+            const userId = localStorage.getItem('userId');
+
+            if (!userId) {
+                showMessage('Please log in first before connecting devices', 'error');
+                return;
+            }
+
             if (device === 'strava') {
-                const authUrl = `https://www.strava.com/oauth/authorize?client_id=${API_CONFIG.strava.clientId}&response_type=code&redirect_uri=${encodeURIComponent(API_CONFIG.strava.redirectUri)}&scope=${API_CONFIG.strava.scope}&state=strava_auth&approval_prompt=force`;
+                // Encode userId in state parameter so it survives OAuth redirect
+                const state = JSON.stringify({ provider: 'strava', userId: userId });
+                const authUrl = `https://www.strava.com/oauth/authorize?client_id=${API_CONFIG.strava.clientId}&response_type=code&redirect_uri=${encodeURIComponent(API_CONFIG.strava.redirectUri)}&scope=${API_CONFIG.strava.scope}&state=${encodeURIComponent(state)}&approval_prompt=force`;
                 window.location.href = authUrl;
-                
+
             } else if (device === 'oura') {
-                const authUrl = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${API_CONFIG.oura.clientId}&redirect_uri=${encodeURIComponent(API_CONFIG.oura.redirectUri)}&scope=daily+workout+heartrate&state=oura_auth`;
+                // Encode userId in state parameter so it survives OAuth redirect
+                const state = JSON.stringify({ provider: 'oura', userId: userId });
+                const authUrl = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${API_CONFIG.oura.clientId}&redirect_uri=${encodeURIComponent(API_CONFIG.oura.redirectUri)}&scope=daily+workout+heartrate&state=${encodeURIComponent(state)}`;
                 window.location.href = authUrl;
                 
             } else if (device === 'garmin') {
@@ -1284,16 +1294,35 @@
                 console.log('OAuth code already processed, skipping');
                 return;
             }
-            
-            if (code && state === 'strava_auth') {
+
+            // Parse state parameter (could be JSON or legacy string)
+            let stateData = null;
+            let oauthProvider = null;
+            let userIdFromState = null;
+
+            if (state) {
+                try {
+                    // Try parsing as JSON first (new format)
+                    stateData = JSON.parse(decodeURIComponent(state));
+                    oauthProvider = stateData.provider;
+                    userIdFromState = stateData.userId;
+                } catch (e) {
+                    // Legacy format: "strava_auth", "oura_auth", etc.
+                    if (state === 'strava_auth') oauthProvider = 'strava';
+                    else if (state === 'oura_auth') oauthProvider = 'oura';
+                    else if (state === 'garmin_auth') oauthProvider = 'garmin';
+                }
+            }
+
+            if (code && oauthProvider === 'strava') {
                 sessionStorage.setItem('processed_oauth_code', code);
-                handleStravaCallback(code);
+                handleStravaCallback(code, userIdFromState);
                 window.history.replaceState({}, document.title, window.location.pathname);
-            } else if (code && state === 'oura_auth') {
+            } else if (code && oauthProvider === 'oura') {
                 sessionStorage.setItem('processed_oauth_code', code);
-                handleOuraCallback(code);
+                handleOuraCallback(code, userIdFromState);
                 window.history.replaceState({}, document.title, window.location.pathname);
-            } else if (code && state === 'garmin_auth') {
+            } else if (code && oauthProvider === 'garmin') {
                 // Handle Garmin OAuth 2.0 callback (legacy direct callback)
                 console.log('Processing Garmin callback with code:', code);
                 sessionStorage.setItem('processed_oauth_code', code);
@@ -1452,11 +1481,17 @@
             }
         }
 
-        async function handleStravaCallback(code) {
+        async function handleStravaCallback(code, userIdFromState) {
             try {
                 showMessage('Processing Strava authorization...', 'info');
 
-                const userId = localStorage.getItem('userId');
+                // Use userId from state parameter (passed during OAuth), fallback to localStorage
+                const userId = userIdFromState || localStorage.getItem('userId');
+
+                if (!userId) {
+                    throw new Error('User ID not available. Please log in again.');
+                }
+
                 const response = await fetch(`${API_CONFIG.backend}/api/strava/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1501,11 +1536,17 @@
             }
         }
 
-        async function handleOuraCallback(code) {
+        async function handleOuraCallback(code, userIdFromState) {
             try {
                 showMessage('Processing Oura authorization...', 'info');
 
-                const userId = localStorage.getItem('userId');
+                // Use userId from state parameter (passed during OAuth), fallback to localStorage
+                const userId = userIdFromState || localStorage.getItem('userId');
+
+                if (!userId) {
+                    throw new Error('User ID not available. Please log in again.');
+                }
+
                 const response = await fetch(`${API_CONFIG.backend}/api/oura/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
