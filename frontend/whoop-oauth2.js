@@ -111,6 +111,7 @@ class WhoopOAuth2 {
             console.log('Backend URL:', 'https://athlytx-backend-production.up.railway.app/api/whoop/token');
 
             // Use backend API for token exchange (same pattern as Garmin/Strava/Oura)
+            const userId = localStorage.getItem('userId');
             const response = await fetch('https://athlytx-backend-production.up.railway.app/api/whoop/token', {
                 method: 'POST',
                 headers: {
@@ -121,7 +122,8 @@ class WhoopOAuth2 {
                     client_id: this.clientId,
                     client_secret: this.clientSecret,
                     redirect_uri: this.redirectUri,
-                    code_verifier: codeVerifier
+                    code_verifier: codeVerifier,
+                    userId: userId  // CRITICAL: Required for database persistence
                 })
             });
 
