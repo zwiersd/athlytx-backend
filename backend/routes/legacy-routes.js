@@ -304,21 +304,25 @@ app.get('/api/whoop/recovery', async (req, res) => {
         // Frontend expects score with recovery_score and hrv_rmssd_milli fields
         const recoveryRecords = (data.records || [])
             .filter(cycle => cycle.recovery)
-            .map(cycle => ({
-                cycle_id: cycle.id,
-                sleep_id: cycle.sleep?.id,
-                created_at: cycle.created_at,
-                updated_at: cycle.updated_at,
-                score_state: cycle.recovery?.score_state || 'SCORED',
-                score: {
-                    recovery_score: cycle.recovery?.score?.recovery_score,
-                    hrv_rmssd_milli: cycle.recovery?.score?.hrv_rmssd_milli,
-                    resting_heart_rate: cycle.recovery?.score?.resting_heart_rate,
-                    spo2_percentage: cycle.recovery?.score?.spo2_percentage,
-                    skin_temp_celsius: cycle.recovery?.score?.skin_temp_celsius
-                },
-                user_calibrating: cycle.recovery?.user_calibrating || false
-            }));
+            .map(cycle => {
+                const recovery = cycle.recovery || {};
+                const score = recovery.score || {};
+                return {
+                    cycle_id: cycle.id,
+                    sleep_id: cycle.sleep && cycle.sleep.id ? cycle.sleep.id : null,
+                    created_at: cycle.created_at,
+                    updated_at: cycle.updated_at,
+                    score_state: recovery.score_state || 'SCORED',
+                    score: {
+                        recovery_score: score.recovery_score,
+                        hrv_rmssd_milli: score.hrv_rmssd_milli,
+                        resting_heart_rate: score.resting_heart_rate,
+                        spo2_percentage: score.spo2_percentage,
+                        skin_temp_celsius: score.skin_temp_celsius
+                    },
+                    user_calibrating: recovery.user_calibrating || false
+                };
+            });
 
         res.json({ records: recoveryRecords });
     } catch (error) {
