@@ -300,24 +300,28 @@ async function processGarminPushData(data) {
 
         let stored = 0;
 
-        // Process daily summaries (steps, heart rate, sleep, etc.)
-        if (summaries && summaries.length > 0) {
-            console.log(`📊 Processing ${summaries.length} daily summaries`);
+        // Process dailies (Garmin's daily summary endpoint - same as summaries but different name)
+        // Garmin can send either "summaries" or "dailies" - both contain daily health metrics
+        const dailySummaries = summaries || dailies || [];
 
-            for (const summary of summaries) {
+        if (dailySummaries.length > 0) {
+            console.log(`📊 Processing ${dailySummaries.length} daily summaries from ${summaries ? 'summaries' : 'dailies'} array`);
+
+            for (const summary of dailySummaries) {
                 try {
                     await DailyMetric.upsert({
                         userId: ourUserId,
                         date: summary.calendarDate || summary.summaryDate,
-                        // Basic metrics
+                        // Basic metrics (handle both naming conventions)
                         steps: summary.steps,
-                        totalKilocalories: summary.totalKilocalories,
-                        activeCalories: summary.activeKilocalories,
+                        totalKilocalories: summary.totalKilocalories || summary.activeKilocalories + summary.bmrKilocalories,
+                        activeCalories: summary.activeKilocalories || summary.activeCalories,
                         bmrKilocalories: summary.bmrKilocalories,
-                        // Heart rate
-                        restingHr: summary.restingHeartRate,
-                        minHeartRate: summary.minHeartRate,
-                        maxHeartRate: summary.maxHeartRate,
+                        // Heart rate (handle both naming conventions)
+                        restingHr: summary.restingHeartRate || summary.restingHeartRateInBeatsPerMinute,
+                        minHeartRate: summary.minHeartRate || summary.minHeartRateInBeatsPerMinute,
+                        maxHeartRate: summary.maxHeartRate || summary.maxHeartRateInBeatsPerMinute,
+                        avgHeartRate: summary.averageHeartRate || summary.averageHeartRateInBeatsPerMinute,
                         // Stress
                         averageStressLevel: summary.averageStressLevel,
                         maxStressLevel: summary.maxStressLevel,
@@ -329,13 +333,15 @@ async function processGarminPushData(data) {
                         // Sleep
                         sleepingSeconds: summary.sleepingSeconds,
                         sleepHours: summary.sleepingSeconds ? summary.sleepingSeconds / 3600 : null,
-                        // Activity intensity
-                        moderateIntensityMinutes: summary.moderateIntensityMinutes,
-                        vigorousIntensityMinutes: summary.vigorousIntensityMinutes,
-                        // Movement
-                        floorsAscended: summary.floorsAscended,
+                        // Activity intensity (handle both naming conventions)
+                        moderateIntensityMinutes: summary.moderateIntensityMinutes ||
+                            (summary.moderateIntensityDurationInSeconds ? summary.moderateIntensityDurationInSeconds / 60 : null),
+                        vigorousIntensityMinutes: summary.vigorousIntensityMinutes ||
+                            (summary.vigorousIntensityDurationInSeconds ? summary.vigorousIntensityDurationInSeconds / 60 : null),
+                        // Movement (handle both naming conventions)
+                        floorsAscended: summary.floorsAscended || summary.floorsClimbed,
                         floorsDescended: summary.floorsDescended,
-                        distanceMeters: summary.totalDistanceMeters,
+                        distanceMeters: summary.totalDistanceMeters || summary.distanceInMeters,
                         // Body Battery
                         bodyBatteryChargedValue: summary.bodyBatteryChargedValue,
                         bodyBatteryDrainedValue: summary.bodyBatteryDrainedValue,
