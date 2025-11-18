@@ -662,6 +662,10 @@
                 <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
                     <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
                     <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 60px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                    <!-- DEBUG BUTTON -->
+                    <button onclick="updateGarminDisplay(); return false;" style="margin-top: 16px; padding: 12px 24px; background: rgba(0,172,228,0.3); border: 1px solid rgba(0,172,228,0.5); border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                        🔄 Refresh Garmin Data (Debug)
+                    </button>
                 </div>
 
                 <!-- Hero Stats Grid - 4x2 even layout -->
@@ -1858,12 +1862,15 @@
 
             // Add small delay to ensure Chart.js is loaded
             setTimeout(() => {
+                console.log('🚀 Page initialization started');
                 initializeCharts();
                 loadExistingConnections();
                 updateConnectionStatus();
                 // Also update analytics/displays after a brief delay to ensure data is loaded
                 setTimeout(() => {
+                    console.log('🚀 Delayed updateAnalytics() being called from page load...');
                     updateAnalytics();
+                    console.log('🚀 Delayed updateAnalytics() completed');
                 }, 500);
             }, 100);
         });
@@ -2962,10 +2969,13 @@
 
         // ===== DEVICE DATA UPDATES =====
         function updateDeviceSpecificData() {
+            console.log('🔄 updateDeviceSpecificData() called');
             updateStravaData();
             updateOuraData();
             updateWhoopDisplay();
+            console.log('🏃 About to call updateGarminDisplay()...');
             updateGarminDisplay();
+            console.log('✅ updateGarminDisplay() called');
         }
 
         function updateOuraData() {
@@ -3227,8 +3237,11 @@
 
         // ===== ANALYTICS =====
         function updateAnalytics() {
+            console.log('📊 updateAnalytics() called');
             updateAthlytxScore();
+            console.log('📊 About to call updateDeviceSpecificData()...');
             updateDeviceSpecificData();
+            console.log('📊 updateDeviceSpecificData() completed');
             updateConnectionStatus();
             generateAIInsights();
             
@@ -3762,6 +3775,7 @@
 
         // Garmin data fetching function (OAuth 2.0)
         async function fetchGarminData(tokenParam) {
+            console.log('🔵 fetchGarminData() called with tokenParam:', tokenParam ? 'provided' : 'not provided');
             const button = document.querySelector('.btn-garmin');
 
             try {
@@ -3769,6 +3783,7 @@
                 button.disabled = true;
 
                 const token = tokenParam || localStorage.getItem('garmin_token');
+                console.log('🔵 Token exists:', !!token);
 
                 if (!token) {
                     throw new Error('No Garmin access token found');
@@ -3807,7 +3822,9 @@
 
                 updateConnectionStatus();
                 showMessage('Garmin connected! Data loaded from PUSH webhooks.', 'success');
+                console.log('🔵 fetchGarminData about to call updateAnalytics()...');
                 updateAnalytics(); // Trigger UI update to display Garmin data
+                console.log('🔵 fetchGarminData updateAnalytics() completed');
 
             } catch (error) {
                 console.error('Garmin data fetch error:', error);
@@ -4413,28 +4430,30 @@
 
         // Update Garmin display
         async function updateGarminDisplay() {
-            console.log(' UPDATE GARMIN DISPLAY CALLED');
+            console.log('🏃🏃🏃 UPDATE GARMIN DISPLAY CALLED 🏃🏃🏃');
+            console.log('🔍 Call stack:', new Error().stack);
             try {
                 const userId = localStorage.getItem('userId');
-                console.log(' userId:', userId);
+                console.log('👤 userId:', userId);
                 if (!userId) {
-                    console.log(' No userId - returning');
+                    console.log('❌ No userId - returning');
                     return;
                 }
 
                 // Check if user has Garmin connected (using correct key name)
                 const garminToken = localStorage.getItem('garmin_token');
-                console.log(' garminToken exists:', !!garminToken);
+                console.log('🔑 garminToken exists:', !!garminToken);
+                console.log('🔑 garminToken value:', garminToken ? garminToken.substring(0, 20) + '...' : 'null');
                 if (!garminToken) {
-                    console.log(' No Garmin token - showing connect message');
+                    console.log('❌ No Garmin token - showing connect message');
                     document.getElementById('garminActivitiesList').innerHTML =
                         '<div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>';
                     return;
                 }
 
                 // Fetch real data from database (received via PUSH webhooks)
-                console.log('Fetching Garmin data from database for user:', userId);
-                console.log('API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
+                console.log('📡 Fetching Garmin data from database for user:', userId);
+                console.log('🌐 API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
 
                 const [activitiesResponse, dailiesResponse] = await Promise.allSettled([
                     fetch(`${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`),
@@ -4444,27 +4463,34 @@
                 let activities = [];
                 let dailySummaries = [];
 
-                console.log(' activitiesResponse:', activitiesResponse);
+                console.log('📥 activitiesResponse:', activitiesResponse);
                 if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
                     const data = await activitiesResponse.value.json();
                     activities = data.activities || [];
-                    console.log(' Loaded', activities.length, 'Garmin activities', activities);
+                    console.log('✅ Loaded', activities.length, 'Garmin activities', activities);
                 } else {
-                    console.log(' Activities fetch failed:', activitiesResponse);
+                    console.log('❌ Activities fetch failed:', activitiesResponse);
                 }
 
-                console.log(' dailiesResponse:', dailiesResponse);
+                console.log('📥 dailiesResponse:', dailiesResponse);
                 if (dailiesResponse.status === 'fulfilled' && dailiesResponse.value.ok) {
                     const data = await dailiesResponse.value.json();
                     dailySummaries = data.dailies || [];
-                    console.log(' Loaded', dailySummaries.length, 'daily summaries');
+                    console.log('✅ Loaded', dailySummaries.length, 'daily summaries');
                 } else {
-                    console.log(' Dailies fetch failed:', dailiesResponse);
+                    console.log('❌ Dailies fetch failed:', dailiesResponse);
                 }
 
                 // Update hero stat cards
-                console.log(' Setting garminActivities to:', activities.length);
-                document.getElementById('garminActivities').textContent = activities.length;
+                console.log('🎯 Setting garminActivities to:', activities.length);
+                const garminActivitiesElement = document.getElementById('garminActivities');
+                console.log('🎯 garminActivities element:', garminActivitiesElement);
+                if (garminActivitiesElement) {
+                    garminActivitiesElement.textContent = activities.length;
+                    console.log('✅ Successfully set garminActivities.textContent to:', activities.length);
+                } else {
+                    console.log('❌ ERROR: garminActivities element not found in DOM!');
+                }
 
                 const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
                 document.getElementById('garminDistance').textContent = (totalDistance / 1000).toFixed(1) + ' km';
