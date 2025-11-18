@@ -1320,11 +1320,10 @@
             errorDiv.style.display = 'none';
 
             try {
-                const userId = localStorage.getItem('userId');
                 const response = await fetch(`${API_CONFIG.backend}/api/auth/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, email, password, name })
+                    body: JSON.stringify({ email, password, name, role: 'athlete' })
                 });
 
                 const data = await response.json();
@@ -1340,11 +1339,7 @@
                     closeAuthModal();
 
                     // Update UI to show authenticated view
-                    document.getElementById('guestView').style.display = 'none';
-                    document.getElementById('authenticatedView').style.display = 'block';
-                    document.getElementById('user-email').textContent = data.user.email;
-                    document.getElementById('user-name').textContent = data.user.name || 'Not set';
-                    document.getElementById('user-id').textContent = data.user.id;
+                    checkAuthenticationStatus();
 
                     showMessage('Account created successfully!', 'success');
                 } else {
@@ -1408,11 +1403,7 @@
                     closeAuthModal();
 
                     // Update UI to show authenticated view
-                    document.getElementById('guestView').style.display = 'none';
-                    document.getElementById('authenticatedView').style.display = 'block';
-                    document.getElementById('user-email').textContent = data.user.email;
-                    document.getElementById('user-name').textContent = data.user.name || 'Not set';
-                    document.getElementById('user-id').textContent = data.user.id;
+                    checkAuthenticationStatus();
 
                     showMessage('Logged in successfully!', 'success');
 
@@ -1695,6 +1686,69 @@
             }, 1000);
         }
 
+        // ===== LOGOUT FUNCTION =====
+        async function handleLogout() {
+            const sessionToken = localStorage.getItem('sessionToken');
+
+            // Call logout API
+            if (sessionToken) {
+                try {
+                    await fetch(`${API_CONFIG.backend}/api/auth/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionToken })
+                    });
+                } catch (error) {
+                    console.error('Logout API error:', error);
+                }
+            }
+
+            // Clear all user data from localStorage
+            localStorage.removeItem('sessionToken');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+
+            // Update UI to show guest view
+            document.getElementById('guestView').style.display = 'block';
+            document.getElementById('authenticatedView').style.display = 'none';
+
+            // Reset Account tab text
+            const accountTabText = document.getElementById('accountTabText');
+            if (accountTabText) {
+                accountTabText.textContent = 'Account';
+            }
+
+            showMessage('Logged out successfully', 'success');
+        }
+
+        // ===== AUTHENTICATION STATUS CHECK =====
+        function checkAuthenticationStatus() {
+            const sessionToken = localStorage.getItem('sessionToken');
+            const userEmail = localStorage.getItem('userEmail');
+            const userName = localStorage.getItem('userName');
+            const userId = localStorage.getItem('userId');
+
+            if (sessionToken && userEmail) {
+                // User is logged in - show authenticated view
+                document.getElementById('guestView').style.display = 'none';
+                document.getElementById('authenticatedView').style.display = 'block';
+                document.getElementById('user-email').textContent = userEmail;
+                document.getElementById('user-name').textContent = userName || 'Not set';
+                document.getElementById('user-id').textContent = userId || 'N/A';
+
+                // Update Account tab text to show user's name or email
+                const accountTabText = document.getElementById('accountTabText');
+                if (accountTabText) {
+                    accountTabText.textContent = userName || userEmail.split('@')[0];
+                }
+            } else {
+                // User is not logged in - show guest view
+                document.getElementById('guestView').style.display = 'block';
+                document.getElementById('authenticatedView').style.display = 'none';
+            }
+        }
+
         // ===== OAUTH CALLBACK HANDLING =====
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1782,6 +1836,9 @@
                 // Clean up URL completely
                 window.history.replaceState({}, document.title, '/');
             }
+
+            // Check if user is logged in and update Account tab
+            checkAuthenticationStatus();
 
             // Add small delay to ensure Chart.js is loaded
             setTimeout(() => {
