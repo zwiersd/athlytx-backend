@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const { User, OAuthToken, Activity, HeartRateZone, PowerZone, TrainingSummary } = require('../models');
-const { decrypt } = require('../utils/encryption');
+const { decrypt, encrypt } = require('../utils/encryption');
 
 // HR Zone configuration (based on your zones)
 const HR_ZONES = {
@@ -10,6 +10,106 @@ const HR_ZONES = {
     zone4: { min: 167, max: 180, name: 'Threshold' },
     zone5: { min: 181, max: 220, name: 'Anaerobic' }
 };
+
+/**
+ * Check if token is expired and refresh if needed
+ */
+async function ensureValidToken(tokenRecord) {
+    // Check if token has expired
+    if (tokenRecord.expiresAt && new Date() >= tokenRecord.expiresAt) {
+        console.log(`  🔄 Token expired for ${tokenRecord.provider}, attempting refresh...`);
+
+        // Only Whoop and Oura support token refresh with refresh_token grant
+        if (tokenRecord.provider === 'whoop' && tokenRecord.refreshTokenEncrypted) {
+            try {
+                const refreshToken = decrypt(tokenRecord.refreshTokenEncrypted);
+
+                const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        refresh_token: refreshToken,
+                        client_id: process.env.WHOOP_CLIENT_ID,
+                        client_secret: process.env.WHOOP_CLIENT_SECRET
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Update token in database
+                    tokenRecord.accessTokenEncrypted = encrypt(data.access_token);
+                    if (data.refresh_token) {
+                        tokenRecord.refreshTokenEncrypted = encrypt(data.refresh_token);
+                    }
+                    if (data.expires_in) {
+                        tokenRecord.expiresAt = new Date(Date.now() + data.expires_in * 1000);
+                    }
+                    await tokenRecord.save();
+
+                    console.log(`  ✅ Token refreshed successfully for ${tokenRecord.provider}`);
+                    return tokenRecord;
+                } else {
+                    const error = await response.text();
+                    console.error(`  ❌ Token refresh failed for ${tokenRecord.provider}:`, error);
+                    throw new Error(`Token refresh failed: ${error}`);
+                }
+            } catch (error) {
+                console.error(`  ❌ Error refreshing token for ${tokenRecord.provider}:`, error.message);
+                throw error;
+            }
+        } else if (tokenRecord.provider === 'oura' && tokenRecord.refreshTokenEncrypted) {
+            try {
+                const refreshToken = decrypt(tokenRecord.refreshTokenEncrypted);
+
+                const response = await fetch('https://api.ouraring.com/oauth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        refresh_token: refreshToken,
+                        client_id: process.env.OURA_CLIENT_ID,
+                        client_secret: process.env.OURA_CLIENT_SECRET
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Update token in database
+                    tokenRecord.accessTokenEncrypted = encrypt(data.access_token);
+                    if (data.refresh_token) {
+                        tokenRecord.refreshTokenEncrypted = encrypt(data.refresh_token);
+                    }
+                    if (data.expires_in) {
+                        tokenRecord.expiresAt = new Date(Date.now() + data.expires_in * 1000);
+                    }
+                    await tokenRecord.save();
+
+                    console.log(`  ✅ Token refreshed successfully for ${tokenRecord.provider}`);
+                    return tokenRecord;
+                } else {
+                    const error = await response.text();
+                    console.error(`  ❌ Token refresh failed for ${tokenRecord.provider}:`, error);
+                    throw new Error(`Token refresh failed: ${error}`);
+                }
+            } catch (error) {
+                console.error(`  ❌ Error refreshing token for ${tokenRecord.provider}:`, error.message);
+                throw error;
+            }
+        } else {
+            console.log(`  ⚠️  No refresh token available for ${tokenRecord.provider}, token expired`);
+            throw new Error(`Token expired and no refresh token available for ${tokenRecord.provider}`);
+        }
+    }
+
+    return tokenRecord;
+}
 
 /**
  * Main sync function - fetches data for a specific user
@@ -57,7 +157,9 @@ async function syncUserData(userId, daysBack = 1) {
         const ouraToken = tokens.find(t => t.provider === 'oura');
         if (ouraToken) {
             try {
-                results.oura = await syncOuraData(userId, ouraToken, daysBack);
+                // Ensure token is valid before syncing
+                const validToken = await ensureValidToken(ouraToken);
+                results.oura = await syncOuraData(userId, validToken, daysBack);
             } catch (error) {
                 results.errors.push(`Oura: ${error.message}`);
             }
@@ -67,7 +169,9 @@ async function syncUserData(userId, daysBack = 1) {
         const whoopToken = tokens.find(t => t.provider === 'whoop');
         if (whoopToken) {
             try {
-                results.whoop = await syncWhoopData(userId, whoopToken, daysBack);
+                // Ensure token is valid before syncing
+                const validToken = await ensureValidToken(whoopToken);
+                results.whoop = await syncWhoopData(userId, validToken, daysBack);
             } catch (error) {
                 results.errors.push(`Whoop: ${error.message}`);
             }

@@ -389,6 +389,49 @@ app.get('/api/whoop/cycles', async (req, res) => {
     }
 });
 
+// WHOOP Token Refresh Endpoint
+app.post('/api/whoop/refresh', async (req, res) => {
+    try {
+        const { refresh_token, client_id, client_secret } = req.body;
+
+        console.log('🔄 Whoop token refresh attempt:', {
+            has_refresh_token: !!refresh_token,
+            has_client_id: !!client_id,
+            has_client_secret: !!client_secret
+        });
+
+        const response = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refresh_token,
+                client_id: client_id || process.env.WHOOP_CLIENT_ID,
+                client_secret: client_secret || process.env.WHOOP_CLIENT_SECRET
+            })
+        });
+
+        const data = await response.json();
+
+        console.log('🔄 Whoop refresh response:', {
+            status: response.status,
+            hasAccessToken: !!data.access_token,
+            error: data.error
+        });
+
+        if (!response.ok) {
+            throw new Error(`Whoop token refresh failed: ${data.error || data.message}`);
+        }
+
+        res.json(data);
+    } catch (error) {
+        console.error('❌ Whoop token refresh error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ===== GARMIN ENDPOINTS (OAuth 2.0 with PKCE) =====
 app.post('/api/garmin/token', async (req, res) => {
     try {
