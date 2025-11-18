@@ -546,13 +546,14 @@ router.post('/ensure-user', async (req, res) => {
         let user = await User.findByPk(userId);
 
         if (!user) {
-            // Create user
+            // Create user with unique email based on userId
+            const uniqueEmail = email || `athlete-${userId.substring(0, 8)}@athlytx.com`;
             user = await User.create({
                 id: userId,
-                email: email || 'athlete@athlytx.com',
+                email: uniqueEmail,
                 name: name || 'Athlytx Athlete'
             });
-            console.log('✅ Created user:', user.id);
+            console.log('✅ Created user:', user.id, 'with email:', uniqueEmail);
         } else {
             console.log('✅ User already exists:', user.id);
         }
