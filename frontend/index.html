@@ -5218,23 +5218,50 @@
         }
 
         // Set correlation window selector and re-generate insights on change
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Initialize userId if it doesn't exist
             if (!localStorage.getItem('userId')) {
-                // Use your production userId with all the data
-                const userId = '3c37dd1f-25f8-4212-afcf-52a7d37f0903';
+                const userId = uuidv4();
                 localStorage.setItem('userId', userId);
-                console.log('Initialized with production userId:', userId);
+                console.log('Generated new userId:', userId);
             } else {
                 const currentUserId = localStorage.getItem('userId');
-                // If using the empty userId, switch to the one with data
-                if (currentUserId === 'bcc86a51-60d4-4ce4-9084-dc98296b711b') {
-                    const userIdWithData = '3c37dd1f-25f8-4212-afcf-52a7d37f0903';
-                    localStorage.setItem('userId', userIdWithData);
-                    console.log('Switched from empty userId to userId with data:', userIdWithData);
-                    location.reload(); // Reload to fetch data with correct userId
-                } else {
-                    console.log('Existing userId found:', currentUserId);
+                console.log('Existing userId found:', currentUserId);
+
+                // Smart recovery: If user has no data, check if they have OAuth tokens under a different userId
+                try {
+                    const statusResponse = await fetch(`${API_CONFIG.backend}/api/sync/status/${currentUserId}`);
+                    if (statusResponse.ok) {
+                        const statusData = await statusResponse.json();
+
+                        // If this userId has no activities AND no tokens, check if there's data elsewhere
+                        if (statusData.totalActivities === 0 && statusData.totalZoneRecords === 0) {
+                            console.log('No data found for current userId, checking for OAuth tokens...');
+
+                            const usersResponse = await fetch(`${API_CONFIG.backend}/api/sync/users`);
+                            if (usersResponse.ok) {
+                                const usersData = await usersResponse.json();
+
+                                // Find a userId that has data (not the current one)
+                                for (const user of usersData.users) {
+                                    if (user.userId !== currentUserId) {
+                                        const altStatusResponse = await fetch(`${API_CONFIG.backend}/api/sync/status/${user.userId}`);
+                                        if (altStatusResponse.ok) {
+                                            const altStatusData = await altStatusResponse.json();
+                                            if (altStatusData.totalActivities > 0 || altStatusData.totalZoneRecords > 0) {
+                                                console.log(`Found data under different userId: ${user.userId} (${altStatusData.totalActivities} activities)`);
+                                                localStorage.setItem('userId', user.userId);
+                                                location.reload();
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking for data recovery:', error);
                 }
             }
 
