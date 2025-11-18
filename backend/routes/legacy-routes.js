@@ -733,9 +733,13 @@ app.get('/api/garmin/db/dailies', async (req, res) => {
             dailies: dailyMetrics.map(d => ({
                 calendarDate: d.date,
                 steps: d.steps,
-                totalKilocalories: d.totalKilocalories,
                 restingHr: d.restingHr,
-                sleepHours: d.sleepHours
+                sleepHours: d.sleepHours,
+                hrvAvg: d.hrvAvg,
+                bodyBatteryHighestValue: d.bodyBatteryHighestValue,
+                bodyBatteryLowestValue: d.bodyBatteryLowestValue,
+                averageStressLevel: d.averageStressLevel,
+                avgWakingRespirationValue: d.avgWakingRespirationValue
             }))
         });
 
