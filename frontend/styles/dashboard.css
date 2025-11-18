@@ -110,6 +110,244 @@ body {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* ============================================
+   SCORE HERO SECTION - RESPONSIVE
+   ============================================ */
+
+.score-hero-section {
+  margin: 40px 0 30px 0;
+}
+
+.score-hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.metrics-side-card {
+  background: rgba(255,255,255,0.08);
+  padding: 16px 24px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 4px 0;
+}
+
+.score-center {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.score-circle-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px auto;
+}
+
+.score-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.1);
+  stroke-width: 12;
+}
+
+.score-ring-progress {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 565;
+  stroke-dashoffset: 565;
+  transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;
+}
+
+.score-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-number {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score-max {
+  font-size: 0.85rem;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+.score-status-container {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.score-status-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.score-insight {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.4;
+}
+
+.score-badge-container {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.data-sources-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .score-hero-container {
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 16px;
+  }
+
+  .metrics-side-card {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px 20px;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .metric-divider {
+    width: 1px;
+    height: auto;
+    margin: 0;
+  }
+
+  .score-circle-wrapper {
+    width: 180px;
+    height: 180px;
+  }
+
+  .score-number {
+    font-size: 3.5rem;
+  }
+
+  .score-max {
+    font-size: 0.75rem;
+  }
+
+  .score-status-title {
+    font-size: 1.1rem;
+  }
+
+  .score-insight {
+    font-size: 0.85rem;
+  }
+
+  .metric-value {
+    font-size: 1.6rem;
+  }
+
+  .metric-label {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .score-circle-wrapper {
+    width: 160px;
+    height: 160px;
+  }
+
+  .score-number {
+    font-size: 3rem;
+  }
+
+  .score-max {
+    font-size: 0.7rem;
+  }
+
+  .metrics-side-card {
+    max-width: 280px;
+    padding: 12px 16px;
+  }
+
+  .metric-value {
+    font-size: 1.4rem;
+  }
+
+  .metric-label {
+    font-size: 0.6rem;
+  }
+
+  .score-status-title {
+    font-size: 1rem;
+  }
+
+  .score-insight {
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 768px) {
   .readiness-status-hero {
     flex-direction: column;
@@ -1757,44 +1995,6 @@ button:focus-visible,
     font-size: 9px;
   }
 
-  /* Hero Score Section - Mobile Responsive */
-  /* Make hero section stack vertically on mobile */
-  div[style*="display: flex"][style*="gap: 40px"] {
-    flex-direction: column !important;
-    gap: 20px !important;
-    padding: 0 16px;
-  }
-
-  /* Adjust metric cards on mobile */
-  div[style*="min-width: 110px"] {
-    min-width: 100% !important;
-    max-width: 300px !important;
-    margin: 0 auto !important;
-  }
-
-  /* Center score circle on mobile */
-  div[style*="width: 200px"][style*="height: 200px"] {
-    width: 160px !important;
-    height: 160px !important;
-  }
-
-  /* Adjust SVG size on mobile */
-  svg[width="200"][height="200"] {
-    width: 160px !important;
-    height: 160px !important;
-  }
-
-  /* Adjust circle positions */
-  circle[cx="100"][cy="100"][r="90"] {
-    cx: 80 !important;
-    cy: 80 !important;
-    r: 70 !important;
-  }
-
-  /* Adjust score font size on mobile */
-  div[style*="font-size: 4rem"] {
-    font-size: 3rem !important;
-  }
 }
 
 @media (max-width: 480px) {

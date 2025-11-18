@@ -218,26 +218,28 @@
             </div>
 
             <!-- SCORE HERO WITH FLANKING METRICS -->
-            <div style="margin: 40px 0 30px 0;">
-                <!-- Horizontal layout: Left Metrics | Score | Right Metrics -->
-                <div style="display: flex; align-items: center; justify-content: center; gap: 40px; max-width: 900px; margin: 0 auto;">
+            <div class="score-hero-section">
+                <div class="score-hero-container">
 
                     <!-- LEFT METRICS: Recovery & Strain stacked -->
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="background: rgba(255,255,255,0.08); padding: 12px 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); min-width: 110px;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreRecovery">--</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 4px; font-weight: 600;">Recovery</div>
-                            <div style="font-size: 1.8rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1; margin-top: 8px;" id="scoreLoad">--</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 4px; font-weight: 600;">Strain</div>
+                    <div class="metrics-side-card">
+                        <div class="metric-item">
+                            <div class="metric-value" id="scoreRecovery">--</div>
+                            <div class="metric-label">Recovery</div>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="scoreLoad">--</div>
+                            <div class="metric-label">Strain</div>
                         </div>
                     </div>
 
                     <!-- CENTER: Athlytx Score -->
-                    <div style="text-align: center;">
-                        <div style="position: relative; width: 200px; height: 200px; margin: 0 auto 20px auto;">
-                            <svg width="200" height="200" style="transform: rotate(-90deg);">
-                                <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="12"/>
-                                <circle id="scoreProgressCircle" cx="100" cy="100" r="90" fill="none" stroke="url(#scoreGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="565" stroke-dashoffset="565" style="transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;"/>
+                    <div class="score-center">
+                        <div class="score-circle-wrapper">
+                            <svg class="score-svg" viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="90" class="score-ring-bg"/>
+                                <circle id="scoreProgressCircle" cx="100" cy="100" r="90" class="score-ring-progress"/>
                                 <defs>
                                     <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
@@ -246,31 +248,34 @@
                                     </linearGradient>
                                 </defs>
                             </svg>
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                                <div style="font-size: 4rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="athlytxScore">--</div>
-                                <div style="font-size: 0.85rem; margin-top: 6px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">out of 100</div>
+                            <div class="score-content">
+                                <div class="score-number" id="athlytxScore">--</div>
+                                <div class="score-max">out of 100</div>
                             </div>
                         </div>
-                        <div id="scoreStatusContainer" style="max-width: 300px; margin: 0 auto;">
-                            <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: rgba(255, 255, 255, 0.95);" id="scoreStatus">Connect devices</div>
-                            <div id="scoreInsight" style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.75); line-height: 1.4;">Connect your devices to see your score</div>
+                        <div id="scoreStatusContainer" class="score-status-container">
+                            <div class="score-status-title" id="scoreStatus">Connect devices</div>
+                            <div class="score-insight" id="scoreInsight">Connect your devices to see your score</div>
                         </div>
                     </div>
 
                     <!-- RIGHT METRICS: Sleep & HRV stacked -->
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="background: rgba(255,255,255,0.08); padding: 12px 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); min-width: 110px;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1;" id="scoreSleep">--</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 4px; font-weight: 600;">Sleep</div>
-                            <div style="font-size: 1.8rem; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1; margin-top: 8px;" id="scoreHRV">--</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 4px; font-weight: 600;">HRV</div>
+                    <div class="metrics-side-card">
+                        <div class="metric-item">
+                            <div class="metric-value" id="scoreSleep">--</div>
+                            <div class="metric-label">Sleep</div>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="scoreHRV">--</div>
+                            <div class="metric-label">HRV</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Data Sources Badge -->
-                <div style="text-align: center; margin-top: 24px;">
-                    <div id="dataSourcesBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); padding: 8px 16px; background: rgba(0,0,0,0.2); border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="score-badge-container">
+                    <div id="dataSourcesBadge" class="data-sources-badge">
                         <span>📊</span>
                         <span id="deviceGuidance">Connect devices</span>
                     </div>
@@ -4464,8 +4469,12 @@
         }
 
         function showMessage(message, type = 'info') {
-            // On mobile, use subtle toast notifications instead of full-screen alerts
+            // On mobile, skip connection success messages to avoid distraction
             const isMobile = window.innerWidth <= 768;
+            if (isMobile && type === 'success' && message.toLowerCase().includes('connect')) {
+                console.log('📱 Mobile: Skipping connection alert:', message);
+                return; // Don't show connection alerts on mobile
+            }
 
             const messageDiv = document.createElement('div');
             const colors = {
@@ -4489,25 +4498,25 @@
             messageDiv.className = 'status-message';
 
             if (isMobile) {
-                // Mobile: small, centered, non-intrusive toast at bottom
+                // Mobile: very subtle, small toast
                 messageDiv.style.cssText = `
                     position: fixed;
-                    bottom: ${100 + offset}px;
+                    bottom: ${120 + offset}px;
                     left: 50%;
                     transform: translateX(-50%);
                     background: ${colors[type]};
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    color: rgba(255, 255, 255, 0.8);
-                    padding: 6px 12px;
+                    backdrop-filter: blur(6px);
+                    -webkit-backdrop-filter: blur(6px);
+                    color: rgba(255, 255, 255, 0.85);
+                    padding: 5px 10px;
                     border-radius: 6px;
                     border: 1px solid ${borderColors[type]};
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
                     z-index: 998;
-                    max-width: 200px;
-                    font-size: 0.7rem;
+                    max-width: 180px;
+                    font-size: 0.65rem;
                     font-weight: 400;
-                    transition: opacity 0.3s ease;
+                    transition: opacity 0.2s ease;
                     opacity: 0;
                     pointer-events: none;
                     text-align: center;
@@ -4539,12 +4548,12 @@
             messageDiv.textContent = message;
             document.body.appendChild(messageDiv);
 
-            // Fade in - more subtle on mobile
-            setTimeout(() => messageDiv.style.opacity = isMobile ? '0.75' : '0.6', 10);
+            // Fade in - very subtle on mobile
+            setTimeout(() => messageDiv.style.opacity = isMobile ? '0.65' : '0.6', 10);
 
-            // Fade out and remove - faster on mobile
-            const fadeOutTime = isMobile ? 1500 : 1800;
-            const removeTime = isMobile ? 1900 : 2200;
+            // Fade out and remove - much faster on mobile
+            const fadeOutTime = isMobile ? 1200 : 1800;
+            const removeTime = isMobile ? 1500 : 2200;
             setTimeout(() => messageDiv.style.opacity = '0', fadeOutTime);
             setTimeout(() => messageDiv.remove(), removeTime);
         }
