@@ -535,10 +535,47 @@ app.post('/api/garmin/token', async (req, res) => {
                     status: registrationResponse.status,
                     body: regResponseText
                 });
+
+                // Fallback: Extract from JWT access token
+                console.log('🔄 Attempting to extract Garmin User ID from JWT...');
+                try {
+                    const [, payloadBase64] = data.access_token.split('.');
+                    const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+                    console.log('📝 JWT payload keys:', Object.keys(payload));
+
+                    garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
+
+                    if (garminUserId) {
+                        console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
+                        data.garminUserId = garminUserId;
+                    } else {
+                        console.warn('⚠️ Could not find Garmin User ID in JWT payload');
+                    }
+                } catch (jwtError) {
+                    console.error('⚠️ Failed to decode JWT:', jwtError.message);
+                }
             }
         } catch (regError) {
             console.error('⚠️ User registration error (non-fatal):', regError);
-            // Continue even if registration fails
+
+            // Fallback: Extract from JWT access token
+            console.log('🔄 Attempting to extract Garmin User ID from JWT (fallback)...');
+            try {
+                const [, payloadBase64] = data.access_token.split('.');
+                const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+                console.log('📝 JWT payload keys:', Object.keys(payload));
+
+                garminUserId = payload.garmin_guid || payload.user_id || payload.sub || payload.userId;
+
+                if (garminUserId) {
+                    console.log('✅ Extracted Garmin User ID from JWT:', garminUserId);
+                    data.garminUserId = garminUserId;
+                } else {
+                    console.warn('⚠️ Could not find Garmin User ID in JWT payload');
+                }
+            } catch (jwtError) {
+                console.error('⚠️ Failed to decode JWT:', jwtError.message);
+            }
         }
 
         res.json(data);
