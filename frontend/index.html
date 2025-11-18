@@ -3580,42 +3580,72 @@
                 }
             };
 
-            // Update recovery data
+            // Update recovery data - sort by updated_at to get most recent
             if (recovery && recovery.length > 0) {
-                const latestRecovery = recovery[recovery.length - 1];
-                console.log('Latest recovery data:', latestRecovery);
+                // Sort by updated_at or created_at descending (newest first)
+                const sortedRecovery = [...recovery].sort((a, b) => {
+                    const dateA = new Date(a.updated_at || a.created_at);
+                    const dateB = new Date(b.updated_at || b.created_at);
+                    return dateB - dateA;
+                });
+
+                const latestRecovery = sortedRecovery[0];
+                console.log('📊 Latest recovery data:', latestRecovery);
+                console.log('📊 Recovery date:', latestRecovery.updated_at || latestRecovery.created_at);
 
                 const recoveryScore = latestRecovery.score?.recovery_score;
                 if (recoveryScore !== undefined) {
-                    console.log(' Raw recovery score:', recoveryScore);
-                    // If value is > 1, it's already a percentage (36.0), if < 1, it's decimal (0.36)
-                    const displayValue = recoveryScore > 1 ? Math.round(recoveryScore) : Math.round(recoveryScore * 100);
+                    console.log('🔍 Raw recovery score:', recoveryScore);
+                    // Recovery score is 0-100
+                    const displayValue = Math.round(recoveryScore);
                     updateStat('whoopRecovery', displayValue, '%');
                 }
 
-                updateStat('whoopHRV', Math.round(latestRecovery.score?.hrv_rmssd_milli), '');
+                const hrv = latestRecovery.score?.hrv_rmssd_milli;
+                if (hrv !== undefined) {
+                    updateStat('whoopHRV', Math.round(hrv), '');
+                }
             }
 
-            // Update sleep data
+            // Update sleep data - sort by end time to get most recent
             if (sleep && sleep.length > 0) {
-                const latestSleep = sleep[sleep.length - 1];
+                // Sort by end time descending (newest first)
+                const sortedSleep = [...sleep].sort((a, b) => {
+                    const dateA = new Date(a.end || a.updated_at);
+                    const dateB = new Date(b.end || b.updated_at);
+                    return dateB - dateA;
+                });
+
+                const latestSleep = sortedSleep[0];
                 console.log('😴 Latest sleep data:', latestSleep);
+                console.log('😴 Sleep end time:', latestSleep.end);
 
                 const sleepPerformance = latestSleep.score?.sleep_performance_percentage;
                 if (sleepPerformance !== undefined) {
-                    console.log(' Raw sleep performance:', sleepPerformance);
-                    // If value is > 1, it's already a percentage (46.0), if < 1, it's decimal (0.46)
-                    const displayValue = sleepPerformance > 1 ? Math.round(sleepPerformance) : Math.round(sleepPerformance * 100);
+                    console.log('🔍 Raw sleep performance:', sleepPerformance);
+                    // Sleep performance is 0-100
+                    const displayValue = Math.round(sleepPerformance);
                     updateStat('whoopSleep', displayValue, '%');
                 }
             }
 
-            // Update strain from cycles data (and extract recovery/sleep if not already set)
+            // Update strain from cycles data - sort by end time to get most recent
             if (cycles && cycles.length > 0) {
-                const latestCycle = cycles[cycles.length - 1];
-                console.log(' Latest cycle data:', latestCycle);
+                // Sort by end time or updated_at descending (newest first)
+                const sortedCycles = [...cycles].sort((a, b) => {
+                    const dateA = new Date(a.end || a.updated_at);
+                    const dateB = new Date(b.end || b.updated_at);
+                    return dateB - dateA;
+                });
 
-                updateStat('whoopStrain', latestCycle.score?.strain?.toFixed(1), '');
+                const latestCycle = sortedCycles[0];
+                console.log('🔥 Latest cycle data:', latestCycle);
+                console.log('🔥 Cycle end time:', latestCycle.end);
+
+                const strain = latestCycle.score?.strain;
+                if (strain !== undefined) {
+                    updateStat('whoopStrain', strain.toFixed(1), '');
+                }
 
                 // If recovery endpoint failed, try to get recovery from cycle
                 if (!recovery || recovery.length === 0) {
