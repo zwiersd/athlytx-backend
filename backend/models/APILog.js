@@ -123,10 +123,6 @@ const APILog = sequelize.define('APILog', {
     ]
 });
 
-// Define relationships
-User.hasMany(APILog, { foreignKey: 'userId', as: 'apiLogs' });
-APILog.belongsTo(User, { foreignKey: 'userId' });
-
 // Helper function to redact sensitive fields from request/response bodies
 APILog.redactSensitiveData = function(data) {
     if (!data) return null;

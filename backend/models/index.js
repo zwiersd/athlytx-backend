@@ -48,6 +48,10 @@ DeviceShare.belongsTo(User, { as: 'Athlete', foreignKey: 'athleteId' });
 DeviceShare.belongsTo(User, { as: 'Coach', foreignKey: 'coachId' });
 DeviceShare.belongsTo(OAuthToken, { as: 'Device', foreignKey: 'deviceId' });
 
+// APILog relationships
+User.hasMany(APILog, { foreignKey: 'userId', as: 'APILogs' });
+APILog.belongsTo(User, { foreignKey: 'userId', as: 'User' });
+
 // Initialize database and sync models
 async function initializeDatabase() {
     try {
