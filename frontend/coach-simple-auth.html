@@ -277,6 +277,10 @@
                     <button type="submit" class="btn-primary" id="loginBtn">
                         Login
                     </button>
+
+                    <p style="text-align: center; margin-top: var(--spacing-md);">
+                        <a href="#" onclick="showForgotPassword(event)" style="color: var(--text-secondary); font-size: 0.9rem;">Forgot password?</a>
+                    </p>
                 </form>
             </div>
 
@@ -326,6 +330,34 @@
                 </form>
             </div>
 
+            <!-- Forgot Password Form -->
+            <div id="forgotPasswordForm" class="form-section">
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md); text-align: center;">
+                    Enter your email and we'll send you a link to reset your password.
+                </p>
+                <form onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="forgotEmail">Email</label>
+                        <input
+                            type="email"
+                            id="forgotEmail"
+                            class="form-input"
+                            placeholder="coach@example.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="forgotBtn">
+                        Send Reset Link
+                    </button>
+
+                    <p style="text-align: center; margin-top: var(--spacing-md);">
+                        <a href="#" onclick="showTab('login'); return false;" style="color: var(--text-secondary); font-size: 0.9rem;">Back to login</a>
+                    </p>
+                </form>
+            </div>
+
             <div class="link-section">
                 <p><a href="/athlete">Athlete login</a></p>
             </div>
@@ -337,15 +369,24 @@
 
         function showTab(tab) {
             // Update tabs
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            const isTabClick = event && event.target.classList.contains('tab');
+            if (isTabClick) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+            }
 
             // Update forms
             document.getElementById('loginForm').classList.toggle('active', tab === 'login');
             document.getElementById('signupForm').classList.toggle('active', tab === 'signup');
+            document.getElementById('forgotPasswordForm').classList.toggle('active', tab === 'forgot');
 
             // Clear message
             document.getElementById('message').innerHTML = '';
+        }
+
+        function showForgotPassword(e) {
+            e.preventDefault();
+            showTab('forgot');
         }
 
         function showMessage(text, type) {
@@ -449,6 +490,53 @@
                 showMessage('Network error. Please try again.', 'error');
                 signupBtn.disabled = false;
                 signupBtn.textContent = 'Create Account';
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('forgotEmail').value.trim();
+            const forgotBtn = document.getElementById('forgotBtn');
+
+            forgotBtn.disabled = true;
+            forgotBtn.textContent = 'Sending...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message || 'Password reset link sent! Check your email.', 'success');
+
+                    // In dev mode, show the reset link
+                    if (data.resetUrl) {
+                        console.log('Reset URL (dev only):', data.resetUrl);
+                        showMessage(
+                            `Password reset link sent! <br><br>DEV MODE: <a href="${data.resetUrl}" style="color: var(--primary); text-decoration: underline;">Click here to reset</a>`,
+                            'success'
+                        );
+                    }
+
+                    // Clear the form
+                    document.getElementById('forgotEmail').value = '';
+                    forgotBtn.disabled = false;
+                    forgotBtn.textContent = 'Send Reset Link';
+                } else {
+                    showMessage(data.error || 'Failed to send reset link', 'error');
+                    forgotBtn.disabled = false;
+                    forgotBtn.textContent = 'Send Reset Link';
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showMessage('Network error. Please try again.', 'error');
+                forgotBtn.disabled = false;
+                forgotBtn.textContent = 'Send Reset Link';
             }
         }
     </script>

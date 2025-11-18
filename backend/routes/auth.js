@@ -304,6 +304,143 @@ router.post('/login', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/auth/forgot-password
+ * Request password reset link
+ */
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        console.log('[FORGOT-PASSWORD] Request received:', { email });
+
+        if (!email) {
+            return res.status(400).json({
+                error: 'Email is required'
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Find user
+        const user = await User.findOne({ where: { email: normalizedEmail } });
+
+        // Always return success even if user not found (security best practice)
+        // This prevents email enumeration attacks
+        if (!user) {
+            console.log('[FORGOT-PASSWORD] User not found, but returning success');
+            return res.json({
+                success: true,
+                message: 'If an account exists with that email, a password reset link has been sent.'
+            });
+        }
+
+        // Generate reset token (valid for 1 hour)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        // Store reset token in user record
+        await user.update({
+            passwordResetToken: resetToken,
+            passwordResetExpiry: resetTokenExpiry
+        });
+
+        // Create reset link
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5001'}/reset-password?token=${resetToken}`;
+
+        // Send reset email
+        try {
+            const { sendPasswordReset } = require('../utils/email');
+            await sendPasswordReset(user.email, user.name, resetUrl);
+            console.log('[FORGOT-PASSWORD] Reset email sent to:', user.email);
+        } catch (emailError) {
+            console.error('[FORGOT-PASSWORD] Email failed:', emailError.message);
+            // Continue even if email fails - in dev, we'll show the link in response
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[FORGOT-PASSWORD] Reset URL:', resetUrl);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'If an account exists with that email, a password reset link has been sent.',
+            // Only show token in dev mode for testing
+            ...(process.env.NODE_ENV === 'development' && { resetToken, resetUrl })
+        });
+
+    } catch (error) {
+        console.error('[FORGOT-PASSWORD] Error:', error);
+        res.status(500).json({
+            error: 'Failed to process password reset request',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password with token
+ */
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        console.log('[RESET-PASSWORD] Request received');
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                error: 'Token and new password are required'
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                error: 'Password must be at least 8 characters'
+            });
+        }
+
+        // Find user with valid reset token
+        const user = await User.findOne({
+            where: {
+                passwordResetToken: token,
+                passwordResetExpiry: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                error: 'Invalid or expired reset token'
+            });
+        }
+
+        console.log('[RESET-PASSWORD] Valid token for user:', user.email);
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token
+        await user.update({
+            passwordHash,
+            passwordResetToken: null,
+            passwordResetExpiry: null
+        });
+
+        console.log('[RESET-PASSWORD] Password updated for:', user.email);
+
+        res.json({
+            success: true,
+            message: 'Password has been reset successfully. You can now login with your new password.'
+        });
+
+    } catch (error) {
+        console.error('[RESET-PASSWORD] Error:', error);
+        res.status(500).json({
+            error: 'Failed to reset password',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 // Generate secure token
 function generateToken() {
     return crypto.randomBytes(32).toString('hex');
