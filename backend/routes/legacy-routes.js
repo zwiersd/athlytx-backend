@@ -634,6 +634,47 @@ app.post('/api/garmin/v2/register', async (req, res) => {
     }
 });
 
+// Garmin Token Refresh Endpoint
+app.post('/api/garmin/refresh', async (req, res) => {
+    try {
+        const { refresh_token } = req.body;
+
+        console.log('🔄 Garmin token refresh attempt');
+
+        const credentials = Buffer.from(
+            `${process.env.GARMIN_CONSUMER_KEY}:${process.env.GARMIN_CONSUMER_SECRET}`
+        ).toString('base64');
+
+        const response = await fetch('https://diauth.garmin.com/di-oauth2-service/oauth/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${credentials}`
+            },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refresh_token
+            })
+        });
+
+        const data = await response.json();
+
+        console.log('🔄 Garmin refresh response:', {
+            status: response.status,
+            hasAccessToken: !!data.access_token
+        });
+
+        if (!response.ok) {
+            throw new Error(`Garmin token refresh failed: ${data.error || data.message}`);
+        }
+
+        res.json(data);
+    } catch (error) {
+        console.error('❌ Garmin token refresh error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/garmin/v2/permissions', async (req, res) => {
     try {
         const { token } = req.query;

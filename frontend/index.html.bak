@@ -851,7 +851,7 @@
                 <!-- Pace & Performance Trends -->
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-bolt"></i> Pace & Heart Rate Trends</h3>
+                        <h3>⚡ Pace & Heart Rate Trends</h3>
                         <div class="chart-container">
                             <canvas id="runningPaceChart"></canvas>
                         </div>
@@ -861,7 +861,7 @@
                     </div>
                     
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-bullseye"></i> Training Intensity Distribution</h3>
+                        <h3>🎯 Training Intensity Distribution</h3>
                         <div class="chart-container">
                             <canvas id="runningIntensityChart"></canvas>
                         </div>
@@ -878,7 +878,7 @@
                 <!-- Progress & Records -->
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-chart-line"></i> Progress Highlights</h3>
+                        <h3>📈 Progress Highlights</h3>
                         <div id="runningProgressTable" style="overflow-x: auto;">
                             <table style="width: 100%; font-size: 0.9rem;">
                                 <thead>
@@ -901,7 +901,7 @@
                     </div>
                     
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-medal"></i> Personal Records</h3>
+                        <h3>🏅 Personal Records</h3>
                         <div id="runningRecords" style="max-height: 300px; overflow-y: auto;">
                             <div class="record-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                 <span style="color: #6B7280;">Connect Strava to see your records</span>
@@ -912,7 +912,7 @@
 
                 <!-- Endurance Timeline -->
                 <div class="analytics-card glass-card">
-                    <h3><i class="fas fa-running"></i> Endurance Development</h3>
+                    <h3>🏃‍♂️ Endurance Development</h3>
                     <div class="chart-container">
                         <canvas id="runningEnduranceChart"></canvas>
                     </div>
@@ -926,7 +926,7 @@
             <div id="insights" class="tab-panel" role="tabpanel" aria-labelledby="insights-tab">
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card" style="background: linear-gradient(135deg, #3210b9 0%, #059669 100%); color: white;">
-                        <h3 style="color: white;"><i class="fas fa-robot"></i> AI-Powered Insights</h3>
+                        <h3 style="color: white;">🤖 AI-Powered Insights</h3>
                         <div id="aiInsights">
                             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
                                 <strong>Data Analysis:</strong> Connect your devices to get personalized insights based on your multi-stream data.
@@ -1389,50 +1389,27 @@
                 whoop: !!whoopToken
             });
             
-            // Check Strava token
             if (stravaToken && (!stravaExpiry || now < parseInt(stravaExpiry))) {
                 fetchStravaData(stravaToken);
-            } else if (stravaToken && stravaExpiry && now >= parseInt(stravaExpiry)) {
-                console.log('⏰ Strava token expired, attempting to refresh...');
-                const refreshToken = localStorage.getItem('strava_refresh_token');
-                if (refreshToken) {
-                    refreshStravaToken(refreshToken);
-                } else {
-                    console.log('❌ No Strava refresh token available, clearing...');
-                    localStorage.removeItem('strava_token');
-                    localStorage.removeItem('strava_expiry');
-                }
+            } else if (stravaToken) {
+                localStorage.removeItem('strava_token');
+                localStorage.removeItem('strava_expiry');
             }
-
-            // Check Oura token
+            
             if (ouraToken && (!ouraExpiry || now < parseInt(ouraExpiry))) {
                 fetchOuraData(ouraToken);
-            } else if (ouraToken && ouraExpiry && now >= parseInt(ouraExpiry)) {
-                console.log('⏰ Oura token expired, attempting to refresh...');
-                const refreshToken = localStorage.getItem('oura_refresh_token');
-                if (refreshToken) {
-                    refreshOuraToken(refreshToken);
-                } else {
-                    console.log('❌ No Oura refresh token available, clearing...');
-                    localStorage.removeItem('oura_token');
-                    localStorage.removeItem('oura_expiry');
-                }
+            } else if (ouraToken) {
+                localStorage.removeItem('oura_token');
+                localStorage.removeItem('oura_expiry');
             }
-
+            
             // Check Garmin OAuth 2.0 token
             const garminExpiry = localStorage.getItem('garmin_expiry');
             if (garminToken && (!garminExpiry || now < parseInt(garminExpiry))) {
                 fetchGarminData();
-            } else if (garminToken && garminExpiry && now >= parseInt(garminExpiry)) {
-                console.log('⏰ Garmin token expired, attempting to refresh...');
-                const refreshToken = localStorage.getItem('garmin_refresh_token');
-                if (refreshToken) {
-                    refreshGarminToken(refreshToken);
-                } else {
-                    console.log('❌ No Garmin refresh token available, clearing...');
-                    localStorage.removeItem('garmin_token');
-                    localStorage.removeItem('garmin_expiry');
-                }
+            } else if (garminToken) {
+                localStorage.removeItem('garmin_token');
+                localStorage.removeItem('garmin_expiry');
             }
 
             // Check Whoop OAuth 2.0 token
@@ -3248,147 +3225,6 @@
             }
         }
 
-        // Strava token refresh function
-        async function refreshStravaToken(refreshToken) {
-            console.log('🔄 Refreshing Strava token...');
-
-            try {
-                const response = await fetch('https://www.strava.com/oauth/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        client_id: API_CONFIG.strava.clientId,
-                        client_secret: API_CONFIG.strava.clientSecret,
-                        grant_type: 'refresh_token',
-                        refresh_token: refreshToken
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Strava token refresh failed');
-                }
-
-                const data = await response.json();
-
-                // Store new tokens
-                localStorage.setItem('strava_token', data.access_token);
-                if (data.refresh_token) {
-                    localStorage.setItem('strava_refresh_token', data.refresh_token);
-                }
-                if (data.expires_in) {
-                    const expiryTime = Date.now() + (data.expires_in * 1000);
-                    localStorage.setItem('strava_expiry', expiryTime);
-                }
-
-                console.log('✅ Strava token refreshed successfully');
-
-                // Fetch data with new token
-                fetchStravaData(data.access_token);
-
-            } catch (error) {
-                console.error('❌ Failed to refresh Strava token:', error);
-                showMessage('Strava connection expired. Please reconnect.', 'warning');
-                localStorage.removeItem('strava_token');
-                localStorage.removeItem('strava_expiry');
-                localStorage.removeItem('strava_refresh_token');
-            }
-        }
-
-        // Oura token refresh function
-        async function refreshOuraToken(refreshToken) {
-            console.log('🔄 Refreshing Oura token...');
-
-            try {
-                const response = await fetch('https://api.ouraring.com/oauth/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        grant_type: 'refresh_token',
-                        refresh_token: refreshToken,
-                        client_id: API_CONFIG.oura.clientId,
-                        client_secret: API_CONFIG.oura.clientSecret
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Oura token refresh failed');
-                }
-
-                const data = await response.json();
-
-                // Store new tokens
-                localStorage.setItem('oura_token', data.access_token);
-                if (data.refresh_token) {
-                    localStorage.setItem('oura_refresh_token', data.refresh_token);
-                }
-                if (data.expires_in) {
-                    const expiryTime = Date.now() + (data.expires_in * 1000);
-                    localStorage.setItem('oura_expiry', expiryTime);
-                }
-
-                console.log('✅ Oura token refreshed successfully');
-
-                // Fetch data with new token
-                fetchOuraData(data.access_token);
-
-            } catch (error) {
-                console.error('❌ Failed to refresh Oura token:', error);
-                showMessage('Oura connection expired. Please reconnect.', 'warning');
-                localStorage.removeItem('oura_token');
-                localStorage.removeItem('oura_expiry');
-                localStorage.removeItem('oura_refresh_token');
-            }
-        }
-
-        // Garmin token refresh function
-        async function refreshGarminToken(refreshToken) {
-            console.log('🔄 Refreshing Garmin token...');
-
-            try {
-                const response = await fetch(`${API_CONFIG.backend}/api/garmin/refresh`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        refresh_token: refreshToken
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Garmin token refresh failed');
-                }
-
-                const data = await response.json();
-
-                // Store new tokens
-                localStorage.setItem('garmin_token', data.access_token);
-                if (data.refresh_token) {
-                    localStorage.setItem('garmin_refresh_token', data.refresh_token);
-                }
-                if (data.expires_in) {
-                    const expiryTime = Date.now() + (data.expires_in * 1000);
-                    localStorage.setItem('garmin_expiry', expiryTime);
-                }
-
-                console.log('✅ Garmin token refreshed successfully');
-
-                // Fetch data with new token
-                fetchGarminData();
-
-            } catch (error) {
-                console.error('❌ Failed to refresh Garmin token:', error);
-                showMessage('Garmin connection expired. Please reconnect.', 'warning');
-                localStorage.removeItem('garmin_token');
-                localStorage.removeItem('garmin_expiry');
-                localStorage.removeItem('garmin_refresh_token');
-            }
-        }
-
         // Whoop token refresh function
         async function refreshWhoopToken(refreshToken) {
             console.log('🔄 Refreshing Whoop token...');
@@ -4472,7 +4308,7 @@
             
             if (loadChange > 20) {
                 document.getElementById('runningLoadInsight').innerHTML = `
-                    <h4><i class="fas fa-chart-line"></i> Increased Training Load</h4>
+                    <h4>📈 Increased Training Load</h4>
                     <p>Your training load is up ${Math.round(loadChange)}% from the previous 4 weeks. Ensure adequate recovery between hard sessions.</p>
                 `;
             } else if (loadChange < -20) {
@@ -4511,7 +4347,7 @@
                 }
 
                 document.getElementById('runningEnduranceInsight').innerHTML = `
-                    <h4><i class="fas fa-dumbbell"></i> Endurance Breakthrough</h4>
+                    <h4>💪 Endurance Breakthrough</h4>
                     <p>${message}</p>
                 `;
             }
