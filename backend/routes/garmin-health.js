@@ -497,6 +497,76 @@ async function processGarminPushData(data) {
             console.log(`✅ Calculated and stored HRV averages from ${stored} days of epoch data`);
         }
 
+        // Process stress details
+        if (stressDetails && stressDetails.length > 0) {
+            console.log(`😰 Processing ${stressDetails.length} stress detail records`);
+            stored = 0;
+
+            const stressByDate = {};
+            stressDetails.forEach(stress => {
+                const date = stress.calendarDate;
+                if (!date) return;
+
+                if (!stressByDate[date]) {
+                    stressByDate[date] = {
+                        avgStress: stress.averageStressLevel,
+                        maxStress: stress.maxStressLevel,
+                        restDuration: stress.restStressDurationInSeconds,
+                        activityDuration: stress.activityStressDurationInSeconds,
+                        lowDuration: stress.lowStressDurationInSeconds,
+                        mediumDuration: stress.mediumStressDurationInSeconds,
+                        highDuration: stress.highStressDurationInSeconds
+                    };
+                }
+            });
+
+            for (const [date, stressData] of Object.entries(stressByDate)) {
+                try {
+                    await DailyMetric.upsert({
+                        userId: ourUserId,
+                        date: date,
+                        averageStressLevel: stressData.avgStress,
+                        maxStressLevel: stressData.maxStress,
+                        restStressDuration: stressData.restDuration,
+                        activityStressDuration: stressData.activityDuration,
+                        lowStressDuration: stressData.lowDuration,
+                        mediumStressDuration: stressData.mediumDuration,
+                        highStressDuration: stressData.highDuration
+                    });
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing stress data:', err.message);
+                }
+            }
+            console.log(`✅ Stored stress data for ${stored} days`);
+        }
+
+        // Process all-day respiration
+        if (allDayRespiration && allDayRespiration.length > 0) {
+            console.log(`😮‍💨 Processing ${allDayRespiration.length} respiration records`);
+            stored = 0;
+
+            for (const resp of allDayRespiration) {
+                try {
+                    const date = resp.calendarDate;
+                    if (!date) continue;
+
+                    await DailyMetric.upsert({
+                        userId: ourUserId,
+                        date: date,
+                        avgWakingRespirationValue: resp.avgWakingRespirationValue,
+                        highestRespirationValue: resp.highestRespirationValue,
+                        lowestRespirationValue: resp.lowestRespirationValue,
+                        avgSleepRespirationValue: resp.avgSleepRespirationValue
+                    });
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing respiration data:', err.message);
+                }
+            }
+            console.log(`✅ Stored respiration data for ${stored} days`);
+        }
+
         console.log('✅ Garmin Health API PUSH data processed successfully');
 
     } catch (error) {
