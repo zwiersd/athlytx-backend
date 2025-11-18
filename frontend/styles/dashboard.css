@@ -193,7 +193,7 @@ body {
 
 .score-ring-progress {
   fill: none;
-  stroke: url(#scoreGradient);
+  /* stroke color is set dynamically by JavaScript based on score */
   stroke-width: 12;
   stroke-linecap: round;
   stroke-dasharray: 565;
