@@ -662,10 +662,6 @@
                 <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
                     <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
                     <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 60px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
-                    <!-- DEBUG BUTTON -->
-                    <button onclick="updateGarminDisplay(); return false;" style="margin-top: 16px; padding: 12px 24px; background: rgba(0,172,228,0.3); border: 1px solid rgba(0,172,228,0.5); border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-                        🔄 Refresh Garmin Data (Debug)
-                    </button>
                 </div>
 
                 <!-- Hero Stats Grid - 4x2 even layout -->
@@ -4464,18 +4460,8 @@
                     return;
                 }
 
-                // Check if user has Garmin connected (using correct key name)
-                const garminToken = localStorage.getItem('garmin_token');
-                console.log('🔑 garminToken exists:', !!garminToken);
-                console.log('🔑 garminToken value:', garminToken ? garminToken.substring(0, 20) + '...' : 'null');
-                if (!garminToken) {
-                    console.log('❌ No Garmin token - showing connect message');
-                    document.getElementById('garminActivitiesList').innerHTML =
-                        '<div style="text-align: center; padding: 20px; color: #6b7280;">Connect Garmin to see your health data</div>';
-                    return;
-                }
-
                 // Fetch real data from database (received via PUSH webhooks)
+                // NOTE: We fetch data regardless of token status because PUSH webhooks may have sent data
                 console.log('📡 Fetching Garmin data from database for user:', userId);
                 console.log('🌐 API URL:', `${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`);
 
