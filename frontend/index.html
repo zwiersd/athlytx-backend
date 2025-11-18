@@ -187,11 +187,11 @@
             </div>
 
             <div class="header-right">
-                <span id="readinessPill" class="readiness-pill">🏁 Readiness: --</span>
-                <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh</button>
-                <button onclick="clearAllData()" class="refresh-btn">🗑️ Clear</button>
-                <a href="/about.html" class="nav-link">📖 About</a>
-                <a href="/privacy.html" class="nav-link">🔒 Privacy</a>
+                <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
+                <button onclick="refreshAllData()" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button onclick="clearAllData()" class="refresh-btn"><i class="fas fa-trash-alt"></i> Clear</button>
+                <a href="/about.html" class="nav-link"><i class="fas fa-book"></i> About</a>
+                <a href="/privacy.html" class="nav-link"><i class="fas fa-lock"></i> Privacy</a>
                 <a href="/access" class="elite-btn">Elite Dashboard →</a>
             </div>
         </div>
@@ -313,13 +313,13 @@
                         Whoop Data
                     </button>
                     <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
-                        🏃 Running
+                        <i class="fas fa-running"></i> Running
                     </button>
                     <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
                         AI Insights
                     </button>
                     <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
-                        📧 Contact
+                        <i class="fas fa-envelope"></i> Contact
                     </button>
                 </nav>
                 <div class="tab-scroll-indicator right" id="tabScrollRight">
@@ -1416,10 +1416,16 @@
             if (whoopToken && (!whoopExpiry || now < parseInt(whoopExpiry))) {
                 console.log('✅ Found valid Whoop token, fetching data...');
                 fetchWhoopData(whoopToken);
-            } else if (whoopToken) {
-                console.log('❌ Whoop token expired, clearing...');
-                localStorage.removeItem('whoop_token');
-                localStorage.removeItem('whoop_expiry');
+            } else if (whoopToken && whoopExpiry && now >= parseInt(whoopExpiry)) {
+                console.log('⏰ Whoop token expired, attempting to refresh...');
+                const refreshToken = localStorage.getItem('whoop_refresh_token');
+                if (refreshToken) {
+                    refreshWhoopToken(refreshToken);
+                } else {
+                    console.log('❌ No refresh token available, clearing...');
+                    localStorage.removeItem('whoop_token');
+                    localStorage.removeItem('whoop_expiry');
+                }
             }
         }
 
@@ -3216,6 +3222,51 @@
                     button.innerHTML = 'Connect Garmin';
                     button.disabled = false;
                 }
+            }
+        }
+
+        // Whoop token refresh function
+        async function refreshWhoopToken(refreshToken) {
+            console.log('🔄 Refreshing Whoop token...');
+
+            try {
+                const response = await fetch(`${API_CONFIG.backend}/api/whoop/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        refresh_token: refreshToken
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token refresh failed');
+                }
+
+                const data = await response.json();
+
+                // Store new tokens
+                localStorage.setItem('whoop_token', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('whoop_refresh_token', data.refresh_token);
+                }
+                if (data.expires_in) {
+                    const expiryTime = Date.now() + (data.expires_in * 1000);
+                    localStorage.setItem('whoop_expiry', expiryTime);
+                }
+
+                console.log('✅ Whoop token refreshed successfully');
+
+                // Fetch data with new token
+                fetchWhoopData(data.access_token);
+
+            } catch (error) {
+                console.error('❌ Failed to refresh Whoop token:', error);
+                showMessage('Whoop connection expired. Please reconnect.', 'warning');
+                localStorage.removeItem('whoop_token');
+                localStorage.removeItem('whoop_expiry');
+                localStorage.removeItem('whoop_refresh_token');
             }
         }
 
