@@ -3379,138 +3379,96 @@
                     return;
                 }
 
-                // For now, show sample health data until webhook data is properly stored
-                // This will be replaced with real data from the webhook
-                const sampleHealthData = {
-                    dailySummaries: [
-                        {
-                            date: new Date().toISOString().split('T')[0],
-                            steps: 8543,
-                            calories: 2180,
-                            activeCalories: 450,
-                            restingHeartRate: 58,
-                            minHeartRate: 45,
-                            maxHeartRate: 165,
-                            averageStressLevel: 35,
-                            maxStressLevel: 78,
-                            stressQualifier: 'BALANCED',
-                            floorsClimbed: 12,
-                            intensityMinutes: 45
-                        },
-                        {
-                            date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                            steps: 10234,
-                            calories: 2450,
-                            activeCalories: 680,
-                            restingHeartRate: 56,
-                            minHeartRate: 42,
-                            maxHeartRate: 178,
-                            averageStressLevel: 42,
-                            maxStressLevel: 85,
-                            stressQualifier: 'MEDIUM',
-                            floorsClimbed: 18,
-                            intensityMinutes: 62
-                        }
-                    ],
-                    sleepData: [
-                        {
-                            date: new Date().toISOString().split('T')[0],
-                            sleepDurationSeconds: 28800, // 8 hours
-                            deepSleepSeconds: 7200, // 2 hours
-                            lightSleepSeconds: 18000, // 5 hours
-                            remSleepSeconds: 3600, // 1 hour
-                            awakeDurationSeconds: 600,
-                            averageRespirationRate: 14,
-                            averageSpO2: 96
-                        }
-                    ]
-                };
+                // Fetch real data from database (received via PUSH webhooks)
+                console.log('📊 Fetching Garmin data from database for user:', userId);
 
-                // Calculate summary stats from health data
-                const recentData = sampleHealthData.dailySummaries[0];
-                const avgSteps = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.steps, 0) / sampleHealthData.dailySummaries.length);
-                const avgCalories = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.calories, 0) / sampleHealthData.dailySummaries.length);
-                const avgStress = Math.round(sampleHealthData.dailySummaries.reduce((sum, d) => sum + d.averageStressLevel, 0) / sampleHealthData.dailySummaries.length);
+                const [activitiesResponse, dailiesResponse] = await Promise.allSettled([
+                    fetch(`${API_CONFIG.backend}/api/garmin/db/activities?userId=${userId}`),
+                    fetch(`${API_CONFIG.backend}/api/garmin/db/dailies?userId=${userId}`)
+                ]);
 
-                // Update summary cards with health data
-                document.getElementById('garminActivities').textContent = avgSteps.toLocaleString();
-                document.getElementById('garminActivities').parentElement.querySelector('.summary-label').textContent = 'Avg Steps/Day';
+                let activities = [];
+                let dailySummaries = [];
 
-                document.getElementById('garminDistance').textContent = avgCalories.toLocaleString();
-                document.getElementById('garminDistance').parentElement.querySelector('.summary-label').textContent = 'Avg Calories/Day';
+                if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
+                    const data = await activitiesResponse.value.json();
+                    activities = data.activities || [];
+                    console.log('✅ Loaded', activities.length, 'Garmin activities');
+                }
 
-                document.getElementById('garminAvgHR').textContent = recentData.restingHeartRate + ' bpm';
-                document.getElementById('garminAvgHR').parentElement.querySelector('.summary-label').textContent = 'Resting HR';
+                if (dailiesResponse.status === 'fulfilled' && dailiesResponse.value.ok) {
+                    const data = await dailiesResponse.value.json();
+                    dailySummaries = data.dailies || [];
+                    console.log('✅ Loaded', dailySummaries.length, 'daily summaries');
+                }
 
-                document.getElementById('garminTrainingTime').textContent = avgStress + '%';
-                document.getElementById('garminTrainingTime').parentElement.querySelector('.summary-label').textContent = 'Avg Stress';
+                // Update summary cards
+                document.getElementById('garminActivities').textContent = activities.length;
+                document.getElementById('garminActivities').parentElement.querySelector('.summary-label').textContent = 'Activities';
 
-                // Update activities list with health summaries
+                const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
+                document.getElementById('garminDistance').textContent = (totalDistance / 1000).toFixed(1) + ' km';
+                document.getElementById('garminDistance').parentElement.querySelector('.summary-label').textContent = 'Total Distance';
+
+                const avgHr = activities.length > 0
+                    ? Math.round(activities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / activities.length)
+                    : '--';
+                document.getElementById('garminAvgHR').textContent = avgHr === '--' ? avgHr : avgHr + ' bpm';
+                document.getElementById('garminAvgHR').parentElement.querySelector('.summary-label').textContent = 'Avg HR';
+
+                const totalTime = activities.reduce((sum, a) => sum + (a.durationInSeconds || 0), 0);
+                const hours = Math.floor(totalTime / 3600);
+                const minutes = Math.floor((totalTime % 3600) / 60);
+                document.getElementById('garminTrainingTime').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                document.getElementById('garminTrainingTime').parentElement.querySelector('.summary-label').textContent = 'Training Time';
+
+                // Update activities list with real activities
                 const activitiesList = document.getElementById('garminActivitiesList');
-                activitiesList.innerHTML = sampleHealthData.dailySummaries.map(summary => `
+                if (activities.length === 0) {
+                    activitiesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #9ca3af;">No activities yet. Record a workout on your Garmin device!</div>';
+                } else {
+                    activitiesList.innerHTML = activities.map(activity => `
                     <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
-                                <strong style="font-size: 1.1rem;">Daily Health Summary</strong>
-                                <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 2px;">${new Date(summary.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+                                <strong style="font-size: 1.1rem;">${activity.activityName || activity.activityType}</strong>
+                                <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 2px;">${new Date(activity.startTimeInSeconds * 1000).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                             </div>
                             <div style="text-align: right;">
-                                <span style="background: ${summary.stressQualifier === 'BALANCED' ? '#10b981' : summary.stressQualifier === 'MEDIUM' ? '#f59e0b' : '#ef4444'}; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
-                                    ${summary.stressQualifier}
+                                <span style="background: #667eea; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                    ${activity.activityType}
                                 </span>
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.9rem;">
                             <div>
-                                <span style="color: #9ca3af;">Steps:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.steps.toLocaleString()}</strong>
+                                <span style="color: #9ca3af;">Duration:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${Math.floor(activity.durationInSeconds / 60)}min</strong>
                             </div>
-                            <div>
+                            ${activity.distanceInMeters ? `<div>
+                                <span style="color: #9ca3af;">Distance:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${(activity.distanceInMeters / 1000).toFixed(2)} km</strong>
+                            </div>` : ''}
+                            ${activity.averageHeartRateInBeatsPerMinute ? `<div>
+                                <span style="color: #9ca3af;">Avg HR:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${activity.averageHeartRateInBeatsPerMinute} bpm</strong>
+                            </div>` : ''}
+                            ${activity.maxHeartRateInBeatsPerMinute ? `<div>
+                                <span style="color: #9ca3af;">Max HR:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${activity.maxHeartRateInBeatsPerMinute} bpm</strong>
+                            </div>` : ''}
+                            ${activity.activeKilocalories ? `<div>
                                 <span style="color: #9ca3af;">Calories:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.calories.toLocaleString()}</strong>
-                            </div>
-                            <div>
-                                <span style="color: #9ca3af;">Resting HR:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.restingHeartRate} bpm</strong>
-                            </div>
-                            <div>
-                                <span style="color: #9ca3af;">Stress Level:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.averageStressLevel}%</strong>
-                            </div>
-                            <div>
-                                <span style="color: #9ca3af;">Active Calories:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.activeCalories}</strong>
-                            </div>
-                            <div>
-                                <span style="color: #9ca3af;">Intensity Min:</span>
-                                <strong style="color: #ffffff; margin-left: 5px;">${summary.intensityMinutes}</strong>
-                            </div>
+                                <strong style="color: #ffffff; margin-left: 5px;">${activity.activeKilocalories} kcal</strong>
+                            </div>` : ''}
+                            ${activity.deviceModel ? `<div>
+                                <span style="color: #9ca3af;">Device:</span>
+                                <strong style="color: #ffffff; margin-left: 5px;">${activity.deviceModel}</strong>
+                            </div>` : ''}
                         </div>
-                        ${sampleHealthData.sleepData.find(s => s.date === summary.date) ? `
-                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                                <div style="font-weight: 600; margin-bottom: 5px; color: #a78bfa;">Sleep Data</div>
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.85rem;">
-                                    <div>
-                                        <span style="color: #9ca3af;">Total Sleep:</span>
-                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].sleepDurationSeconds / 3600).toFixed(1)}h</strong>
-                                    </div>
-                                    <div>
-                                        <span style="color: #9ca3af;">Deep Sleep:</span>
-                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].deepSleepSeconds / 3600).toFixed(1)}h</strong>
-                                    </div>
-                                    <div>
-                                        <span style="color: #9ca3af;">REM Sleep:</span>
-                                        <strong style="color: #ffffff; margin-left: 5px;">${(sampleHealthData.sleepData[0].remSleepSeconds / 3600).toFixed(1)}h</strong>
-                                    </div>
-                                    <div>
-                                        <span style="color: #9ca3af;">SpO2:</span>
-                                        <strong style="color: #ffffff; margin-left: 5px;">${sampleHealthData.sleepData[0].averageSpO2}%</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
                     </div>
                 `).join('');
+                }
 
                 // Create Heart Rate Zones chart using health data
                 const zonesCtx = document.getElementById('garminZonesChart');
