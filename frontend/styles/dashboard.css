@@ -264,21 +264,31 @@ body {
 @media (max-width: 768px) {
   .score-hero-container {
     flex-direction: column;
-    gap: 24px;
+    gap: 0;
     padding: 0 16px;
   }
 
-  /* Reorder: Score first, then metrics below */
+  /* Mobile order: Score -> Readiness -> Recovery/Strain -> Sleep/HRV */
   .score-center {
     order: 1;
+    margin-bottom: 24px;
+  }
+
+  .readiness-status-hero {
+    order: 2;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 0 16px 0;
   }
 
   .metrics-side-card:first-child {
-    order: 2; /* Recovery/Strain below score */
+    order: 3; /* Recovery/Strain after readiness */
+    margin-top: 0;
   }
 
   .metrics-side-card:last-child {
-    order: 3; /* Sleep/HRV last */
+    order: 4; /* Sleep/HRV last */
+    margin-top: 16px;
   }
 
   .metrics-side-card {
@@ -488,27 +498,18 @@ body {
     flex-direction: column;
   }
 
-  /* Reorder: Score first, then readiness below */
-  .readiness-status-hero {
-    order: 2;
-    flex-direction: column;
-    text-align: center;
-    gap: var(--space-2);
-    margin-top: 24px;
-    margin-bottom: 0;
-  }
-
+  /* Mobile order: Score section (containing score + readiness inside + metrics) -> Tabs */
   .score-hero-section {
     order: 1;
   }
 
-  /* Tab nav and content should come after */
+  /* Tab nav and content should come after score section */
   .tab-nav-wrapper {
-    order: 3;
+    order: 2;
   }
 
   .tab-content-wrapper {
-    order: 4;
+    order: 3;
   }
 
   .readiness-text {
