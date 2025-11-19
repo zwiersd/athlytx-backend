@@ -39,38 +39,6 @@ async function getUserFromSession(req) {
 }
 
 /**
- * GET /api/devices/connected
- * Get user's connected services
- */
-router.get('/connected', async (req, res) => {
-    try {
-        const user = await getUserFromSession(req);
-
-        if (!user) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        const tokens = await OAuthToken.findAll({
-            where: { userId: user.id },
-            attributes: ['provider', 'connectedAt', 'expiresAt', 'createdAt', 'updatedAt']
-        });
-
-        res.json({
-            connected: tokens.map(t => ({
-                provider: t.provider,
-                connectedAt: t.connectedAt,
-                expiresAt: t.expiresAt,
-                status: t.expiresAt && new Date(t.expiresAt) < new Date() ? 'expired' : 'active'
-            }))
-        });
-
-    } catch (error) {
-        console.error('Get connected devices error:', error);
-        res.status(500).json({ error: 'Failed to fetch connected devices' });
-    }
-});
-
-/**
  * GET /api/devices/connect/:provider
  * Initiate OAuth flow for a device provider
  */

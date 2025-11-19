@@ -464,10 +464,6 @@
                                     <span class="info-label">User ID:</span>
                                     <span id="user-id" class="info-value">-</span>
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">Connected Services:</span>
-                                    <span id="connected-services" class="info-value">Loading...</span>
-                                </div>
                             </div>
                             <button onclick="handleLogout()" class="logout-btn">Logout</button>
                         </div>
@@ -1903,38 +1899,6 @@
         }
 
         // ===== AUTHENTICATION STATUS CHECK =====
-        // Load and display connected services
-        async function loadConnectedServices(sessionToken) {
-            const servicesSpan = document.getElementById('connected-services');
-            try {
-                const response = await fetch(`${API_CONFIG.backend}/api/devices/connected`, {
-                    headers: { 'Authorization': `Bearer ${sessionToken}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.connected && data.connected.length > 0) {
-                        const services = data.connected.map(s => {
-                            const emoji = s.provider === 'strava' ? '🚴' :
-                                         s.provider === 'garmin' ? '⌚' :
-                                         s.provider === 'oura' ? '💍' :
-                                         s.provider === 'whoop' ? '💪' : '🔗';
-                            const status = s.status === 'expired' ? ' (expired)' : '';
-                            return `${emoji} ${s.provider.charAt(0).toUpperCase() + s.provider.slice(1)}${status}`;
-                        }).join(', ');
-                        servicesSpan.textContent = services;
-                    } else {
-                        servicesSpan.textContent = 'None';
-                    }
-                } else {
-                    servicesSpan.textContent = 'Unable to load';
-                }
-            } catch (error) {
-                console.error('Failed to load connected services:', error);
-                servicesSpan.textContent = 'Error loading';
-            }
-        }
-
         function checkAuthenticationStatus() {
             const sessionToken = localStorage.getItem('sessionToken');
             const userEmail = localStorage.getItem('userEmail');
@@ -1954,9 +1918,6 @@
                 if (accountTabText) {
                     accountTabText.textContent = userName || userEmail.split('@')[0];
                 }
-
-                // Load connected services
-                loadConnectedServices(sessionToken);
             } else {
                 // User is not logged in - show guest view
                 document.getElementById('guestView').style.display = 'block';
