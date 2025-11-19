@@ -1581,11 +1581,15 @@
                     document.getElementById('new-password').value = '';
                     document.getElementById('confirm-password').value = '';
 
-                    // Close modal after 2 seconds and redirect to home
+                    // Close modal after 2 seconds and redirect to homepage
                     setTimeout(() => {
                         closeResetPasswordModal();
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        showMessage('Password reset successful! Please login.', 'success');
+                        window.location.href = '/';
+                        // Show success message and login modal after redirect
+                        setTimeout(() => {
+                            showMessage('Password reset successful! Please login with your new password.', 'success');
+                            showAuthForm('login');
+                        }, 100);
                     }, 2000);
                 } else {
                     errorDiv.textContent = data.error || 'Failed to reset password';

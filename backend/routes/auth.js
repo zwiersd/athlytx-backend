@@ -345,8 +345,8 @@ router.post('/forgot-password', async (req, res) => {
             passwordResetExpiry: resetTokenExpiry
         });
 
-        // Create reset link
-        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5001'}/reset-password?token=${resetToken}`;
+        // Create reset link (goes to homepage with token, modal opens automatically)
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5001'}/?token=${resetToken}`;
 
         // Send reset email
         try {
