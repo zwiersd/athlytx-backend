@@ -64,6 +64,14 @@ const User = sequelize.define('User', {
     sport: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    passwordResetToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    passwordResetExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     timestamps: true,
