@@ -2173,6 +2173,7 @@
             const garminTokenSecret = localStorage.getItem('garmin_token_secret');
             const stravaExpiry = localStorage.getItem('strava_expiry');
             const ouraExpiry = localStorage.getItem('oura_expiry');
+            const garminExpiry = localStorage.getItem('garmin_expiry');
             const whoopExpiry = localStorage.getItem('whoop_expiry');
 
             const now = Date.now();
@@ -2215,7 +2216,6 @@
             }
 
             // Check Garmin OAuth 2.0 token
-            const garminExpiry = localStorage.getItem('garmin_expiry');
             if (garminToken && (!garminExpiry || now < parseInt(garminExpiry))) {
                 fetchGarminData();
             } else if (garminToken && garminExpiry && now >= parseInt(garminExpiry)) {
