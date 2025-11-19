@@ -817,16 +817,52 @@ app.post('/api/garmin/token', async (req, res) => {
         try {
             console.log('\n💾 === SAVING GARMIN TOKEN TO DATABASE ===');
 
-            const { OAuthToken } = require('../models');
+            const { OAuthToken, Activity } = require('../models');
             const { encrypt } = require('../utils/encryption');
 
             // Get userId from session or request
-            const userId = req.session?.userId || req.body.userId;
+            let userId = req.session?.userId || req.body.userId;
 
             if (!userId) {
                 console.warn('⚠️ No userId available - token will not be saved to database');
                 console.warn('   PUSH notifications will not work without database storage!');
             } else {
+                // **FIX:** Check if this Garmin account already exists under a different userId
+                // This prevents orphaned activities when localStorage is cleared
+                if (garminUserId) {
+                    const existingToken = await OAuthToken.findOne({
+                        where: {
+                            provider: 'garmin',
+                            providerUserId: garminUserId
+                        }
+                    });
+
+                    if (existingToken && existingToken.userId !== userId) {
+                        console.log(`🔄 Garmin account ${garminUserId} already exists under userId ${existingToken.userId}`);
+                        console.log(`   Migrating from temporary userId ${userId} to persistent userId ${existingToken.userId}`);
+
+                        // Migrate any activities created under the temporary userId
+                        const migratedCount = await Activity.update(
+                            { userId: existingToken.userId },
+                            {
+                                where: {
+                                    userId: userId,
+                                    provider: 'garmin'
+                                }
+                            }
+                        );
+                        console.log(`   Migrated ${migratedCount[0]} orphaned activities`);
+
+                        // Use the existing userId going forward
+                        userId = existingToken.userId;
+                        data.userId = userId; // Return correct userId to frontend
+                    } else if (existingToken) {
+                        console.log(`✅ Reconnecting Garmin account ${garminUserId} with same userId ${userId}`);
+                    } else {
+                        console.log(`🆕 New Garmin connection for ${garminUserId} with userId ${userId}`);
+                    }
+                }
+
                 const expiryTimestamp = Date.now() + (data.expires_in * 1000);
 
                 await OAuthToken.upsert({
