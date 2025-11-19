@@ -1234,6 +1234,41 @@ app.get('/api/debug/garmin/all', async (req, res) => {
     }
 });
 
+// MIGRATE: Move Garmin activities from one userId to another
+app.post('/api/debug/garmin/migrate', async (req, res) => {
+    try {
+        const { fromUserId, toUserId } = req.body;
+
+        if (!fromUserId || !toUserId) {
+            return res.status(400).json({ error: 'fromUserId and toUserId required' });
+        }
+
+        const { Activity } = require('../models');
+
+        const result = await Activity.update(
+            { userId: toUserId },
+            {
+                where: {
+                    userId: fromUserId,
+                    provider: 'garmin'
+                }
+            }
+        );
+
+        console.log(`✅ Migrated ${result[0]} Garmin activities from ${fromUserId} to ${toUserId}`);
+
+        res.json({
+            success: true,
+            migrated: result[0],
+            fromUserId,
+            toUserId
+        });
+    } catch (error) {
+        console.error('❌ Error migrating Garmin activities:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 console.log('✅ Legacy OAuth routes loaded');
 
 }; // End of module.exports
