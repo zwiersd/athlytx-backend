@@ -108,7 +108,7 @@ async function initializeDatabase() {
 
         // Sync models individually - create tables if they don't exist
         try {
-            await User.sync();
+            await User.sync({ alter: true });
             await MagicLink.sync();
             await OAuthToken.sync();
             await CoachAthlete.sync();
