@@ -141,16 +141,21 @@ async function syncUserData(userId, daysBack = 1) {
             }
         }
 
-        // Sync Garmin - DISABLED: Garmin uses PUSH notifications only, PULL requests not allowed
+        // Sync Garmin - Now enabled to pull historical data
         const garminToken = tokens.find(t => t.provider === 'garmin');
         if (garminToken) {
-            console.log('⚠️  Garmin sync skipped - using PUSH notifications only (PULL requests forbidden for production apps)');
-            results.garmin = {
-                message: 'Garmin uses PUSH notifications - sync not needed',
-                pushOnly: true
-            };
-            // PULL requests cause InvalidPullTokenException errors
-            // All Garmin data comes via /api/garmin/push webhook
+            try {
+                console.log('  📊 Syncing Garmin data...');
+                results.garmin = await syncGarminActivities(userId, garminToken, daysBack);
+            } catch (error) {
+                console.error('  ❌ Garmin sync error:', error.message);
+                results.errors.push(`Garmin: ${error.message}`);
+                results.garmin = {
+                    error: error.message,
+                    activitiesFetched: 0,
+                    activitiesStored: 0
+                };
+            }
         }
 
         // Sync Oura
@@ -433,19 +438,12 @@ async function storeStravaHeartRateZones(userId, activityId, stravaActivity) {
 
 /**
  * Fetch and store Garmin activities with HR zone data
+ * Now using OAuth 2.0 Bearer token authentication
  */
 async function syncGarminActivities(userId, tokenRecord, daysBack) {
     console.log(`  📊 Syncing Garmin activities...`);
 
     const accessToken = decrypt(tokenRecord.accessTokenEncrypted);
-    const tokenSecret = tokenRecord.refreshTokenEncrypted ? decrypt(tokenRecord.refreshTokenEncrypted) : '';
-
-    // Garmin uses OAuth 1.0a, so we need to sign requests
-    const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
-    const signer = new GarminOAuth1Hybrid(
-        process.env.GARMIN_CONSUMER_KEY,
-        process.env.GARMIN_CONSUMER_SECRET
-    );
 
     // Garmin API only allows 24-hour windows (86400 seconds max)
     // So we need to make multiple requests, one for each day
@@ -462,14 +460,13 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
         console.log(`  Fetching day ${day + 1}/${daysBack}...`);
 
         try {
-            const url = `https://apis.garmin.com/wellness-api/rest/activities?summaryStartTimeInSeconds=${startTimestamp}&summaryEndTimeInSeconds=${endTimestamp}`;
+            const url = `https://apis.garmin.com/wellness-api/rest/activities?uploadStartTimeInSeconds=${startTimestamp}&uploadEndTimeInSeconds=${endTimestamp}`;
 
-            // Generate OAuth 1.0a signature
-            const authHeader = signer.generateAuthHeader('GET', url, {}, accessToken, tokenSecret);
-
+            // Use OAuth 2.0 Bearer token
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': authHeader
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -480,8 +477,10 @@ async function syncGarminActivities(userId, tokenRecord, daysBack) {
             }
 
             const activities = await response.json();
-            allActivities.push(...activities);
-            console.log(`  Found ${activities.length} activities on day ${day + 1}`);
+            if (Array.isArray(activities)) {
+                allActivities.push(...activities);
+                console.log(`  Found ${activities.length} activities on day ${day + 1}`);
+            }
 
         } catch (error) {
             console.error(`  ❌ Error fetching day ${day + 1}:`, error.message);
