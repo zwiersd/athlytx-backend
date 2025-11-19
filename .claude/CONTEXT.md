@@ -2,13 +2,19 @@
 
 ## Start Here
 **IMPORTANT:** Before starting any work, read the API documentation:
-- Location: `/Users/darrenzwiers/Documents/GitHub/athlytx-backend/API Documentation/Garmin/`
-- Key docs:
+- **Main location**: `/Users/darrenzwiers/Documents/GitHub/athlytx-backend/API Documentation/`
+
+**Garmin API Docs** (`API Documentation/Garmin/`):
   - `Health_API_1.2.2_0.pdf` - Daily health data (body battery, HRV, stress, sleep)
   - `Activity_API-1.2.3_0.pdf` - Activity endpoints and data formats
   - `OAuth2PKCE_1.pdf` - OAuth 2.0 authentication
   - `Garmin Developer Program_Start_Guide_1.1_0.pdf` - Getting started guide
-- Study these first to understand how Garmin webhooks and data work
+
+**Strava API Docs** (`API Documentation/Strava/`):
+  - Read before making Strava-related changes
+
+**All other provider APIs** (Oura, Whoop, etc.):
+  - Check `API Documentation/` folder for relevant docs before working on any provider
 
 ## Critical Rules
 1. **NO PULLING from Garmin API** - PUSH webhooks only (Garmin production requirement)
