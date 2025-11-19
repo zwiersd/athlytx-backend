@@ -5622,14 +5622,14 @@
             const messageDiv = document.createElement('div');
             const colors = {
                 success: 'rgba(16, 185, 129, 0.1)',
-                error: 'rgba(220, 38, 38, 0.15)',
+                error: 'rgba(220, 38, 38, 0.3)',  // Brighter red for errors
                 warning: 'rgba(245, 158, 11, 0.1)',
                 info: 'rgba(59, 130, 246, 0.1)'
             };
 
             const borderColors = {
                 success: 'rgba(16, 185, 129, 0.2)',
-                error: 'rgba(220, 38, 38, 0.25)',
+                error: 'rgba(220, 38, 38, 0.5)',  // Brighter red border for errors
                 warning: 'rgba(245, 158, 11, 0.2)',
                 info: 'rgba(59, 130, 246, 0.2)'
             };
@@ -5666,6 +5666,7 @@
                 `;
             } else {
                 // Desktop: bottom-left as before
+                const textColor = type === 'error' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)';
                 messageDiv.style.cssText = `
                     position: fixed;
                     bottom: ${80 + offset}px;
@@ -5673,7 +5674,7 @@
                     background: ${colors[type]};
                     backdrop-filter: blur(8px);
                     -webkit-backdrop-filter: blur(8px);
-                    color: rgba(255, 255, 255, 0.7);
+                    color: ${textColor};
                     padding: 4px 10px;
                     border-radius: 4px;
                     border: 1px solid ${borderColors[type]};
@@ -5694,9 +5695,9 @@
             // Fade in - very subtle on mobile
             setTimeout(() => messageDiv.style.opacity = isMobile ? '0.65' : '0.6', 10);
 
-            // Fade out and remove - much faster on mobile
-            const fadeOutTime = isMobile ? 1200 : 1800;
-            const removeTime = isMobile ? 1500 : 2200;
+            // Fade out and remove - errors stay 2x longer so users can read them
+            const fadeOutTime = type === 'error' ? (isMobile ? 2400 : 3600) : (isMobile ? 1200 : 1800);
+            const removeTime = type === 'error' ? (isMobile ? 3000 : 4400) : (isMobile ? 1500 : 2200);
             setTimeout(() => messageDiv.style.opacity = '0', fadeOutTime);
             setTimeout(() => messageDiv.remove(), removeTime);
         }
