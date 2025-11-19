@@ -1,5 +1,15 @@
 # Athlytx Garmin Integration - Important Context
 
+## Start Here
+**IMPORTANT:** Before starting any work, read the API documentation:
+- Location: `/Users/darrenzwiers/Documents/GitHub/athlytx-backend/API Documentation/Garmin/`
+- Key docs:
+  - `Health_API_1.2.2_0.pdf` - Daily health data (body battery, HRV, stress, sleep)
+  - `Activity_API-1.2.3_0.pdf` - Activity endpoints and data formats
+  - `OAuth2PKCE_1.pdf` - OAuth 2.0 authentication
+  - `Garmin Developer Program_Start_Guide_1.1_0.pdf` - Getting started guide
+- Study these first to understand how Garmin webhooks and data work
+
 ## Critical Rules
 1. **NO PULLING from Garmin API** - PUSH webhooks only (Garmin production requirement)
 2. **All Garmin endpoints MUST use `www.athlytx.com`** not Railway URL
