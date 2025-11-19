@@ -1234,6 +1234,32 @@ app.get('/api/debug/garmin/all', async (req, res) => {
     }
 });
 
+// DELETE: Remove specific Garmin activity by externalId
+app.delete('/api/debug/garmin/activity/:externalId', async (req, res) => {
+    try {
+        const { externalId } = req.params;
+        const { Activity } = require('../models');
+
+        const result = await Activity.destroy({
+            where: {
+                externalId: externalId,
+                provider: 'garmin'
+            }
+        });
+
+        console.log(`✅ Deleted ${result} Garmin activity with externalId ${externalId}`);
+
+        res.json({
+            success: true,
+            deleted: result,
+            externalId
+        });
+    } catch (error) {
+        console.error('❌ Error deleting Garmin activity:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // MIGRATE: Move Garmin activities from one userId to another
 app.post('/api/debug/garmin/migrate', async (req, res) => {
     try {
