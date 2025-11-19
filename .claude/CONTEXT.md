@@ -20,12 +20,17 @@
 - **Push/Webhook**: `https://www.athlytx.com/api/garmin/push`
 - **Deregister**: `https://www.athlytx.com/api/garmin/deregister`
 
-**Data Types Status:**
+**Data Access Approved:**
+- ✅ **API: Daily Health Stats** - Approved, 12 Active Endpoints
+- ✅ **API: Activity** - Enabled, Approved, 5 Active Endpoints
+
+**Actual Data Received:**
 - ✅ Activities - Working (4 activities received)
-- ❓ Daily Summaries - NOT receiving (0 records)
-- ❓ User Metrics (HRV) - NOT receiving (0 records)
-- ❓ Sleep - Unknown
-- ❓ Stress - NOT receiving (0 records)
+- ❌ Daily Health Stats - ENABLED but NOT receiving (0 records)
+  - Body Battery: 0 records
+  - HRV: 0 records
+  - Stress: 0 records
+  - Sleep: 0 records
 
 ## Architecture
 - Backend: Railway (`athlytx-backend-production.up.railway.app`)
