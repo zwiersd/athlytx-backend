@@ -1394,11 +1394,15 @@
                     // Close modal
                     closeAuthModal();
 
-                    // Redirect to homepage
+                    // Update UI to show authenticated view
+                    checkAuthenticationStatus();
+
                     showMessage('Account created successfully!', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 500);
+
+                    // Load any existing connections (in case user had tokens before signup)
+                    if (typeof loadExistingConnections === 'function') {
+                        await loadExistingConnections();
+                    }
                 } else {
                     errorDiv.textContent = data.error || 'Signup failed';
                     errorDiv.style.display = 'block';
@@ -1459,11 +1463,15 @@
                     // Close modal
                     closeAuthModal();
 
-                    // Redirect to homepage
+                    // Update UI to show authenticated view
+                    checkAuthenticationStatus();
+
                     showMessage('Logged in successfully!', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 500);
+
+                    // Reload existing connections
+                    if (typeof loadExistingConnections === 'function') {
+                        await loadExistingConnections();
+                    }
                 } else {
                     errorDiv.textContent = data.error || 'Login failed';
                     errorDiv.style.display = 'block';
@@ -1568,15 +1576,20 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    successDiv.textContent = 'Password reset successful! Redirecting to homepage...';
+                    successDiv.textContent = 'Password reset successful! You can now login.';
                     successDiv.style.display = 'block';
                     document.getElementById('new-password').value = '';
                     document.getElementById('confirm-password').value = '';
 
-                    // Close modal and redirect to homepage after 2 seconds
+                    // Close modal after 2 seconds and redirect to homepage
                     setTimeout(() => {
                         closeResetPasswordModal();
                         window.location.href = '/';
+                        // Show success message and login modal after redirect
+                        setTimeout(() => {
+                            showMessage('Password reset successful! Please login with your new password.', 'success');
+                            showAuthForm('login');
+                        }, 100);
                     }, 2000);
                 } else {
                     errorDiv.textContent = data.error || 'Failed to reset password';
