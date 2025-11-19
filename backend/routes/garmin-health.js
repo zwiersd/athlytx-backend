@@ -290,11 +290,13 @@ async function processGarminPushData(data) {
         } = data;
 
         // Find our internal userId from the Garmin GUID
+        // Use the MOST RECENT token if there are duplicates
         const token = await OAuthToken.findOne({
             where: {
                 provider: 'garmin',
                 providerUserId: garminUserId
-            }
+            },
+            order: [['connectedAt', 'DESC']]  // Get most recent connection
         });
 
         if (!token) {
