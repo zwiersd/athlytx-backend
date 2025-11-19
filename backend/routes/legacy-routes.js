@@ -1203,6 +1203,37 @@ app.get('/api/garmin/db/dailies', async (req, res) => {
     }
 });
 
+// DEBUG: Get ALL Garmin activities and tokens in database
+app.get('/api/debug/garmin/all', async (req, res) => {
+    try {
+        const { Activity, OAuthToken } = require('../models');
+
+        const activities = await Activity.findAll({
+            where: { provider: 'garmin' },
+            attributes: ['id', 'userId', 'externalId', 'activityType', 'startTime', 'distanceMeters', 'durationSeconds'],
+            order: [['startTime', 'DESC']],
+            limit: 100
+        });
+
+        const tokens = await OAuthToken.findAll({
+            where: { provider: 'garmin' },
+            attributes: ['userId', 'providerUserId', 'connectedAt']
+        });
+
+        console.log(`📊 DEBUG: Found ${activities.length} Garmin activities and ${tokens.length} tokens`);
+
+        res.json({
+            totalActivities: activities.length,
+            totalTokens: tokens.length,
+            activities: activities,
+            tokens: tokens
+        });
+    } catch (error) {
+        console.error('❌ Error querying Garmin data:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 console.log('✅ Legacy OAuth routes loaded');
 
 }; // End of module.exports
