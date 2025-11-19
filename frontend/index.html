@@ -188,6 +188,7 @@
 
             <div class="header-right">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
+                <button onclick="syncAllProviders()" class="sync-btn" id="syncBtn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
                 <button onclick="refreshAllData()" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
                 <button onclick="clearAllData()" class="refresh-btn"><i class="fas fa-trash-alt"></i> Clear</button>
                 <a href="/about.html" class="nav-link"><i class="fas fa-book"></i> About</a>
@@ -5568,6 +5569,52 @@
 
                 updateConnectionStatus();
                 showMessage('All data cleared. Ready to reconnect devices.', 'info');
+            }
+        }
+
+        // Sync data from all connected providers to PostgreSQL database
+        async function syncAllProviders() {
+            const syncBtn = document.getElementById('syncBtn');
+            const originalContent = syncBtn.innerHTML;
+
+            try {
+                syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                syncBtn.disabled = true;
+
+                showMessage('Syncing data from all connected providers...', 'info');
+
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    showMessage('Please login or connect a device first', 'error');
+                    return;
+                }
+
+                // Call backend sync endpoint
+                const response = await fetch(`${API_CONFIG.backend}/api/sync/manual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, daysBack: 30 })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const totalActivities = data.results?.totalActivities || 0;
+                    showMessage(`Sync complete! ${totalActivities} activities synced from all providers`, 'success');
+
+                    // Reload data to display newly synced activities
+                    await loadExistingConnections();
+                    updateAnalytics();
+                } else {
+                    showMessage(data.message || data.error || 'Sync failed', 'error');
+                }
+
+            } catch (error) {
+                console.error('Sync error:', error);
+                showMessage('Sync failed. Please try again.', 'error');
+            } finally {
+                syncBtn.innerHTML = originalContent;
+                syncBtn.disabled = false;
             }
         }
 
