@@ -11,10 +11,21 @@
 - **Data migration**: Activities orphaned under userId `3c37dd1f-25f8-4212-afcf-52a7d37f0903` (migrated to `82b58332-34e2-41c2-9599-c8a3b5511175`)
 
 ## Current Setup
-- **Webhook**: `https://www.athlytx.com/api/garmin/push` (working, tested)
 - **User's Garmin GUID**: `f1d91633-0bcf-48a4-b94c-5664e3994c11`
 - **User's current userId**: `82b58332-34e2-41c2-9599-c8a3b5511175`
 - **Status**: Activities working (4 shown), daily health data NOT coming through
+
+## Garmin Developer Portal - Endpoint Configuration
+**Registered webhook URLs:**
+- **Push/Webhook**: `https://www.athlytx.com/api/garmin/push`
+- **Deregister**: `https://www.athlytx.com/api/garmin/deregister`
+
+**Data Types Status:**
+- ✅ Activities - Working (4 activities received)
+- ❓ Daily Summaries - NOT receiving (0 records)
+- ❓ User Metrics (HRV) - NOT receiving (0 records)
+- ❓ Sleep - Unknown
+- ❓ Stress - NOT receiving (0 records)
 
 ## Architecture
 - Backend: Railway (`athlytx-backend-production.up.railway.app`)
