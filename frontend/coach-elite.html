@@ -1143,6 +1143,16 @@
         </header>
 
         <div class="container">
+            <!-- Garmin Admin Actions for Selected Athlete -->
+            <div id="garminCoachActions" style="display:flex; gap:10px; align-items:center; margin: 0 0 16px 0;">
+                <button class="btn btn-secondary" onclick="registerAthleteGarmin()" title="Ensure Garmin PUSH registration for this athlete">
+                    Ensure Garmin PUSH Registration
+                </button>
+                <button class="btn btn-secondary" onclick="backfillAthleteGarmin(30)" title="Queue a 30 day backfill for this athlete">
+                    Backfill Last 30 Days
+                </button>
+                <span id="garminCoachActionStatus" style="font-size: 13px; color: rgba(255,255,255,0.75);"></span>
+            </div>
             <!-- Key Metrics Bar -->
             <div class="metrics-bar">
                 <div class="metric-card" id="ctlCard">
@@ -2143,6 +2153,57 @@
                 }
             });
         });
+
+        // ===== Garmin Admin Helpers (Coach-triggered for selected athlete) =====
+        async function registerAthleteGarmin() {
+            try {
+                if (!currentAthlete) {
+                    alert('Select an athlete first');
+                    return;
+                }
+                const statusEl = document.getElementById('garminCoachActionStatus');
+                if (statusEl) statusEl.textContent = 'Registering athlete with Garmin...';
+                const res = await fetch('/api/garmin/admin/register-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentAthlete.id })
+                });
+                const text = await res.text();
+                if (statusEl) statusEl.textContent = res.ok ? 'Registration OK (or already registered)' : `Registration failed: ${text}`;
+            } catch (e) {
+                const statusEl = document.getElementById('garminCoachActionStatus');
+                if (statusEl) statusEl.textContent = `Registration error: ${e.message}`;
+            }
+        }
+
+        async function backfillAthleteGarmin(days = 30) {
+            try {
+                if (!currentAthlete) {
+                    alert('Select an athlete first');
+                    return;
+                }
+                const statusEl = document.getElementById('garminCoachActionStatus');
+                if (statusEl) statusEl.textContent = `Starting backfill for ${days} day(s)...`;
+                const now = new Date();
+                const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+                const res = await fetch('/api/garmin/backfill', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentAthlete.id, startDate })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (statusEl) statusEl.textContent = `Backfill failed: ${data.message || res.statusText}`;
+                    return;
+                }
+                if (statusEl) statusEl.textContent = `Backfill accepted: syncing ${data.daysToSync || days} day(s).`;
+                // Reload athlete data after a short delay
+                setTimeout(() => loadAthlete(currentAthlete.id), 3000);
+            } catch (e) {
+                const statusEl = document.getElementById('garminCoachActionStatus');
+                if (statusEl) statusEl.textContent = `Backfill error: ${e.message}`;
+            }
+        }
     </script>
 
     <footer class="main-footer">
