@@ -3042,6 +3042,9 @@
             const activitiesList = document.getElementById('stravaActivitiesList');
             if (activitiesList) {
                 if (allActivities.length > 0) {
+                    // Define a 7-day window for recent highlighting
+                    const lastWeek = new Date();
+                    lastWeek.setDate(lastWeek.getDate() - 7);
                     // Helper function to format duration
                     const formatDuration = (seconds) => {
                         if (!seconds) return '--';
@@ -6627,18 +6630,30 @@
         // ---- Garmin helpers ----
         async function registerGarmin() {
             try {
-                const token = localStorage.getItem('garmin_token');
-                if (!token) {
-                    showMessage('No Garmin token found. Please connect Garmin first.', 'warning');
-                    return;
-                }
                 const status = document.getElementById('garminActionStatus');
                 if (status) status.textContent = 'Registering with Garmin...';
-                const res = await fetch(`${API_CONFIG.backend}/api/garmin/v2/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token })
-                });
+                const userId = localStorage.getItem('userId');
+                let res;
+                if (userId) {
+                    // Prefer server-side registration using stored token (avoids stale local token)
+                    res = await fetch(`${API_CONFIG.backend}/api/garmin/admin/register-user`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId })
+                    });
+                } else {
+                    const token = localStorage.getItem('garmin_token');
+                    if (!token) {
+                        showMessage('No Garmin token found. Please connect Garmin first.', 'warning');
+                        if (status) status.textContent = 'No Garmin token found';
+                        return;
+                    }
+                    res = await fetch(`${API_CONFIG.backend}/api/garmin/v2/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token })
+                    });
+                }
                 const text = await res.text();
                 if (status) status.textContent = res.ok ? 'Registration OK (or already registered)' : `Registration failed: ${text}`;
                 showMessage(res.ok ? 'Garmin registered for PUSH' : 'Garmin registration failed', res.ok ? 'success' : 'error');
