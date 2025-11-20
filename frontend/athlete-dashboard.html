@@ -477,9 +477,7 @@
     </div>
 
     <script>
-        const API_URL = window.location.hostname === 'localhost'
-            ? 'http://localhost:3000'
-            : window.location.origin;
+        const API_URL = window.location.origin;
 
         let session = null;
         let selectedCoach = null;

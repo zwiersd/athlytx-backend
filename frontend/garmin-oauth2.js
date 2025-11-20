@@ -4,7 +4,12 @@ class GarminOAuth2 {
         // PRODUCTION Garmin app (correct ID)
         this.clientId = config.clientId || '4af31e5c-d758-442d-a007-809ea45f444a';
         this.clientSecret = config.clientSecret;
-        this.redirectUri = config.redirectUri || 'https://www.athlytx.com/auth/garmin/callback';
+        // Default to current origin for local/staging, fallback to production
+        this.redirectUri = config.redirectUri || (
+            (typeof window !== 'undefined' && window.location && window.location.origin)
+                ? `${window.location.origin}/auth/garmin/callback`
+                : 'https://www.athlytx.com/auth/garmin/callback'
+        );
         // Request all wellness scopes for complete data access
         this.scope = config.scope || 'ACTIVITY_EXPORT HEALTH_EXPORT';
 

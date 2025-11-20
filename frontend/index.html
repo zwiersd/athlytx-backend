@@ -1203,22 +1203,23 @@
     <script>
         // ===== API CONFIGURATION =====
         const API_CONFIG = {
-            backend: 'https://www.athlytx.com',
+            // Use current origin by default so local/staging environments fetch from the correct backend
+            backend: window.location.origin,
             strava: {
                 clientId: '167615',
-                redirectUri: 'https://www.athlytx.com',
+                redirectUri: window.location.origin,
                 scope: 'read,activity:read_all,profile:read_all'
             },
             oura: {
                 clientId: 'RVT72X5LNV2K6GGK',
-                redirectUri: 'https://www.athlytx.com',
+                redirectUri: window.location.origin,
                 scope: 'daily'
             },
             garmin: {
                 // PRODUCTION Garmin app (correct ID)
                 clientId: '4af31e5c-d758-442d-a007-809ea45f444a',
                 clientSecret: 'GGDcZxqPhpn4UlVihFY62rHWhY+ZNkHbLE0auOYOkrU',
-                redirectUri: 'https://www.athlytx.com/auth/garmin/callback',
+                redirectUri: `${window.location.origin}/auth/garmin/callback`,
                 scope: 'WELLNESS_READ'
             },
             whoop: {
