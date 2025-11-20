@@ -829,6 +829,9 @@
                     <button class="btn" onclick="refreshOuraNow()" style="padding:8px 12px; border-radius:8px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color:#e5e7eb;">
                         Refresh Oura Data
                     </button>
+                    <button class="btn btn-oura-reconnect" onclick="connectDevice('oura')" style="display:none; padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
+                        Reconnect Oura
+                    </button>
                     <div id="ouraActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
@@ -854,27 +857,27 @@
                     </div>
                 </div>
 
-                <!-- Full-width Sleep Data Table -->
-                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
-                    <h3>😴 Sleep Data (Detailed View)</h3>
-                    <div id="ouraSleepDataList">
-                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your sleep data</div>
+                <!-- Data Tables Grid (3 columns) -->
+                <div class="analytics-grid">
+                    <div class="analytics-card glass-card">
+                        <h3>😴 Sleep Data (Detailed View)</h3>
+                        <div id="ouraSleepDataList">
+                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your sleep data</div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Full-width Readiness Data Table -->
-                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
-                    <h3>🎯 Readiness Data (Detailed View)</h3>
-                    <div id="ouraReadinessDataList">
-                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your readiness data</div>
+                    <div class="analytics-card glass-card">
+                        <h3>🎯 Readiness Data (Detailed View)</h3>
+                        <div id="ouraReadinessDataList">
+                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your readiness data</div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Full-width Activity Data Table -->
-                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
-                    <h3>🏃 Activity Data (Detailed View)</h3>
-                    <div id="ouraActivityDataList">
-                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your activity data</div>
+                    <div class="analytics-card glass-card">
+                        <h3>🏃 Activity Data (Detailed View)</h3>
+                        <div id="ouraActivityDataList">
+                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your activity data</div>
+                        </div>
                     </div>
                 </div>
 
@@ -2963,6 +2966,10 @@
                     disconnectBtn.style.display = 'block';
                 }
 
+                // Hide reconnect button if present
+                const rc = document.querySelector('.btn-oura-reconnect');
+                if (rc) rc.style.display = 'none';
+
                 const totalRecords = (sleep?.data?.length || 0) + (readiness?.data?.length || 0) + (activity?.data?.length || 0);
                 showMessage(`Oura connected! ${totalRecords} records loaded`, 'success');
                 
@@ -2987,6 +2994,10 @@
                 }
                 
                 button.disabled = false;
+
+                // Show reconnect button
+                const rc = document.querySelector('.btn-oura-reconnect');
+                if (rc) rc.style.display = 'inline-block';
                 
                 // Set partial data to prevent null errors
                 if (!fitnessData.oura) {
@@ -6892,12 +6903,19 @@
                 const status = document.getElementById('ouraActionStatus');
                 if (status) status.textContent = 'Refreshing Oura...';
                 const token = localStorage.getItem('oura_token');
-                if (!token) { if (status) status.textContent = 'No Oura token found'; return; }
+                if (!token) {
+                    if (status) status.textContent = 'No Oura token found';
+                    const rc = document.querySelector('.btn-oura-reconnect');
+                    if (rc) rc.style.display = 'inline-block';
+                    return;
+                }
                 await fetchOuraData(token);
                 if (status) status.textContent = 'Oura refreshed';
             } catch (e) {
                 const status = document.getElementById('ouraActionStatus');
                 if (status) status.textContent = `Refresh error: ${e.message}`;
+                const rc = document.querySelector('.btn-oura-reconnect');
+                if (rc) rc.style.display = 'inline-block';
             }
         }
 
