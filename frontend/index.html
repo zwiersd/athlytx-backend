@@ -603,6 +603,17 @@
                     </div>
                 </div>
 
+                <!-- Garmin Actions: Register + Backfill -->
+                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
+                    <button class="btn" onclick="registerGarmin()" style="padding:8px 12px; border-radius:8px; background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.35); color:#e5e7eb;">
+                        Ensure Garmin PUSH Registration
+                    </button>
+                    <button class="btn" onclick="backfillGarmin(30)" style="padding:8px 12px; border-radius:8px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color:#e5e7eb;">
+                        Backfill Last 30 Days
+                    </button>
+                    <div id="garminActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
+                </div>
+
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
                         <h3>Recent Activities</h3>
@@ -1069,11 +1080,28 @@
             <!-- AI Insights Tab -->
             <div id="insights" class="tab-panel" role="tabpanel" aria-labelledby="insights-tab">
                 <div class="analytics-grid">
-                    <div class="analytics-card glass-card" style="background: linear-gradient(135deg, #3210b9 0%, #059669 100%); color: white;">
-                        <h3 style="color: white;"><i class="fas fa-robot"></i> AI-Powered Insights</h3>
+                    <div class="analytics-card glass-card ai-insights-hero">
+                        <div class="ai-insights-header">
+                            <svg class="ai-icon-large" width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L12 22L22 17" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 12L12 17L22 12" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <defs>
+                                    <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#667eea"/>
+                                        <stop offset="100%" stop-color="#10b981"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <h3><i class="fas fa-robot"></i> AI-Powered Insights</h3>
+                        </div>
                         <div id="aiInsights">
-                            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
-                                <strong>Data Analysis:</strong> Connect your devices to get personalized insights based on your multi-stream data.
+                            <div class="ai-insight-item">
+                                <div class="ai-insight-icon">📊</div>
+                                <div class="ai-insight-content">
+                                    <strong>Data Analysis</strong>
+                                    <p>Connect your devices to get personalized insights based on your multi-stream data.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -6006,6 +6034,63 @@
                 rightIndicator.classList.add('visible');
             } else {
                 rightIndicator.classList.remove('visible');
+            }
+        }
+
+        // ---- Garmin helpers ----
+        async function registerGarmin() {
+            try {
+                const token = localStorage.getItem('garmin_token');
+                if (!token) {
+                    showMessage('No Garmin token found. Please connect Garmin first.', 'warning');
+                    return;
+                }
+                const status = document.getElementById('garminActionStatus');
+                if (status) status.textContent = 'Registering with Garmin...';
+                const res = await fetch(`${API_CONFIG.backend}/api/garmin/v2/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const text = await res.text();
+                if (status) status.textContent = res.ok ? 'Registration OK (or already registered)' : `Registration failed: ${text}`;
+                showMessage(res.ok ? 'Garmin registered for PUSH' : 'Garmin registration failed', res.ok ? 'success' : 'error');
+            } catch (e) {
+                const status = document.getElementById('garminActionStatus');
+                if (status) status.textContent = `Registration error: ${e.message}`;
+                showMessage(`Garmin registration error: ${e.message}`, 'error');
+            }
+        }
+
+        async function backfillGarmin(days = 30) {
+            try {
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    showMessage('No userId found', 'error');
+                    return;
+                }
+                const status = document.getElementById('garminActionStatus');
+                if (status) status.textContent = `Starting backfill for ${days} day(s)...`;
+                const now = new Date();
+                const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+                const res = await fetch(`${API_CONFIG.backend}/api/garmin/backfill`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, startDate })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (status) status.textContent = `Backfill failed: ${data.message || res.statusText}`;
+                    showMessage(`Backfill failed: ${data.message || res.statusText}`, 'error');
+                    return;
+                }
+                if (status) status.textContent = `Backfill accepted: syncing ${data.daysToSync || days} day(s). Refreshing shortly...`;
+                showMessage('Backfill started. Data will appear shortly.', 'info');
+                setTimeout(updateGarminDisplay, 4000);
+            } catch (e) {
+                const status = document.getElementById('garminActionStatus');
+                if (status) status.textContent = `Backfill error: ${e.message}`;
+                showMessage(`Backfill error: ${e.message}`, 'error');
             }
         }
 
