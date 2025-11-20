@@ -1820,9 +1820,40 @@
             }
         }
 
-        function disconnectDevice(device) {
+        async function disconnectDevice(device) {
             if (!confirm(`Are you sure you want to disconnect ${device.charAt(0).toUpperCase() + device.slice(1)}?`)) {
                 return;
+            }
+
+            // Attempt server-side disconnect/deregistration first
+            try {
+                const sessionToken = localStorage.getItem('sessionToken');
+                const userId = localStorage.getItem('userId');
+
+                if (device === 'garmin') {
+                    if (sessionToken) {
+                        // Authenticated user: remove DB token via devices API
+                        await fetch(`${API_CONFIG.backend}/api/devices/disconnect/garmin`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${sessionToken}` }
+                        });
+                    } else if (userId) {
+                        // Guest mode: call Garmin deregister to remove DB token
+                        await fetch(`${API_CONFIG.backend}/api/garmin/deregister`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId })
+                        });
+                    }
+                } else if (sessionToken) {
+                    // Other providers (when logged in)
+                    await fetch(`${API_CONFIG.backend}/api/devices/disconnect/${device}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${sessionToken}` }
+                    });
+                }
+            } catch (e) {
+                console.warn('Server-side disconnect failed or not required:', e.message);
             }
 
             // Clear localStorage tokens

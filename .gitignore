@@ -37,3 +37,6 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Development notes and session artifacts
+Markdown/
