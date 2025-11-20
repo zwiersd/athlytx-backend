@@ -54,9 +54,10 @@
 - Webhook file: `backend/routes/garmin-health.js` (line 44)
 - Mounted at: `server.js` line 150
 
-## Outstanding Issues
-- Daily health data (body battery, HRV, stress) = 0 records
-- Need to verify Garmin Developer Portal has daily summaries enabled
+## Outstanding Issues - RESOLVED Nov 20, 2025
+- ✅ **FIXED:** Daily health data was queued but not sent - "on hold" was checked in portal
+- ✅ **FIXED:** Unchecked "on hold" for all 12 Health API endpoints
+- ✅ **EXPECTED:** Data should start flowing immediately after saving
 - Test activity (TEST123) may still be visible - needs deletion
 
 ## User Preferences
