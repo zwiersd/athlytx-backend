@@ -1784,7 +1784,7 @@
                     const garminOAuth = new GarminOAuth2({
                         clientId: API_CONFIG.garmin.clientId,
                         redirectUri: API_CONFIG.garmin.redirectUri,
-                        scope: 'WELLNESS_READ'
+                        scope: 'ACTIVITY_EXPORT HEALTH_EXPORT'
                     });
 
                     const authUrl = await garminOAuth.buildAuthorizationUrl();
@@ -1804,7 +1804,7 @@
                         client_id: API_CONFIG.garmin.clientId,
                         response_type: 'code',
                         redirect_uri: API_CONFIG.garmin.redirectUri,
-                        scope: 'WELLNESS_READ',
+                        scope: 'ACTIVITY_EXPORT HEALTH_EXPORT',
                         state: state,
                         code_challenge: codeChallenge,
                         code_challenge_method: 'S256'
