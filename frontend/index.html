@@ -680,59 +680,92 @@
                     </div>
                 </div>
 
-                <!-- Time in HR Zones Card -->
-                <div class="analytics-card glass-card">
-                    <h3>⏱️ Time in Heart Rate Zones</h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(16,185,129,0.1); border-radius: 8px; border-left: 4px solid #10b981;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 1 - Easy</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&lt;60% Max HR</div>
+                <!-- HR Zones & Relative Effort Grid -->
+                <div class="analytics-grid">
+                    <!-- Time in HR Zones Card -->
+                    <div class="analytics-card glass-card">
+                        <h3>⏱️ Time in Heart Rate Zones</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(16,185,129,0.1); border-radius: 8px; border-left: 4px solid #10b981;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Zone 1 - Easy</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&lt;60% Max HR</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;" id="hrZone1Time">--</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone1Minutes">-- min</div>
+                                </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;" id="hrZone1Time">--</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone1Minutes">-- min</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(59,130,246,0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Zone 2 - Moderate</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">60-70% Max HR</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.2rem; font-weight: 700; color: #3b82f6;" id="hrZone2Time">--</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone2Minutes">-- min</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Zone 3 - Tempo</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">70-80% Max HR</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.2rem; font-weight: 700; color: #f59e0b;" id="hrZone3Time">--</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone3Minutes">-- min</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(249,115,22,0.1); border-radius: 8px; border-left: 4px solid #f97316;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Zone 4 - Threshold</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">80-90% Max HR</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.2rem; font-weight: 700; color: #f97316;" id="hrZone4Time">--</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone4Minutes">-- min</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 4px solid #ef4444;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Zone 5 - VO2 Max</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&gt;90% Max HR</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.2rem; font-weight: 700; color: #ef4444;" id="hrZone5Time">--</div>
+                                    <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone5Minutes">-- min</div>
+                                </div>
                             </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(59,130,246,0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 2 - Moderate</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">60-70% Max HR</div>
+                    </div>
+
+                    <!-- Relative Effort Card -->
+                    <div class="analytics-card glass-card">
+                        <h3>💪 Relative Effort</h3>
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div id="stravaRelativeEffort" style="font-size: 3.5rem; font-weight: 800; color: #f59e0b; margin-bottom: 8px;">--</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px;">Total effort in selected period</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Average per Activity</span>
+                                <span id="stravaAvgEffort" style="font-weight: 600; color: #3b82f6;">--</span>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: 700; color: #3b82f6;" id="hrZone2Time">--</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone2Minutes">-- min</div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Highest Activity</span>
+                                <span id="stravaMaxEffort" style="font-weight: 600; color: #ef4444;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Activities Logged</span>
+                                <span id="stravaEffortCount" style="font-weight: 600; color: #10b981;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                <span style="color: rgba(255,255,255,0.7);">Weekly Average</span>
+                                <span id="stravaWeeklyEffort" style="font-weight: 600; color: #8b5cf6;">--</span>
                             </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; border-left: 4px solid #f59e0b;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 3 - Tempo</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">70-80% Max HR</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: 700; color: #f59e0b;" id="hrZone3Time">--</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone3Minutes">-- min</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(249,115,22,0.1); border-radius: 8px; border-left: 4px solid #f97316;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 4 - Threshold</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">80-90% Max HR</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: 700; color: #f97316;" id="hrZone4Time">--</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone4Minutes">-- min</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 4px solid #ef4444;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 5 - VO2 Max</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&gt;90% Max HR</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: 700; color: #ef4444;" id="hrZone5Time">--</div>
-                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone5Minutes">-- min</div>
-                            </div>
+                        <div style="margin-top: 16px; padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center;">
+                            Based on Suffer Score from Strava activities
                         </div>
                     </div>
                 </div>
@@ -4135,6 +4168,56 @@
             document.getElementById('stravaFormStatus').style.color = color;
             document.getElementById('stravaFormAdvice').textContent = advice;
             tsbElement.style.color = color;
+
+            // Calculate Relative Effort metrics
+            updateStravaRelativeEffort();
+        }
+
+        function updateStravaRelativeEffort() {
+            if (!fitnessData.strava || !fitnessData.strava.activities) return;
+
+            // Get selected period from dropdown
+            const periodSelector = document.getElementById('stravaPeriodSelector');
+            const selectedDays = periodSelector ? parseInt(periodSelector.value) : 7;
+
+            const periodStart = new Date();
+            periodStart.setDate(periodStart.getDate() - selectedDays);
+
+            const recentActivities = fitnessData.strava.activities.filter(a =>
+                a && a.start_date && new Date(a.start_date) >= periodStart
+            );
+
+            // Calculate metrics from suffer_score (Strava's Relative Effort)
+            const effortScores = recentActivities.map(a => a.suffer_score || 0).filter(s => s > 0);
+
+            if (effortScores.length === 0) {
+                document.getElementById('stravaRelativeEffort').textContent = '--';
+                document.getElementById('stravaAvgEffort').textContent = '--';
+                document.getElementById('stravaMaxEffort').textContent = '--';
+                document.getElementById('stravaEffortCount').textContent = '0';
+                document.getElementById('stravaWeeklyEffort').textContent = '--';
+                return;
+            }
+
+            // Total relative effort
+            const totalEffort = effortScores.reduce((sum, s) => sum + s, 0);
+            document.getElementById('stravaRelativeEffort').textContent = Math.round(totalEffort);
+
+            // Average per activity
+            const avgEffort = totalEffort / effortScores.length;
+            document.getElementById('stravaAvgEffort').textContent = Math.round(avgEffort);
+
+            // Highest activity
+            const maxEffort = Math.max(...effortScores);
+            document.getElementById('stravaMaxEffort').textContent = Math.round(maxEffort);
+
+            // Activities count
+            document.getElementById('stravaEffortCount').textContent = effortScores.length;
+
+            // Weekly average (normalize to per-week)
+            const weeks = selectedDays / 7;
+            const weeklyAvg = totalEffort / weeks;
+            document.getElementById('stravaWeeklyEffort').textContent = Math.round(weeklyAvg);
         }
 
         // Update Fitness & Form Chart
