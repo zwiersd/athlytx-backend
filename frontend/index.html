@@ -680,6 +680,63 @@
                     </div>
                 </div>
 
+                <!-- Time in HR Zones Card -->
+                <div class="analytics-card glass-card">
+                    <h3>⏱️ Time in Heart Rate Zones</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(16,185,129,0.1); border-radius: 8px; border-left: 4px solid #10b981;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 1 - Easy</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&lt;60% Max HR</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;" id="hrZone1Time">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone1Minutes">-- min</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(59,130,246,0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 2 - Moderate</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">60-70% Max HR</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: #3b82f6;" id="hrZone2Time">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone2Minutes">-- min</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 3 - Tempo</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">70-80% Max HR</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: #f59e0b;" id="hrZone3Time">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone3Minutes">-- min</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(249,115,22,0.1); border-radius: 8px; border-left: 4px solid #f97316;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 4 - Threshold</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">80-90% Max HR</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: #f97316;" id="hrZone4Time">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone4Minutes">-- min</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 4px solid #ef4444;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Zone 5 - VO2 Max</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">&gt;90% Max HR</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: 700; color: #ef4444;" id="hrZone5Time">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);" id="hrZone5Minutes">-- min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Strava Actions -->
                 <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
                     <button class="btn" onclick="refreshStravaNow()" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
@@ -3960,6 +4017,26 @@
                 }]
             };
             charts.stravaHRZones.update();
+
+            // Update time breakdown card
+            const formatTime = (minutes) => {
+                if (minutes === 0) return '0h 0m';
+                const hours = Math.floor(minutes / 60);
+                const mins = Math.round(minutes % 60);
+                return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+            };
+
+            // Update each zone
+            for (let i = 0; i < 5; i++) {
+                const timeElement = document.getElementById(`hrZone${i + 1}Time`);
+                const minutesElement = document.getElementById(`hrZone${i + 1}Minutes`);
+
+                if (timeElement && minutesElement) {
+                    const totalMinutes = Math.round(zones[i]);
+                    timeElement.textContent = formatTime(totalMinutes);
+                    minutesElement.textContent = `${totalMinutes} min`;
+                }
+            }
         }
 
         function updateOuraTrendCharts() {
