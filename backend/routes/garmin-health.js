@@ -301,7 +301,41 @@ async function processGarminPushData(data) {
 
         if (!token) {
             console.warn(`⚠️  No user found for Garmin userId: ${garminUserId}`);
-            return;
+            // Fallback mapping: if there's exactly one distinct Garmin GUID in DB, assume it's the same user
+            try {
+                const allTokens = await OAuthToken.findAll({
+                    where: { provider: 'garmin' },
+                    order: [['connectedAt', 'DESC']]
+                });
+
+                const distinctGuids = Array.from(new Set(allTokens.map(t => t.providerUserId).filter(Boolean)));
+
+                if (allTokens.length === 1 || distinctGuids.length === 1) {
+                    const assumed = allTokens[0];
+                    console.warn(`🔗 Assuming PUSH userId ${garminUserId} maps to Garmin GUID ${assumed.providerUserId} (user ${assumed.userId})`);
+
+                    // Persist mapping for future events using token.scopes JSON as a storage
+                    try {
+                        const scopesObj = (assumed.scopes && typeof assumed.scopes === 'object') ? assumed.scopes : {};
+                        if (!scopesObj.wellnessUserId || scopesObj.wellnessUserId !== garminUserId) {
+                            scopesObj.wellnessUserId = garminUserId;
+                            assumed.scopes = scopesObj;
+                            await assumed.save();
+                            console.log(`📝 Stored wellnessUserId mapping on token for user ${assumed.userId}`);
+                        }
+                    } catch (mapErr) {
+                        console.warn('⚠️ Failed to persist wellnessUserId mapping:', mapErr.message);
+                    }
+
+                    token = assumed;
+                } else {
+                    console.warn('⚠️  Multiple Garmin accounts present; cannot safely map PUSH userId. Skipping.');
+                    return;
+                }
+            } catch (mapError) {
+                console.warn('⚠️  Fallback mapping error:', mapError.message);
+                return;
+            }
         }
 
         const ourUserId = token.userId;
