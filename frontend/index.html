@@ -742,6 +742,9 @@
                     <button class="btn" onclick="refreshStravaNow()" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
                         Refresh Strava Data
                     </button>
+                    <button class="btn" onclick="exportTabToPDF('strava','Strava')" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
+                        Export Strava PDF
+                    </button>
                     <div id="stravaActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
@@ -1035,6 +1038,9 @@
                     <button class="btn" onclick="backfillGarmin(30)" style="padding:8px 12px; border-radius:8px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color:#e5e7eb;">
                         Backfill Last 30 Days
                     </button>
+                    <button class="btn" onclick="exportTabToPDF('garmin','Garmin')" style="padding:8px 12px; border-radius:8px; background: rgba(0,172,228,0.15); border: 1px solid rgba(0,172,228,0.35); color:#e5e7eb;">
+                        Export Garmin PDF
+                    </button>
                     <div id="garminActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
@@ -1135,6 +1141,9 @@
                     <button class="btn" onclick="refreshWhoopNow()" style="padding:8px 12px; border-radius:8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;">
                         Refresh Whoop Data
                     </button>
+                    <button class="btn" onclick="exportTabToPDF('whoop','Whoop')" style="padding:8px 12px; border-radius:8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;">
+                        Export Whoop PDF
+                    </button>
                     <div id="whoopActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
@@ -1193,7 +1202,7 @@
 
             <!-- Running Tab -->
             <div id="running" class="tab-panel" role="tabpanel" aria-labelledby="running-tab">
-                <!-- Running Volume Cards -->
+                <!-- Hero Stats - Key Running Metrics -->
                 <div class="data-summary" style="margin-bottom: 30px;">
                     <div class="summary-card glass-card">
                         <span class="summary-value" id="runningDistance">--</span>
@@ -1207,7 +1216,7 @@
                     </div>
                     <div class="summary-card glass-card">
                         <span class="summary-value" id="runningDuration">--</span>
-                        <div class="summary-label">Avg Duration</div>
+                        <div class="summary-label">Total Time (4w)</div>
                         <span class="trend-arrow" id="runningDurationTrend"></span>
                     </div>
                     <div class="summary-card glass-card">
@@ -1217,87 +1226,248 @@
                     </div>
                 </div>
 
-                <!-- Training Load Analysis -->
-                <div class="analytics-card glass-card">
-                    <h3>Training Load Analysis</h3>
-                    <div class="chart-container">
-                        <canvas id="runningLoadChart"></canvas>
+                <!-- Fitness & Form (CTL, ATL, TSB) -->
+                <div class="analytics-grid">
+                    <div class="analytics-card glass-card">
+                        <h3>💪 Fitness (CTL)</h3>
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div id="runningCTL" style="font-size: 3rem; font-weight: 800; color: #10b981; margin-bottom: 8px;">--</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">42-day training load average</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            Higher fitness = better endurance capacity
+                        </div>
                     </div>
-                    <div class="insight-card" id="runningLoadInsight" style="margin-top: 15px;">
-                        <p>Connect Strava to see your training load analysis</p>
+
+                    <div class="analytics-card glass-card">
+                        <h3>😓 Fatigue (ATL)</h3>
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div id="runningATL" style="font-size: 3rem; font-weight: 800; color: #f59e0b; margin-bottom: 8px;">--</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">7-day training load average</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            Recent training stress accumulation
+                        </div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>⚖️ Form (TSB)</h3>
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div id="runningTSB" style="font-size: 3rem; font-weight: 800; color: #3b82f6; margin-bottom: 8px;">--</div>
+                            <div id="runningFormStatus" style="font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 4px;">--</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Fitness - Fatigue</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <div>Race ready: 0 to +25</div>
+                            <div>Training zone: -10 to -30</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Pace & Performance Trends -->
-                <div class="analytics-grid">
-                    <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-bolt"></i> Pace & Heart Rate Trends</h3>
-                        <div class="chart-container">
-                            <canvas id="runningPaceChart"></canvas>
+                <!-- Recovery Dashboard -->
+                <div class="analytics-card glass-card">
+                    <h3>🔋 Recovery & Readiness</h3>
+                    <div class="data-summary" style="margin: 0;">
+                        <div class="summary-card glass-card" style="background: rgba(16,185,129,0.1);">
+                            <span class="summary-value" id="runningHRV" style="color: #10b981;">--</span>
+                            <div class="summary-label">HRV (RMSSD)</div>
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 4px;" id="runningHRVStatus">7-day avg</div>
                         </div>
-                        <div class="insight-card" id="runningPaceInsight" style="margin-top: 15px;">
-                            <p>Track your pace improvements over time</p>
+                        <div class="summary-card glass-card" style="background: rgba(239,68,68,0.1);">
+                            <span class="summary-value" id="runningRHR" style="color: #ef4444;">--</span>
+                            <div class="summary-label">Resting HR</div>
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 4px;" id="runningRHRStatus">7-day avg</div>
+                        </div>
+                        <div class="summary-card glass-card" style="background: rgba(139,92,246,0.1);">
+                            <span class="summary-value" id="runningSleep" style="color: #8b5cf6;">--</span>
+                            <div class="summary-label">Sleep Score</div>
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 4px;">7-day avg</div>
+                        </div>
+                        <div class="summary-card glass-card" style="background: rgba(59,130,246,0.1);">
+                            <span class="summary-value" id="runningReadiness" style="color: #3b82f6;">--</span>
+                            <div class="summary-label">Readiness</div>
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 4px;">Overall status</div>
                         </div>
                     </div>
-                    
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(59,130,246,0.1); border-radius: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+                        <strong>Recovery Guidance:</strong> <span id="runningRecoveryGuidance">Connect Oura or Whoop to see personalized recovery guidance</span>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="analytics-grid">
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-bullseye"></i> Training Intensity Distribution</h3>
-                        <div class="chart-container">
-                            <canvas id="runningIntensityChart"></canvas>
+                        <h3>⚡ Pace Performance</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Avg Pace</div>
+                                <div id="runningAvgPace" style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">--</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Best Pace</div>
+                                <div id="runningBestPace" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">--</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Avg HR</div>
+                                <div id="runningAvgHR" style="font-size: 1.4rem; font-weight: 700; color: #ef4444;">--</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">VO2max Est.</div>
+                                <div id="runningVO2max" style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;">--</div>
+                            </div>
                         </div>
-                        <div class="intensity-legend" style="margin-top: 15px;">
-                            <div style="display: flex; justify-content: space-around; text-align: center;">
-                                <div><span style="color: #10b981;">●</span> Easy</div>
-                                <div><span style="color: #f59e0b;">●</span> Moderate</div>
-                                <div><span style="color: #dc2626;">●</span> Hard</div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>👟 Running Form</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Cadence</div>
+                                <div id="runningCadence" style="font-size: 1.4rem; font-weight: 700; color: #8b5cf6;">--</div>
+                                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">spm</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Stride Length</div>
+                                <div id="runningStrideLength" style="font-size: 1.4rem; font-weight: 700; color: #06b6d4;">--</div>
+                                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">m</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Ground Contact</div>
+                                <div id="runningGCT" style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;">--</div>
+                                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">ms</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Vert. Oscillation</div>
+                                <div id="runningVertOsc" style="font-size: 1.4rem; font-weight: 700; color: #ec4899;">--</div>
+                                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">cm</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding: 8px; background: rgba(139,92,246,0.1); border-radius: 6px; font-size: 0.75rem; color: rgba(255,255,255,0.6); text-align: center;">
+                            Optimal: Cadence 170-180 | GCT <200ms | VO <10cm
+                        </div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>📊 Weekly Progress</h3>
+                        <div style="margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Distance</span>
+                                <span id="runningWeeklyDistChange" style="font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Runs</span>
+                                <span id="runningWeeklyRunsChange" style="font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Avg Pace</span>
+                                <span id="runningWeeklyPaceChange" style="font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7);">Training Load</span>
+                                <span id="runningWeeklyLoadChange" style="font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                <span style="color: rgba(255,255,255,0.7);">Longest Run</span>
+                                <span id="runningWeeklyLongestChange" style="font-weight: 600;">--</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Progress & Records -->
+                <!-- Training Distribution -->
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-chart-line"></i> Progress Highlights</h3>
-                        <div id="runningProgressTable" style="overflow-x: auto;">
-                            <table style="width: 100%; font-size: 0.9rem;">
-                                <thead>
-                                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.2);">
-                                        <th style="text-align: left; padding: 12px; color: #ffffff; font-weight: 600;">Metric</th>
-                                        <th style="text-align: center; padding: 12px; color: #ffffff; font-weight: 600;">4 Weeks Ago</th>
-                                        <th style="text-align: center; padding: 12px; color: #ffffff; font-weight: 600;">This Week</th>
-                                        <th style="text-align: center; padding: 12px; color: #ffffff; font-weight: 600;">Change</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="runningProgressBody">
-                                    <tr>
-                                        <td colspan="4" style="text-align: center; padding: 20px; color: #ffffff;">
-                                            Loading progress data...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <h3>🎯 Heart Rate Zone Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="runningHRZonesChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 12px; text-align: center;">
+                            Time spent in each HR zone (last 4 weeks)
                         </div>
                     </div>
-                    
+
                     <div class="analytics-card glass-card">
-                        <h3><i class="fas fa-medal"></i> Personal Records</h3>
-                        <div id="runningRecords" style="max-height: 300px; overflow-y: auto;">
-                            <div class="record-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <span style="color: #6B7280;">Connect Strava to see your records</span>
-                            </div>
+                        <h3>📈 Training Intensity Pyramid</h3>
+                        <div class="chart-container">
+                            <canvas id="runningIntensityPyramid"></canvas>
+                        </div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 12px; text-align: center;">
+                            Optimal: 80% easy, 10% moderate, 10% hard
+                        </div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>💪 Fitness & Form Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="runningFitnessTrend"></canvas>
+                        </div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 12px; text-align: center;">
+                            CTL (Fitness), ATL (Fatigue), TSB (Form) - last 42 days
                         </div>
                     </div>
                 </div>
 
-                <!-- Endurance Timeline -->
-                <div class="analytics-card glass-card">
-                    <h3><i class="fas fa-running"></i> Endurance Development</h3>
-                    <div class="chart-container">
-                        <canvas id="runningEnduranceChart"></canvas>
+                <!-- Volume & Pace Charts -->
+                <div class="analytics-grid">
+                    <div class="analytics-card glass-card">
+                        <h3>📏 Weekly Distance Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="runningVolumeChart"></canvas>
+                        </div>
+                        <div id="runningVolumeInsight" style="margin-top: 12px; padding: 10px; background: rgba(59,130,246,0.1); border-radius: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+                            Connect Strava or Garmin to see volume trends
+                        </div>
                     </div>
-                    <div class="insight-card" id="runningEnduranceInsight" style="margin-top: 15px;">
-                        <p>Track your longest runs and endurance progression</p>
+
+                    <div class="analytics-card glass-card">
+                        <h3>⚡ Pace Progression</h3>
+                        <div class="chart-container">
+                            <canvas id="runningPaceProgression"></canvas>
+                        </div>
+                        <div id="runningPaceInsight" style="margin-top: 12px; padding: 10px; background: rgba(16,185,129,0.1); border-radius: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+                            Track pace improvements across different distances
+                        </div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>🏃 Endurance Development</h3>
+                        <div class="chart-container">
+                            <canvas id="runningEnduranceChart"></canvas>
+                        </div>
+                        <div id="runningEnduranceInsight" style="margin-top: 12px; padding: 10px; background: rgba(245,158,11,0.1); border-radius: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+                            Longest runs and long run percentage of weekly volume
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Records -->
+                <div class="analytics-card glass-card">
+                    <h3>🏆 Personal Records & Achievements</h3>
+                    <div id="runningRecords" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Fastest 5K</div>
+                            <div id="runningPR5k" style="font-size: 1.6rem; font-weight: 700; color: #10b981;">--</div>
+                        </div>
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Fastest 10K</div>
+                            <div id="runningPR10k" style="font-size: 1.6rem; font-weight: 700; color: #3b82f6;">--</div>
+                        </div>
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Fastest Half</div>
+                            <div id="runningPRHalf" style="font-size: 1.6rem; font-weight: 700; color: #8b5cf6;">--</div>
+                        </div>
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Fastest Marathon</div>
+                            <div id="runningPRMarathon" style="font-size: 1.6rem; font-weight: 700; color: #f59e0b;">--</div>
+                        </div>
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Longest Run</div>
+                            <div id="runningPRLongest" style="font-size: 1.6rem; font-weight: 700; color: #ec4899;">--</div>
+                        </div>
+                        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 4px;">Most Elevation</div>
+                            <div id="runningPRElevation" style="font-size: 1.6rem; font-weight: 700; color: #06b6d4;">--</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5799,12 +5969,27 @@
             
             // Update personal records
             updateRunningRecords(runActivities);
-            
+
             // Update endurance chart
             updateRunningEnduranceChart(recentRuns);
-            
+
             // Generate running-specific insights
             generateRunningInsights(recentRuns, previousPeriodRuns);
+
+            // Update new comprehensive running metrics
+            updateRunningFitnessMetrics(runActivities);
+            updateRunningRecoveryMetrics();
+            updateRunningPerformanceMetrics(recentRuns);
+            updateRunningFormMetrics(recentRuns);
+            updateRunningWeeklyProgress(recentRuns, previousPeriodRuns, lastWeekRuns);
+            updateRunningPersonalRecords(runActivities);
+
+            // Update new charts
+            updateRunningHRZonesChart(recentRuns);
+            updateRunningIntensityPyramid(recentRuns);
+            updateRunningFitnessTrendChart(runActivities);
+            updateRunningVolumeChart(runActivities);
+            updateRunningPaceProgressionChart(recentRuns);
         }
 
         function updateRunningVolumeCards(recentRuns, previousRuns) {
@@ -6811,6 +6996,36 @@
                 rightIndicator.classList.add('visible');
             } else {
                 rightIndicator.classList.remove('visible');
+            }
+        }
+
+        // ---- Export current tab to PDF (uses browser print-to-PDF) ----
+        function exportTabToPDF(tabId, prefix = 'Export') {
+            try {
+                const originalTitle = document.title;
+                const tab = document.getElementById(tabId);
+                if (!tab) { showMessage('Tab not found for export', 'error'); return; }
+                document.body.classList.add('print-mode');
+                // Clear previous targets
+                document.querySelectorAll('.print-target').forEach(el => el.classList.remove('print-target'));
+                tab.classList.add('print-target');
+                // Set filename via title (most browsers use page title)
+                const date = new Date().toISOString().split('T')[0];
+                document.title = `Athlytx-${prefix}-${date}`;
+
+                const cleanup = () => {
+                    document.body.classList.remove('print-mode');
+                    tab.classList.remove('print-target');
+                    document.title = originalTitle;
+                };
+                const afterPrint = () => { cleanup(); window.removeEventListener('afterprint', afterPrint); };
+                window.addEventListener('afterprint', afterPrint);
+                window.print();
+                // Fallback cleanup in case afterprint doesn't fire
+                setTimeout(() => { cleanup(); }, 2000);
+            } catch (e) {
+                console.error('Export error:', e);
+                showMessage('Export failed: ' + e.message, 'error');
             }
         }
 
