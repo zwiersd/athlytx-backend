@@ -406,6 +406,16 @@
 
     <!-- Main Content -->
     <div class="container">
+        <!-- Garmin Actions -->
+        <div id="garminAthleteActions" style="display:flex; gap:10px; align-items:center; margin: 0 0 16px 0;">
+            <button class="btn-secondary" onclick="registerGarminSelf()" title="Ensure Garmin PUSH registration for your account">
+                Ensure Garmin PUSH Registration
+            </button>
+            <button class="btn-secondary" onclick="backfillGarminSelf(30)" title="Queue a 30 day backfill for your account">
+                Backfill Last 30 Days
+            </button>
+            <span id="garminAthleteActionStatus" style="font-size: 13px; color: rgba(255,255,255,0.75);"></span>
+        </div>
         <!-- Stats Overview -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -639,6 +649,57 @@
         function logout() {
             localStorage.removeItem('athlytx_session');
             window.location.href = '/athlete';
+        }
+
+        // ===== Garmin Helpers (Athlete self-service) =====
+        async function registerGarminSelf() {
+            try {
+                if (!session || !session.user) {
+                    alert('You must be logged in');
+                    return;
+                }
+                const statusEl = document.getElementById('garminAthleteActionStatus');
+                if (statusEl) statusEl.textContent = 'Registering with Garmin...';
+                const res = await fetch('/api/garmin/admin/register-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: session.user.id })
+                });
+                const text = await res.text();
+                if (statusEl) statusEl.textContent = res.ok ? 'Registration OK (or already registered)' : `Registration failed: ${text}`;
+            } catch (e) {
+                const statusEl = document.getElementById('garminAthleteActionStatus');
+                if (statusEl) statusEl.textContent = `Registration error: ${e.message}`;
+            }
+        }
+
+        async function backfillGarminSelf(days = 30) {
+            try {
+                if (!session || !session.user) {
+                    alert('You must be logged in');
+                    return;
+                }
+                const statusEl = document.getElementById('garminAthleteActionStatus');
+                if (statusEl) statusEl.textContent = `Starting backfill for ${days} day(s)...`;
+                const now = new Date();
+                const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+                const res = await fetch('/api/garmin/backfill', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: session.user.id, startDate })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (statusEl) statusEl.textContent = `Backfill failed: ${data.message || res.statusText}`;
+                    return;
+                }
+                if (statusEl) statusEl.textContent = `Backfill accepted: syncing ${data.daysToSync || days} day(s).`;
+                // Optionally refresh device status later
+                setTimeout(loadDashboardData, 3000);
+            } catch (e) {
+                const statusEl = document.getElementById('garminAthleteActionStatus');
+                if (statusEl) statusEl.textContent = `Backfill error: ${e.message}`;
+            }
         }
 
         // Close modal on outside click
