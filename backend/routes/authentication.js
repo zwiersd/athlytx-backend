@@ -84,6 +84,14 @@ router.post('/signup', async (req, res) => {
             });
 
             console.log(`✅ Upgraded guest user ${userId} to full account: ${email}`);
+            // Consolidate any duplicate device tokens/data under this account
+            try {
+                const { consolidateUserOwnership } = require('../utils/consolidate');
+                const consolidation = await consolidateUserOwnership(user.id);
+                console.log('🔧 Consolidation result (upgrade):', consolidation);
+            } catch (e) {
+                console.warn('⚠️ Consolidation skipped (upgrade):', e.message);
+            }
 
             // Send email notification for upgraded guest account
             try {
@@ -127,6 +135,14 @@ router.post('/signup', async (req, res) => {
             });
 
             console.log(`✅ Created new account: ${email}`);
+            // Consolidate any duplicate device tokens/data under this account (if user previously connected as guest elsewhere)
+            try {
+                const { consolidateUserOwnership } = require('../utils/consolidate');
+                const consolidation = await consolidateUserOwnership(user.id);
+                console.log('🔧 Consolidation result (new account):', consolidation);
+            } catch (e) {
+                console.warn('⚠️ Consolidation skipped (new account):', e.message);
+            }
 
             // Send email notification for new account
             try {
@@ -224,6 +240,15 @@ router.post('/login', async (req, res) => {
         });
 
         console.log(`✅ User logged in: ${email}`);
+
+        // Consolidate ownership post-login as a safety net
+        try {
+            const { consolidateUserOwnership } = require('../utils/consolidate');
+            const consolidation = await consolidateUserOwnership(user.id);
+            console.log('🔧 Consolidation result (login):', consolidation);
+        } catch (e) {
+            console.warn('⚠️ Consolidation skipped (login):', e.message);
+        }
 
         res.json({
             success: true,

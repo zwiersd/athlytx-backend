@@ -776,41 +776,35 @@ app.post('/api/garmin/token', async (req, res) => {
 
         // Register user for PUSH notifications
         try {
-            // **CRITICAL:** Register user for Health API PUSH notifications
-            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS ===');
-            const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
-
-            console.log('Registration URL (PUSH):', pushRegUrl);
-            console.log('Using OAuth 2.0 Bearer token authentication');
-
-            // **FIX:** Use OAuth 2.0 Bearer token authentication (NOT OAuth 1.0a)
-            // Garmin Health API supports OAuth 2.0 when using OAuth 2.0 tokens
-            const pushRegResponse = await fetch(pushRegUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${data.access_token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})  // Empty body as per Garmin spec
-            });
-
-            const pushRegText = await pushRegResponse.text();
+            // Use OAuth 1.0a signature with OAuth2 token (hybrid) per Garmin Health API
+            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS (OAUTH1-HYBRID) ===');
+            const { signAndFetch } = require('../utils/garmin-api');
+            const regResponse = await signAndFetch('/user/registration', 'POST', data.access_token, {});
+            const regText = await regResponse.text();
             console.log('📝 Push registration response:', {
-                status: pushRegResponse.status,
-                body: pushRegText
+                status: regResponse.status,
+                statusText: regResponse.statusText,
+                body: regText
             });
 
-            if (pushRegResponse.ok || pushRegResponse.status === 409) {
+            if (regResponse.ok || regResponse.status === 409) {
                 console.log('✅ User registered for PUSH notifications (or already registered)');
             } else {
-                console.warn('⚠️ Push registration failed (non-fatal):', pushRegText);
-                console.warn('⚠️ This means new activities will NOT auto-push from Garmin');
+                console.warn('⚠️ Push registration failed (non-fatal):', regText);
+            }
+
+            // Optional: verify permissions for debug
+            try {
+                const { fetchWithBearer } = require('../utils/garmin-api-bearer');
+                const permResponse = await fetchWithBearer('/user/permissions', 'GET', data.access_token, {});
+                const permText = await permResponse.text();
+                console.log('🔐 Permissions check:', { status: permResponse.status, body: permText.substring(0, 400) });
+            } catch (permErr) {
+                console.warn('⚠️ Permissions check failed (non-fatal):', permErr.message);
             }
 
         } catch (regError) {
             console.error('⚠️ PUSH registration error (non-fatal):', regError);
-            console.error('⚠️ This means new activities will NOT auto-push from Garmin');
         }
 
         // **CRITICAL:** Save token to database so PUSH webhooks can find the user
@@ -827,37 +821,51 @@ app.post('/api/garmin/token', async (req, res) => {
                 console.warn('⚠️ No userId available - token will not be saved to database');
                 console.warn('   PUSH notifications will not work without database storage!');
             } else {
-                // **FIX:** Check if this Garmin account already exists under a different userId
-                // This prevents orphaned activities when localStorage is cleared
+                // Canonicalize ownership for this Garmin GUID across guest/registered accounts
                 if (garminUserId) {
-                    const existingToken = await OAuthToken.findOne({
-                        where: {
-                            provider: 'garmin',
-                            providerUserId: garminUserId
-                        }
+                    const { User } = require('../models');
+                    const allTokens = await OAuthToken.findAll({
+                        where: { provider: 'garmin', providerUserId: garminUserId },
+                        include: [{ model: User }]
                     });
 
-                    if (existingToken && existingToken.userId !== userId) {
-                        console.log(`🔄 Garmin account ${garminUserId} already exists under userId ${existingToken.userId}`);
-                        console.log(`   Migrating from temporary userId ${userId} to persistent userId ${existingToken.userId}`);
+                    if (allTokens.length > 0) {
+                        // Prefer a non-guest (registered) user if present
+                        const registeredHolder = allTokens.find(t => t.User && t.User.isGuest === false);
+                        let canonicalUserId = registeredHolder ? registeredHolder.userId : userId;
 
-                        // Migrate any activities created under the temporary userId
-                        const migratedCount = await Activity.update(
-                            { userId: existingToken.userId },
-                            {
-                                where: {
-                                    userId: userId,
-                                    provider: 'garmin'
+                        // If none registered yet, but there is an existing token owner, prefer that existing owner
+                        if (!registeredHolder && allTokens[0] && allTokens[0].userId) {
+                            canonicalUserId = allTokens.some(t => t.userId === userId) ? userId : allTokens[0].userId;
+                        }
+
+                        if (canonicalUserId !== userId) {
+                            console.log(`🔄 Canonical Garmin owner resolved: ${canonicalUserId} (was ${userId})`);
+                            // Move any activities and dailies from current userId to canonical
+                            const { DailyMetric } = require('../models');
+                            const migratedActs = await Activity.update(
+                                { userId: canonicalUserId },
+                                { where: { userId, provider: 'garmin' } }
+                            );
+                            const migratedDailies = await DailyMetric.update(
+                                { userId: canonicalUserId },
+                                { where: { userId } }
+                            );
+                            console.log(`   Migrated activities: ${migratedActs[0]}, dailies: ${migratedDailies[0]}`);
+                            userId = canonicalUserId;
+                            data.userId = userId;
+                        }
+
+                        // Remove duplicate tokens for same GUID under other users, keep newest under canonical
+                        const newest = [...allTokens].sort((a,b) => new Date(b.connectedAt) - new Date(a.connectedAt))[0];
+                        await Promise.all(allTokens
+                            .filter(t => t.id !== newest.id)
+                            .map(async (t) => {
+                                if (t.userId !== userId) {
+                                    await t.destroy();
                                 }
-                            }
+                            })
                         );
-                        console.log(`   Migrated ${migratedCount[0]} orphaned activities`);
-
-                        // Use the existing userId going forward
-                        userId = existingToken.userId;
-                        data.userId = userId; // Return correct userId to frontend
-                    } else if (existingToken) {
-                        console.log(`✅ Reconnecting Garmin account ${garminUserId} with same userId ${userId}`);
                     } else {
                         console.log(`🆕 New Garmin connection for ${garminUserId} with userId ${userId}`);
                     }

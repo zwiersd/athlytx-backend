@@ -7,7 +7,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { OAuthToken } = require('../models');
+const { OAuthToken, User } = require('../models');
 const { decrypt } = require('../utils/encryption');
 
 router.post('/register-existing-users', async (req, res) => {
@@ -64,7 +64,7 @@ router.post('/register-existing-users', async (req, res) => {
 
                 console.log('  Calling:', pushRegUrl);
 
-                const response = await fetch(pushRegUrl, {
+                let response = await fetch(pushRegUrl, {
                     method: 'POST',
                     headers: {
                         Authorization: authHeader,
@@ -74,8 +74,62 @@ router.post('/register-existing-users', async (req, res) => {
                     body: JSON.stringify({})
                 });
 
-                const responseText = await response.text();
+                let responseText = await response.text();
                 console.log('  Response:', response.status, responseText);
+
+                // If unauthorized, try refreshing token once (if refresh token available)
+                if (response.status === 401 && token.refreshTokenEncrypted) {
+                    try {
+                        console.log('  🔄 Attempting token refresh for user', token.userId);
+                        const refreshToken = decrypt(token.refreshTokenEncrypted);
+                        const credentials = Buffer.from(
+                            `${process.env.GARMIN_CONSUMER_KEY}:${process.env.GARMIN_CONSUMER_SECRET}`
+                        ).toString('base64');
+
+                        const refreshResp = await fetch('https://diauth.garmin.com/di-oauth2-service/oauth/token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Authorization': `Basic ${credentials}`
+                            },
+                            body: new URLSearchParams({
+                                grant_type: 'refresh_token',
+                                refresh_token: refreshToken
+                            })
+                        });
+
+                        const refreshData = await refreshResp.json();
+                        console.log('  🔄 Refresh status:', refreshResp.status, !!refreshData.access_token);
+                        if (refreshResp.ok && refreshData.access_token) {
+                            // Update DB token
+                            const { encrypt } = require('../utils/encryption');
+                            token.accessTokenEncrypted = encrypt(refreshData.access_token);
+                            if (refreshData.refresh_token) {
+                                token.refreshTokenEncrypted = encrypt(refreshData.refresh_token);
+                            }
+                            if (refreshData.expires_in) {
+                                token.expiresAt = new Date(Date.now() + refreshData.expires_in * 1000);
+                            }
+                            await token.save();
+
+                            // Retry registration
+                            const retryAuthHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, refreshData.access_token);
+                            response = await fetch(pushRegUrl, {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: retryAuthHeader,
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({})
+                            });
+                            responseText = await response.text();
+                            console.log('  🔁 Retry response:', response.status, responseText);
+                        }
+                    } catch (refreshErr) {
+                        console.log('  ❌ Refresh attempt failed:', refreshErr.message);
+                    }
+                }
 
                 if (response.ok || response.status === 409) {
                     console.log(`  ✅ User ${token.userId} registered successfully`);
@@ -141,3 +195,76 @@ router.post('/register-existing-users', async (req, res) => {
 });
 
 module.exports = router;
+
+/**
+ * Admin: Consolidate Garmin ownership for a user (by userId or email)
+ * POST /api/garmin/admin/consolidate
+ * Body: { userId?: string, email?: string }
+ */
+router.post('/consolidate', async (req, res) => {
+    try {
+        const { userId, email } = req.body;
+
+        let user = null;
+        if (email) {
+            user = await User.findOne({ where: { email } });
+        } else if (userId) {
+            user = await User.findByPk(userId);
+        }
+
+        if (!user) {
+            return res.status(400).json({ error: 'Target user not found (provide valid userId or email)' });
+        }
+
+        const { consolidateUserOwnership } = require('../utils/consolidate');
+        const result = await consolidateUserOwnership(user.id);
+        res.json({ success: true, userId: user.id, email: user.email, result });
+    } catch (error) {
+        console.error('❌ Consolidation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * Admin: Register a specific user for Garmin Health PUSH (uses newest token)
+ * POST /api/garmin/admin/register-user
+ * Body: { userId: string }
+ */
+router.post('/register-user', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        const token = await OAuthToken.findOne({
+            where: { userId, provider: 'garmin' },
+            order: [['connectedAt', 'DESC']]
+        });
+
+        if (!token || !token.accessTokenEncrypted) {
+            return res.status(404).json({ error: 'No Garmin token found for user' });
+        }
+
+        const accessToken = decrypt(token.accessTokenEncrypted);
+        const { signAndFetch } = require('../utils/garmin-api');
+        const response = await signAndFetch('/user/registration', 'POST', accessToken, {});
+        const bodyText = await response.text();
+
+        const payload = {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            body: bodyText
+        };
+
+        if (!response.ok && response.status !== 409) {
+            return res.status(response.status).json({ success: false, ...payload });
+        }
+
+        res.json({ success: true, ...payload });
+    } catch (error) {
+        console.error('❌ Register user error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
