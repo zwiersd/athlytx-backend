@@ -1420,15 +1420,27 @@
 
             // Load first athlete if available
             if (athletes.length > 0) {
-                loadAthlete(athletes[0].id);
+                console.log('[COACH-DASHBOARD] Athletes loaded:', athletes);
+                if (athletes[0].id) {
+                    loadAthlete(athletes[0].id);
+                } else {
+                    console.error('[COACH-DASHBOARD] Athletes exist but missing ID field:', athletes);
+                    showEmptyState();
+                }
             } else {
+                console.log('[COACH-DASHBOARD] No athletes found');
                 showEmptyState();
             }
         }
 
         async function loadAthlete(athleteId) {
+            console.log('[LOAD-ATHLETE] Attempting to load:', athleteId);
+            console.log('[LOAD-ATHLETE] Available athletes:', athletes);
             currentAthlete = athletes.find(a => a.id === athleteId);
-            if (!currentAthlete) return;
+            if (!currentAthlete) {
+                console.error('[LOAD-ATHLETE] Athlete not found in athletes array');
+                return;
+            }
 
             // Update UI
             const initials = currentAthlete.name.split(' ').map(n => n[0]).join('').toUpperCase();

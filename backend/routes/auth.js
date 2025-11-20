@@ -259,22 +259,34 @@ router.post('/login', async (req, res) => {
         // Get relationships
         let relationships = [];
         if (user.role === 'coach') {
+            // Include both pending and active relationships for coaches
             relationships = await CoachAthlete.findAll({
                 where: {
                     coachId: user.id,
                     status: { [Op.in]: ['pending', 'active'] }
-                }
+                },
+                include: [{
+                    model: User,
+                    as: 'Athlete',
+                    attributes: ['id', 'email', 'name']
+                }]
             });
         } else {
+            // Only active relationships for athletes
             relationships = await CoachAthlete.findAll({
                 where: {
                     athleteId: user.id,
                     status: 'active'
-                }
+                },
+                include: [{
+                    model: User,
+                    as: 'Coach',
+                    attributes: ['id', 'email', 'name']
+                }]
             });
         }
 
-        console.log('[LOGIN] Success, session created');
+        console.log('[LOGIN] Success, session created with', relationships.length, 'relationships');
 
         res.json({
             success: true,
@@ -288,11 +300,11 @@ router.post('/login', async (req, res) => {
             sessionToken,
             sessionExpiry,
             relationships: relationships.map(r => ({
-                coachId: r.coachId,
-                athleteId: r.athleteId,
-                status: r.status,
-                createdAt: r.createdAt
-            }))
+                id: user.role === 'coach' ? r.Athlete?.id : r.Coach?.id,
+                email: user.role === 'coach' ? r.Athlete?.email : r.Coach?.email,
+                name: user.role === 'coach' ? r.Athlete?.name : r.Coach?.name,
+                status: r.status
+            })).filter(r => r.id) // Filter out any null relationships
         });
 
     } catch (error) {
