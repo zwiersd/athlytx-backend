@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/dashboard.css">
+    <style>
+        /* Print only selected area when exporting */
+        @media print {
+            body.print-mode * { visibility: hidden !important; }
+            body.print-mode .print-target,
+            body.print-mode .print-target * { visibility: visible !important; }
+            body.print-mode .print-target { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <style>
@@ -1130,6 +1139,9 @@
                         <button class="btn btn-ghost" onclick="window.location.href='/coach-settings.html'">
                             ⚙️ Settings
                         </button>
+                        <button class="btn btn-ghost" onclick="exportCoachPDF('coachDashboardContainer')">
+                            ⬇️ Export PDF
+                        </button>
                         <span id="garminCoachBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
                         <button class="btn btn-ghost" onclick="logout()">
                             Logout
@@ -1142,7 +1154,7 @@
             </div>
         </header>
 
-        <div class="container">
+        <div class="container" id="coachDashboardContainer">
             <!-- Garmin Admin Actions for Selected Athlete -->
             <div id="garminCoachActions" style="display:flex; gap:10px; align-items:center; margin: 0 0 16px 0;">
                 <button class="btn btn-secondary" onclick="registerAthleteGarmin()" title="Ensure Garmin PUSH registration for this athlete">
@@ -2224,6 +2236,34 @@
             } catch (e) {
                 const statusEl = document.getElementById('garminCoachActionStatus');
                 if (statusEl) statusEl.textContent = `Backfill error: ${e.message}`;
+            }
+        }
+
+        // ===== Export dashboard to PDF =====
+        function exportCoachPDF(targetId = 'coachDashboardContainer', prefix = 'Athlete') {
+            try {
+                const originalTitle = document.title;
+                const target = document.getElementById(targetId);
+                if (!target) { console.warn('Export target not found'); return; }
+                document.body.classList.add('print-mode');
+                document.querySelectorAll('.print-target').forEach(el => el.classList.remove('print-target'));
+                target.classList.add('print-target');
+
+                const athleteName = (document.getElementById('athleteName')?.textContent || 'Athlete').trim();
+                const date = new Date().toISOString().split('T')[0];
+                document.title = `Athlytx-${prefix}-${athleteName}-${date}`;
+
+                const cleanup = () => {
+                    document.body.classList.remove('print-mode');
+                    target.classList.remove('print-target');
+                    document.title = originalTitle;
+                };
+                const afterPrint = () => { cleanup(); window.removeEventListener('afterprint', afterPrint); };
+                window.addEventListener('afterprint', afterPrint);
+                window.print();
+                setTimeout(() => cleanup(), 2000);
+            } catch (e) {
+                console.error('PDF export error:', e);
             }
         }
     </script>
