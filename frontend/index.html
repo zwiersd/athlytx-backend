@@ -185,7 +185,14 @@
                 <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="header-logo" crossorigin="anonymous">
             </div>
 
-            <div class="header-right">
+            <!-- Hamburger Menu Button (Mobile Only) -->
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+
+            <div class="header-right" id="headerMenu">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
                 <span id="garminHeaderBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
                 <button onclick="syncAllProviders()" class="sync-btn" id="syncBtn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
@@ -1322,6 +1329,51 @@
     </footer>
 
     <script>
+        // ===== HAMBURGER MENU TOGGLE =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const headerMenu = document.getElementById('headerMenu');
+
+            if (hamburgerBtn && headerMenu) {
+                hamburgerBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = headerMenu.classList.toggle('mobile-menu-open');
+                    hamburgerBtn.classList.toggle('active');
+                    hamburgerBtn.setAttribute('aria-expanded', isOpen);
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (headerMenu.classList.contains('mobile-menu-open') &&
+                        !headerMenu.contains(e.target) &&
+                        !hamburgerBtn.contains(e.target)) {
+                        headerMenu.classList.remove('mobile-menu-open');
+                        hamburgerBtn.classList.remove('active');
+                        hamburgerBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Close menu when clicking a menu item
+                const menuItems = headerMenu.querySelectorAll('a, button');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        headerMenu.classList.remove('mobile-menu-open');
+                        hamburgerBtn.classList.remove('active');
+                        hamburgerBtn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                // Close menu on window resize to desktop size
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        headerMenu.classList.remove('mobile-menu-open');
+                        hamburgerBtn.classList.remove('active');
+                        hamburgerBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+
         // ===== API CONFIGURATION =====
         const API_CONFIG = {
             // Use current origin by default so local/staging environments fetch from the correct backend
