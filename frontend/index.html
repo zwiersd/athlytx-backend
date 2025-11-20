@@ -610,7 +610,21 @@
                 </div>
 
                 <div class="analytics-card glass-card">
-                    <h3>🏃 Strava Training Data Summary (Last 7 Days)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">🏃 Strava Training Data Summary</h3>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <label for="stravaPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
+                            <select id="stravaPeriodSelector" onchange="updateStravaPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
+                                <option value="7">Last 7 Days</option>
+                                <option value="14">Last 14 Days</option>
+                                <option value="30">Last 30 Days</option>
+                                <option value="60">Last 60 Days</option>
+                                <option value="90">Last 90 Days</option>
+                                <option value="180">Last 6 Months</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="data-summary">
                         <div class="summary-card glass-card">
                             <span class="summary-value" id="stravaActivities">--</span>
@@ -627,6 +641,41 @@
                         <div class="summary-card glass-card">
                             <span class="summary-value" id="stravaAvgPower">--</span>
                             <div class="summary-label">Avg Power</div>
+                        </div>
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaElevation">--</span>
+                            <div class="summary-label">Total Elevation</div>
+                        </div>
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaMovingTime">--</span>
+                            <div class="summary-label">Moving Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fitness & Form Metrics -->
+                <div class="analytics-card glass-card">
+                    <h3>📈 Fitness & Form (Last 42 Days)</h3>
+                    <div class="data-summary">
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaFitness" style="color: #10b981;">--</span>
+                            <div class="summary-label">Fitness (CTL)</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 4px;">Chronic Training Load</div>
+                        </div>
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaFatigue" style="color: #f59e0b;">--</span>
+                            <div class="summary-label">Fatigue (ATL)</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 4px;">Acute Training Load</div>
+                        </div>
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaForm" style="color: #3b82f6;">--</span>
+                            <div class="summary-label">Form (TSB)</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 4px;">Training Stress Balance</div>
+                        </div>
+                        <div class="summary-card glass-card">
+                            <span class="summary-value" id="stravaFormStatus">--</span>
+                            <div class="summary-label">Status</div>
+                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 4px;" id="stravaFormAdvice">--</div>
                         </div>
                     </div>
                 </div>
@@ -654,6 +703,22 @@
                         <div class="chart-container">
                             <canvas id="stravaLoadChart"></canvas>
                         </div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>Fitness & Form Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="stravaFitnessChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.85rem; color:rgba(255,255,255,0.7); margin-top:6px;">42-day rolling averages (CTL/ATL) and Form (TSB)</div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>Time in Heart Rate Zones</h3>
+                        <div class="chart-container">
+                            <canvas id="stravaHRZonesChart"></canvas>
+                        </div>
+                        <div style="font-size: 0.85rem; color:rgba(255,255,255,0.7); margin-top:6px;">Based on activities with HR data in selected period</div>
                     </div>
 
                     <div class="analytics-card glass-card">
@@ -2903,11 +2968,15 @@
                 return;
             }
 
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
+            // Get selected period from dropdown (default 7 days)
+            const periodSelector = document.getElementById('stravaPeriodSelector');
+            const selectedDays = periodSelector ? parseInt(periodSelector.value) : 7;
+
+            const periodStart = new Date();
+            periodStart.setDate(periodStart.getDate() - selectedDays);
 
             const recentActivities = fitnessData.strava.activities.filter(a =>
-                a && a.start_date && new Date(a.start_date) >= lastWeek
+                a && a.start_date && new Date(a.start_date) >= periodStart
             );
 
             const allActivities = fitnessData.strava.activities;
@@ -2959,6 +3028,15 @@
             const avgPower = validPowerActivities.length > 0 ?
                 validPowerActivities.reduce((sum, a) => sum + a.average_watts, 0) / validPowerActivities.length : 0;
             document.getElementById('stravaAvgPower').textContent = avgPower > 0 ? `${Math.round(avgPower)}W` : '--';
+
+            // New metrics
+            const totalElevation = recentActivities.reduce((sum, a) => sum + (a.total_elevation_gain || 0), 0);
+            document.getElementById('stravaElevation').textContent = `${Math.round(totalElevation)}m`;
+
+            const totalMovingTime = recentActivities.reduce((sum, a) => sum + (a.moving_time || 0), 0);
+            const hours = Math.floor(totalMovingTime / 3600);
+            const minutes = Math.floor((totalMovingTime % 3600) / 60);
+            document.getElementById('stravaMovingTime').textContent = `${hours}h ${minutes}m`;
 
             // Update comprehensive activities list with ALL available data
             const activitiesList = document.getElementById('stravaActivitiesList');
@@ -3044,6 +3122,14 @@
             updateStravaLoadChart();
             updateStravaIntensityDistribution();
             updateStravaMonotonyCard();
+            updateStravaFitnessMetrics();
+            updateStravaFitnessChart();
+            updateStravaHRZonesChart();
+        }
+
+        // Update Strava period selector
+        function updateStravaPeriod() {
+            updateStravaData();
         }
 
         // ===== ATHLYTX SCORE CALCULATION =====
@@ -3629,6 +3715,248 @@
             if (monotony >= 2.0) status = 'High monotony — vary intensity to reduce fatigue risk';
             else if (monotony >= 1.5) status = 'Moderate monotony — consider mixing easy/hard days';
             card.textContent = `Mean daily load ${Math.round(mean)}, SD ${Math.round(sd)}, Monotony ${monotony.toFixed(2)}. ${status}.`;
+        }
+
+        // Calculate Fitness & Form Metrics (CTL, ATL, TSB)
+        function updateStravaFitnessMetrics() {
+            if (!fitnessData.strava || !fitnessData.strava.activities) return;
+
+            // Get last 42 days of data for CTL calculation
+            const today = new Date();
+            const dailyTSS = {};
+
+            // Build daily TSS (Training Stress Score) from suffer_score
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateKey = date.toISOString().split('T')[0];
+                dailyTSS[dateKey] = 0;
+            }
+
+            // Populate with actual activities
+            fitnessData.strava.activities.forEach(a => {
+                if (!a.start_date) return;
+                const dateKey = a.start_date.split('T')[0];
+                if (dailyTSS.hasOwnProperty(dateKey)) {
+                    dailyTSS[dateKey] += (a.suffer_score || 0);
+                }
+            });
+
+            // Calculate CTL (Chronic Training Load) - 42-day exponential moving average
+            const ctlDecay = 1 - (1 / 42);
+            let ctl = 0;
+            Object.keys(dailyTSS).sort().reverse().forEach(date => {
+                ctl = (ctl * ctlDecay) + dailyTSS[date];
+            });
+
+            // Calculate ATL (Acute Training Load) - 7-day exponential moving average
+            const atlDecay = 1 - (1 / 7);
+            let atl = 0;
+            const last7Days = Object.keys(dailyTSS).sort().reverse().slice(0, 7);
+            last7Days.forEach(date => {
+                atl = (atl * atlDecay) + dailyTSS[date];
+            });
+
+            // Calculate TSB (Training Stress Balance) = CTL - ATL
+            const tsb = ctl - atl;
+
+            // Update UI
+            document.getElementById('stravaFitness').textContent = Math.round(ctl);
+            document.getElementById('stravaFatigue').textContent = Math.round(atl);
+
+            const tsbElement = document.getElementById('stravaForm');
+            tsbElement.textContent = tsb >= 0 ? `+${Math.round(tsb)}` : Math.round(tsb);
+
+            // Determine form status
+            let status, advice, color;
+            if (tsb > 25) {
+                status = 'Fresh 🌟';
+                advice = 'Well rested - good time for key workouts';
+                color = '#10b981';
+            } else if (tsb > 5) {
+                status = 'Ready 💪';
+                advice = 'Optimal training readiness';
+                color = '#3b82f6';
+            } else if (tsb > -10) {
+                status = 'Neutral ⚖️';
+                advice = 'Balanced training load';
+                color = '#f59e0b';
+            } else if (tsb > -30) {
+                status = 'Fatigued 😓';
+                advice = 'Consider easier sessions';
+                color = '#f97316';
+            } else {
+                status = 'Overreached ⚠️';
+                advice = 'Recovery needed';
+                color = '#ef4444';
+            }
+
+            document.getElementById('stravaFormStatus').textContent = status;
+            document.getElementById('stravaFormStatus').style.color = color;
+            document.getElementById('stravaFormAdvice').textContent = advice;
+            tsbElement.style.color = color;
+        }
+
+        // Update Fitness & Form Chart
+        function updateStravaFitnessChart() {
+            const canvas = document.getElementById('stravaFitnessChart');
+            if (!canvas || !fitnessData.strava || !fitnessData.strava.activities) return;
+
+            if (!charts.stravaFitness) {
+                charts.stravaFitness = new Chart(canvas, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { display: true },
+                            y: { display: true, title: { display: true, text: 'Load' } }
+                        }
+                    }
+                });
+            }
+
+            // Calculate daily CTL and ATL over last 42 days
+            const today = new Date();
+            const labels = [];
+            const ctlData = [];
+            const atlData = [];
+            const tsbData = [];
+            const dailyTSS = {};
+
+            // Initialize days
+            for (let i = 41; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateKey = date.toISOString().split('T')[0];
+                labels.push(new Date(dateKey).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                dailyTSS[dateKey] = 0;
+            }
+
+            // Populate with activities
+            fitnessData.strava.activities.forEach(a => {
+                if (!a.start_date) return;
+                const dateKey = a.start_date.split('T')[0];
+                if (dailyTSS.hasOwnProperty(dateKey)) {
+                    dailyTSS[dateKey] += (a.suffer_score || 0);
+                }
+            });
+
+            // Calculate rolling CTL and ATL
+            const ctlDecay = 1 - (1 / 42);
+            const atlDecay = 1 - (1 / 7);
+            let ctl = 0;
+            let atl = 0;
+
+            Object.keys(dailyTSS).sort().forEach(date => {
+                ctl = (ctl * ctlDecay) + dailyTSS[date];
+                atl = (atl * atlDecay) + dailyTSS[date];
+                ctlData.push(ctl);
+                atlData.push(atl);
+                tsbData.push(ctl - atl);
+            });
+
+            charts.stravaFitness.data = {
+                labels,
+                datasets: [
+                    { label: 'Fitness (CTL)', data: ctlData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: true },
+                    { label: 'Fatigue (ATL)', data: atlData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, fill: true },
+                    { label: 'Form (TSB)', data: tsbData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, fill: true }
+                ]
+            };
+            charts.stravaFitness.update();
+        }
+
+        // Update Heart Rate Zones Chart
+        function updateStravaHRZonesChart() {
+            const canvas = document.getElementById('stravaHRZonesChart');
+            if (!canvas || !fitnessData.strava || !fitnessData.strava.activities) return;
+
+            if (!charts.stravaHRZones) {
+                charts.stravaHRZones = new Chart(canvas, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `${Math.round(ctx.parsed.y)} minutes`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { display: true },
+                            y: { display: true, title: { display: true, text: 'Time (minutes)' } }
+                        }
+                    }
+                });
+            }
+
+            // Get activities from selected period
+            const periodSelector = document.getElementById('stravaPeriodSelector');
+            const selectedDays = periodSelector ? parseInt(periodSelector.value) : 7;
+            const periodStart = new Date();
+            periodStart.setDate(periodStart.getDate() - selectedDays);
+
+            const recentActivities = fitnessData.strava.activities.filter(a =>
+                a && a.start_date && new Date(a.start_date) >= periodStart && a.average_heartrate
+            );
+
+            if (recentActivities.length === 0) {
+                charts.stravaHRZones.data = {
+                    labels: ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'],
+                    datasets: [{
+                        label: 'Time in Zone',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444']
+                    }]
+                };
+                charts.stravaHRZones.update();
+                return;
+            }
+
+            // Estimate time in zones based on average HR and moving time
+            // Zone 1: <60%, Zone 2: 60-70%, Zone 3: 70-80%, Zone 4: 80-90%, Zone 5: >90%
+            // Assume max HR = 220 - age (or use 190 as default)
+            const estimatedMaxHR = 190;
+            const zones = [0, 0, 0, 0, 0];
+
+            recentActivities.forEach(a => {
+                const avgHR = a.average_heartrate;
+                const movingTime = (a.moving_time || 0) / 60; // convert to minutes
+                const hrPercent = (avgHR / estimatedMaxHR) * 100;
+
+                // Distribute time based on average HR (simplified)
+                if (hrPercent < 60) zones[0] += movingTime;
+                else if (hrPercent < 70) zones[1] += movingTime;
+                else if (hrPercent < 80) zones[2] += movingTime;
+                else if (hrPercent < 90) zones[3] += movingTime;
+                else zones[4] += movingTime;
+            });
+
+            charts.stravaHRZones.data = {
+                labels: ['Zone 1 (Easy)', 'Zone 2 (Moderate)', 'Zone 3 (Tempo)', 'Zone 4 (Threshold)', 'Zone 5 (VO2 Max)'],
+                datasets: [{
+                    label: 'Time in Zone',
+                    data: zones.map(z => Math.round(z)),
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'],
+                    borderRadius: 6
+                }]
+            };
+            charts.stravaHRZones.update();
         }
 
         function updateOuraTrendCharts() {
