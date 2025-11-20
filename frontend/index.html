@@ -4755,24 +4755,24 @@
                 if (dailySummaries.length > 0) {
                     const latest = dailySummaries[0];
 
-                    // Body Battery
-                    if (latest.bodyBatteryHighestValue) {
+                    // Body Battery (allow 0)
+                    if (latest.bodyBatteryHighestValue !== undefined && latest.bodyBatteryHighestValue !== null) {
                         document.getElementById('garminBodyBattery').textContent = latest.bodyBatteryHighestValue;
                     }
 
-                    // Stress Level
-                    if (latest.averageStressLevel) {
+                    // Stress Level (allow 0)
+                    if (latest.averageStressLevel !== undefined && latest.averageStressLevel !== null) {
                         document.getElementById('garminStressLevel').textContent = latest.averageStressLevel;
                     }
 
-                    // HRV
-                    if (latest.hrvAvg) {
+                    // HRV (allow 0)
+                    if (latest.hrvAvg !== undefined && latest.hrvAvg !== null) {
                         document.getElementById('garminHRV').textContent = Math.round(latest.hrvAvg);
                     }
 
-                    // Respiration
-                    if (latest.avgWakingRespirationValue) {
-                        document.getElementById('garminRespiration').textContent = latest.avgWakingRespirationValue.toFixed(1);
+                    // Respiration (allow 0)
+                    if (latest.avgWakingRespirationValue !== undefined && latest.avgWakingRespirationValue !== null) {
+                        document.getElementById('garminRespiration').textContent = Number(latest.avgWakingRespirationValue).toFixed(1);
                     }
                 }
 
