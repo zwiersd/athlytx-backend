@@ -188,6 +188,7 @@
 
             <div class="header-right">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
+                <span id="garminHeaderBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
                 <button onclick="syncAllProviders()" class="sync-btn" id="syncBtn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
                 <button onclick="refreshAllData()" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
                 <button onclick="clearAllData()" class="refresh-btn"><i class="fas fa-trash-alt"></i> Clear</button>
@@ -4972,6 +4973,28 @@
                         </div>
                     `;
                 }).join('');
+            }
+
+            // Update header Garmin badge as well
+            try {
+                const garminConnected = !!fitnessData.garmin || !!localStorage.getItem('garmin_token');
+                setGarminHeaderBadge(garminConnected);
+            } catch (_) {}
+        }
+
+        function setGarminHeaderBadge(connected) {
+            const el = document.getElementById('garminHeaderBadge');
+            if (!el) return;
+            if (connected) {
+                el.textContent = 'Garmin: Connected';
+                el.style.background = 'rgba(34,197,94,0.15)';
+                el.style.border = '1px solid rgba(34,197,94,0.35)';
+                el.style.color = 'rgba(241,245,249,0.95)';
+            } else {
+                el.textContent = 'Garmin: Not Connected';
+                el.style.background = 'rgba(148,163,184,0.15)';
+                el.style.border = '1px solid rgba(148,163,184,0.35)';
+                el.style.color = 'rgba(241,245,249,0.95)';
             }
         }
 

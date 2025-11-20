@@ -398,6 +398,7 @@
             </div>
             <div class="header-actions">
                 <span class="user-info" id="userName">Loading...</span>
+                <span id="garminAthleteBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
                 <a href="athlete-settings.html" class="btn-header">Settings</a>
                 <button class="btn-header" onclick="logout()">Logout</button>
             </div>
@@ -524,6 +525,10 @@
 
                 if (devicesData.devices) {
                     updateDevicesUI(devicesData.devices);
+                    const garminConnected = devicesData.devices.some(d => d.provider?.toLowerCase() === 'garmin' && d.connected);
+                    setGarminAthleteBadge(garminConnected);
+                } else {
+                    setGarminAthleteBadge(false);
                 }
 
                 // Load coaches
@@ -649,6 +654,22 @@
         function logout() {
             localStorage.removeItem('athlytx_session');
             window.location.href = '/athlete';
+        }
+
+        function setGarminAthleteBadge(connected) {
+            const el = document.getElementById('garminAthleteBadge');
+            if (!el) return;
+            if (connected) {
+                el.textContent = 'Garmin: Connected';
+                el.style.background = 'rgba(34,197,94,0.15)';
+                el.style.border = '1px solid rgba(34,197,94,0.35)';
+                el.style.color = 'rgba(241,245,249,0.95)';
+            } else {
+                el.textContent = 'Garmin: Not Connected';
+                el.style.background = 'rgba(148,163,184,0.15)';
+                el.style.border = '1px solid rgba(148,163,184,0.35)';
+                el.style.color = 'rgba(241,245,249,0.95)';
+            }
         }
 
         // ===== Garmin Helpers (Athlete self-service) =====
