@@ -183,7 +183,6 @@
         <div class="header-container">
             <div class="header-left">
                 <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="header-logo" crossorigin="anonymous">
-                <div class="header-tagline">You earned the data. Now let it earn you results.</div>
             </div>
 
             <div class="header-right">
@@ -582,12 +581,33 @@
                     <img src="/src/images/strava.svg" alt="Strava" style="height: 45px; object-fit: contain;">
                 </div>
 
+                <!-- Athlete Info Card (populated dynamically) -->
+                <div id="stravaAthleteInfo" style="display: none; background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <img id="stravaAthleteAvatar" src="" alt="Athlete" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(102,126,234,0.5);">
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 1.2rem;" id="stravaAthleteName">--</h3>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7);" id="stravaAthleteLocation">--</div>
+                        </div>
+                        <div style="display: flex; gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FC4C02;" id="stravaFollowerCount">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Followers</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FC4C02;" id="stravaFriendCount">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Following</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="analytics-card glass-card">
-                    <h3>🏃 Strava Training Data</h3>
+                    <h3>🏃 Strava Training Data Summary (Last 7 Days)</h3>
                     <div class="data-summary">
                         <div class="summary-card glass-card">
                             <span class="summary-value" id="stravaActivities">--</span>
-                            <div class="summary-label">Activities (7d)</div>
+                            <div class="summary-label">Activities</div>
                         </div>
                         <div class="summary-card glass-card">
                             <span class="summary-value" id="stravaDistance">--</span>
@@ -604,25 +624,24 @@
                     </div>
                 </div>
 
-                <!-- Garmin Actions: Register + Backfill -->
+                <!-- Strava Actions -->
                 <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
-                    <button class="btn" onclick="registerGarmin()" style="padding:8px 12px; border-radius:8px; background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.35); color:#e5e7eb;">
-                        Ensure Garmin PUSH Registration
+                    <button class="btn" onclick="refreshStravaNow()" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
+                        Refresh Strava Data
                     </button>
-                    <button class="btn" onclick="backfillGarmin(30)" style="padding:8px 12px; border-radius:8px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color:#e5e7eb;">
-                        Backfill Last 30 Days
-                    </button>
-                    <div id="garminActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
+                    <div id="stravaActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
-                <div class="analytics-grid">
-                    <div class="analytics-card glass-card">
-                        <h3>Recent Activities</h3>
-                        <div id="stravaActivitiesList" style="max-height: 300px; overflow-y: auto;">
-                            <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Strava to see your activities</div>
-                        </div>
+                <!-- Full-width Activities Table -->
+                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
+                    <h3>📋 All Strava Activities (Detailed View)</h3>
+                    <div id="stravaActivitiesList">
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Strava to see your activities</div>
                     </div>
-                    
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="analytics-grid">
                     <div class="analytics-card glass-card">
                         <h3>Weekly Training Load</h3>
                         <div class="chart-container">
@@ -655,8 +674,37 @@
                     <img src="src/images/ourawhite.png" alt="Oura" style="height: 45px; object-fit: contain;">
                 </div>
 
+                <!-- User Info Card (populated dynamically) -->
+                <div id="ouraPersonalInfo" style="display: none; background: rgba(180,92,243,0.1); border: 1px solid rgba(180,92,243,0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(180,92,243,0.5); background: rgba(180,92,243,0.2); display: flex; align-items: center; justify-content: center; font-size: 2rem;">💍</div>
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0 0 4px 0; font-size: 1.2rem;">Oura Member</h3>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7);" id="ouraUserEmail">--</div>
+                        </div>
+                        <div style="display: flex; gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #B45CF3;" id="ouraAge">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Age</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #B45CF3;" id="ouraWeight">--</div>
+                                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Weight (kg)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oura Actions -->
+                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
+                    <button class="btn" onclick="refreshOuraNow()" style="padding:8px 12px; border-radius:8px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color:#e5e7eb;">
+                        Refresh Oura Data
+                    </button>
+                    <div id="ouraActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
+                </div>
+
                 <div class="analytics-card glass-card">
-                    <h3>💍 Oura Recovery & Sleep</h3>
+                    <h3>💍 Oura Recovery & Sleep Summary (Last 7 Days)</h3>
                     <div class="data-summary">
                         <div class="summary-card glass-card">
                             <span class="summary-value" id="ouraReadiness">--</span>
@@ -677,6 +725,31 @@
                     </div>
                 </div>
 
+                <!-- Full-width Sleep Data Table -->
+                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
+                    <h3>😴 Sleep Data (Detailed View)</h3>
+                    <div id="ouraSleepDataList">
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your sleep data</div>
+                    </div>
+                </div>
+
+                <!-- Full-width Readiness Data Table -->
+                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
+                    <h3>🎯 Readiness Data (Detailed View)</h3>
+                    <div id="ouraReadinessDataList">
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your readiness data</div>
+                    </div>
+                </div>
+
+                <!-- Full-width Activity Data Table -->
+                <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
+                    <h3>🏃 Activity Data (Detailed View)</h3>
+                    <div id="ouraActivityDataList">
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">Connect Oura to see your activity data</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
                         <h3>Sleep Stages (Last 7 Days)</h3>
@@ -822,6 +895,17 @@
                     </div>
                 </div>
 
+                <!-- Garmin Actions: Register + Backfill -->
+                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
+                    <button class="btn" onclick="registerGarmin()" style="padding:8px 12px; border-radius:8px; background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.35); color:#e5e7eb;">
+                        Ensure Garmin PUSH Registration
+                    </button>
+                    <button class="btn" onclick="backfillGarmin(30)" style="padding:8px 12px; border-radius:8px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color:#e5e7eb;">
+                        Backfill Last 30 Days
+                    </button>
+                    <div id="garminActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
+                </div>
+
                 <div class="analytics-grid">
                     <!-- Activities List -->
                     <div class="analytics-card glass-card" style="grid-column: span 2;">
@@ -912,6 +996,14 @@
                 <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
                     <img src="src/images/WHOOP.svg" alt="Whoop" style="height: 45px; object-fit: contain; filter: invert(1) brightness(2);">
+                </div>
+
+                <!-- Whoop Actions -->
+                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
+                    <button class="btn" onclick="refreshWhoopNow()" style="padding:8px 12px; border-radius:8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;">
+                        Refresh Whoop Data
+                    </button>
+                    <div id="whoopActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
                 <div class="analytics-card glass-card">
@@ -2746,62 +2838,154 @@
                 document.getElementById('stravaDistance').textContent = '--';
                 document.getElementById('stravaLoad').textContent = '--';
                 document.getElementById('stravaAvgPower').textContent = '--';
-                
+
                 const activitiesList = document.getElementById('stravaActivitiesList');
                 if (activitiesList) {
                     activitiesList.innerHTML = '<div class="error-state">Unable to load Strava data. Please check your connection.</div>';
                 }
+
+                // Hide athlete info card
+                const athleteInfo = document.getElementById('stravaAthleteInfo');
+                if (athleteInfo) athleteInfo.style.display = 'none';
+
                 return;
             }
 
             const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
-            
-            const recentActivities = fitnessData.strava.activities.filter(a => 
+
+            const recentActivities = fitnessData.strava.activities.filter(a =>
                 a && a.start_date && new Date(a.start_date) >= lastWeek
             );
-            
+
+            const allActivities = fitnessData.strava.activities;
+
+            // Update athlete info if available
+            if (fitnessData.strava.athlete) {
+                const athlete = fitnessData.strava.athlete;
+                const athleteInfo = document.getElementById('stravaAthleteInfo');
+
+                if (athleteInfo) {
+                    athleteInfo.style.display = 'block';
+
+                    const avatar = document.getElementById('stravaAthleteAvatar');
+                    if (avatar && athlete.profile) avatar.src = athlete.profile;
+
+                    const name = document.getElementById('stravaAthleteName');
+                    if (name) {
+                        const fullName = `${athlete.firstname || ''} ${athlete.lastname || ''}`.trim() || 'Strava Athlete';
+                        name.textContent = fullName;
+                    }
+
+                    const location = document.getElementById('stravaAthleteLocation');
+                    if (location) {
+                        const loc = [];
+                        if (athlete.city) loc.push(athlete.city);
+                        if (athlete.state) loc.push(athlete.state);
+                        if (athlete.country) loc.push(athlete.country);
+                        location.textContent = loc.join(', ') || 'Location not specified';
+                    }
+
+                    const followers = document.getElementById('stravaFollowerCount');
+                    if (followers) followers.textContent = athlete.follower_count || 0;
+
+                    const friends = document.getElementById('stravaFriendCount');
+                    if (friends) friends.textContent = athlete.friend_count || 0;
+                }
+            }
+
+            // Update summary cards
             document.getElementById('stravaActivities').textContent = recentActivities.length;
-            
+
             const totalDistance = recentActivities.reduce((sum, a) => sum + (a.distance || 0), 0);
             document.getElementById('stravaDistance').textContent = `${Math.round(totalDistance / 1000)}km`;
-            
+
             const totalLoad = recentActivities.reduce((sum, a) => sum + (a.suffer_score || 0), 0);
             document.getElementById('stravaLoad').textContent = totalLoad;
-            
+
             const validPowerActivities = recentActivities.filter(a => a.average_watts > 0);
-            const avgPower = validPowerActivities.length > 0 ? 
+            const avgPower = validPowerActivities.length > 0 ?
                 validPowerActivities.reduce((sum, a) => sum + a.average_watts, 0) / validPowerActivities.length : 0;
             document.getElementById('stravaAvgPower').textContent = avgPower > 0 ? `${Math.round(avgPower)}W` : '--';
 
-            // Update activities list with error handling
+            // Update comprehensive activities list with ALL available data
             const activitiesList = document.getElementById('stravaActivitiesList');
             if (activitiesList) {
-                if (recentActivities.length > 0) {
+                if (allActivities.length > 0) {
+                    // Helper function to format duration
+                    const formatDuration = (seconds) => {
+                        if (!seconds) return '--';
+                        const hours = Math.floor(seconds / 3600);
+                        const minutes = Math.floor((seconds % 3600) / 60);
+                        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                    };
+
+                    // Helper function to format speed/pace
+                    const formatPace = (distanceMeters, seconds) => {
+                        if (!distanceMeters || !seconds) return '--';
+                        const kmh = (distanceMeters / 1000) / (seconds / 3600);
+                        return `${kmh.toFixed(1)} km/h`;
+                    };
+
                     activitiesList.innerHTML = `
-                        <table style="width: 100%; font-size: 0.9rem;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid #e5e7eb;">
-                                    <th style="text-align: left; padding: 8px;">Date</th>
-                                    <th style="text-align: left; padding: 8px;">Activity</th>
-                                    <th style="text-align: right; padding: 8px;">Distance</th>
-                                    <th style="text-align: right; padding: 8px;">Load</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${recentActivities.slice(0, 10).map(activity => `
-                                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                                        <td style="padding: 8px;">${new Date(activity.start_date).toLocaleDateString()}</td>
-                                        <td style="padding: 8px;">${activity.name || 'Activity'}</td>
-                                        <td style="padding: 8px; text-align: right;">${Math.round((activity.distance || 0) / 1000)}km</td>
-                                        <td style="padding: 8px; text-align: right;">${activity.suffer_score || 0}</td>
+                        <div style="margin-bottom: 12px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                            Showing all ${allActivities.length} activities (most recent first)
+                        </div>
+                        <div style="max-height: 500px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                            <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                                <thead style="position: sticky; top: 0; background: rgba(10,14,39,0.95); backdrop-filter: blur(10px); z-index: 10;">
+                                    <tr style="border-bottom: 2px solid rgba(102,126,234,0.3);">
+                                        <th style="text-align: left; padding: 10px 8px; font-weight: 600;">Date</th>
+                                        <th style="text-align: left; padding: 10px 8px; font-weight: 600;">Activity Name</th>
+                                        <th style="text-align: center; padding: 10px 8px; font-weight: 600;">Type</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Distance</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Duration</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Avg Speed</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Elevation</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Avg HR</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Max HR</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Avg Power</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Calories</th>
+                                        <th style="text-align: right; padding: 10px 8px; font-weight: 600;">Suffer Score</th>
+                                        <th style="text-align: center; padding: 10px 8px; font-weight: 600;">Kudos</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${allActivities.map((activity, idx) => {
+                                        const isRecent = new Date(activity.start_date) >= lastWeek;
+                                        return `
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); ${isRecent ? 'background: rgba(102,126,234,0.08);' : ''} transition: background 0.2s;"
+                                            onmouseover="this.style.background='rgba(102,126,234,0.15)'"
+                                            onmouseout="this.style.background='${isRecent ? 'rgba(102,126,234,0.08)' : 'transparent'}'">
+                                            <td style="padding: 10px 8px; white-space: nowrap;">${new Date(activity.start_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
+                                            <td style="padding: 10px 8px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${activity.name || 'Activity'}">${activity.name || 'Activity'}</td>
+                                            <td style="padding: 10px 8px; text-align: center;">
+                                                <span style="background: rgba(102,126,234,0.2); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; text-transform: capitalize;">
+                                                    ${(activity.type || activity.sport_type || 'Other').replace(/([A-Z])/g, ' $1').trim()}
+                                                </span>
+                                            </td>
+                                            <td style="padding: 10px 8px; text-align: right; font-weight: 500;">${activity.distance ? `${(activity.distance / 1000).toFixed(2)} km` : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${formatDuration(activity.moving_time || activity.elapsed_time)}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${formatPace(activity.distance, activity.moving_time)}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${activity.total_elevation_gain ? `${Math.round(activity.total_elevation_gain)} m` : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${activity.average_heartrate ? `${Math.round(activity.average_heartrate)} bpm` : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${activity.max_heartrate ? `${Math.round(activity.max_heartrate)} bpm` : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${activity.average_watts ? `${Math.round(activity.average_watts)} W` : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right;">${activity.calories ? Math.round(activity.calories) : '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: right; font-weight: 500; color: ${activity.suffer_score > 100 ? '#ef4444' : activity.suffer_score > 50 ? '#f59e0b' : '#10b981'};">${activity.suffer_score || '--'}</td>
+                                            <td style="padding: 10px 8px; text-align: center;">${activity.kudos_count || 0}❤️</td>
+                                        </tr>
+                                    `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,255,255,0.5);">
+                            💡 Tip: Rows highlighted in blue are from the last 7 days. Hover over rows for better visibility.
+                        </div>
                     `;
                 } else {
-                    activitiesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No recent activities found</div>';
+                    activitiesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6b7280;">No activities found. Connect Strava and sync your activities.</div>';
                 }
             }
 
@@ -6114,6 +6298,49 @@
                 const status = document.getElementById('garminActionStatus');
                 if (status) status.textContent = `Backfill error: ${e.message}`;
                 showMessage(`Backfill error: ${e.message}`, 'error');
+            }
+        }
+
+        // ---- Provider refresh helpers ----
+        async function refreshStravaNow() {
+            try {
+                const status = document.getElementById('stravaActionStatus');
+                if (status) status.textContent = 'Refreshing Strava...';
+                const token = localStorage.getItem('strava_token');
+                if (!token) { if (status) status.textContent = 'No Strava token found'; return; }
+                await fetchStravaData(token);
+                if (status) status.textContent = 'Strava refreshed';
+            } catch (e) {
+                const status = document.getElementById('stravaActionStatus');
+                if (status) status.textContent = `Refresh error: ${e.message}`;
+            }
+        }
+
+        async function refreshOuraNow() {
+            try {
+                const status = document.getElementById('ouraActionStatus');
+                if (status) status.textContent = 'Refreshing Oura...';
+                const token = localStorage.getItem('oura_token');
+                if (!token) { if (status) status.textContent = 'No Oura token found'; return; }
+                await fetchOuraData(token);
+                if (status) status.textContent = 'Oura refreshed';
+            } catch (e) {
+                const status = document.getElementById('ouraActionStatus');
+                if (status) status.textContent = `Refresh error: ${e.message}`;
+            }
+        }
+
+        async function refreshWhoopNow() {
+            try {
+                const status = document.getElementById('whoopActionStatus');
+                if (status) status.textContent = 'Refreshing Whoop...';
+                const token = localStorage.getItem('whoop_token');
+                if (!token) { if (status) status.textContent = 'No Whoop token found'; return; }
+                await fetchWhoopData(token);
+                if (status) status.textContent = 'Whoop refreshed';
+            } catch (e) {
+                const status = document.getElementById('whoopActionStatus');
+                if (status) status.textContent = `Refresh error: ${e.message}`;
             }
         }
 
