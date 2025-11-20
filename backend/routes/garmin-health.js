@@ -291,7 +291,7 @@ async function processGarminPushData(data) {
 
         // Find our internal userId from the Garmin GUID
         // Use the MOST RECENT token if there are duplicates
-        const token = await OAuthToken.findOne({
+        let token = await OAuthToken.findOne({
             where: {
                 provider: 'garmin',
                 providerUserId: garminUserId
@@ -300,37 +300,57 @@ async function processGarminPushData(data) {
         });
 
         if (!token) {
-            console.warn(`⚠️  No user found for Garmin userId: ${garminUserId}`);
-            // Fallback mapping: if there's exactly one distinct Garmin GUID in DB, assume it's the same user
+            // Try mapping by previously stored wellnessUserId in token.scopes
             try {
                 const allTokens = await OAuthToken.findAll({
                     where: { provider: 'garmin' },
                     order: [['connectedAt', 'DESC']]
                 });
 
-                const distinctGuids = Array.from(new Set(allTokens.map(t => t.providerUserId).filter(Boolean)));
-
-                if (allTokens.length === 1 || distinctGuids.length === 1) {
-                    const assumed = allTokens[0];
-                    console.warn(`🔗 Assuming PUSH userId ${garminUserId} maps to Garmin GUID ${assumed.providerUserId} (user ${assumed.userId})`);
-
-                    // Persist mapping for future events using token.scopes JSON as a storage
+                const mapped = allTokens.find(t => {
                     try {
-                        const scopesObj = (assumed.scopes && typeof assumed.scopes === 'object') ? assumed.scopes : {};
-                        if (!scopesObj.wellnessUserId || scopesObj.wellnessUserId !== garminUserId) {
-                            scopesObj.wellnessUserId = garminUserId;
-                            assumed.scopes = scopesObj;
-                            await assumed.save();
-                            console.log(`📝 Stored wellnessUserId mapping on token for user ${assumed.userId}`);
-                        }
-                    } catch (mapErr) {
-                        console.warn('⚠️ Failed to persist wellnessUserId mapping:', mapErr.message);
-                    }
+                        if (!t.scopes) return false;
+                        const s = typeof t.scopes === 'string' ? JSON.parse(t.scopes) : t.scopes;
+                        return s && s.wellnessUserId === garminUserId;
+                    } catch (_) { return false; }
+                });
 
-                    token = assumed;
-                } else {
-                    console.warn('⚠️  Multiple Garmin accounts present; cannot safely map PUSH userId. Skipping.');
-                    return;
+                if (mapped) {
+                    token = mapped;
+                }
+
+                if (!token) {
+                    console.warn(`⚠️  No user found for Garmin userId: ${garminUserId}`);
+                    // Fallback mapping: if there's exactly one distinct Garmin GUID in DB, assume it's the same user
+                    const distinctGuids = Array.from(new Set(allTokens.map(t => t.providerUserId).filter(Boolean)));
+
+                    if (allTokens.length >= 1 && distinctGuids.length === 1) {
+                        const assumed = allTokens[0]; // newest first due to order
+                        console.warn(`🔗 Assuming PUSH userId ${garminUserId} maps to Garmin GUID ${assumed.providerUserId} (user ${assumed.userId})`);
+
+                        // Persist mapping for future events using token.scopes JSON as storage
+                        try {
+                            let scopesObj;
+                            if (!assumed.scopes) scopesObj = {};
+                            else if (typeof assumed.scopes === 'string') {
+                                try { scopesObj = JSON.parse(assumed.scopes); } catch { scopesObj = {}; }
+                            } else scopesObj = assumed.scopes;
+
+                            if (scopesObj.wellnessUserId !== garminUserId) {
+                                scopesObj.wellnessUserId = garminUserId;
+                                assumed.scopes = scopesObj;
+                                await assumed.save();
+                                console.log(`📝 Stored wellnessUserId mapping on token for user ${assumed.userId}`);
+                            }
+                        } catch (mapErr) {
+                            console.warn('⚠️ Failed to persist wellnessUserId mapping:', mapErr.message);
+                        }
+
+                        token = assumed;
+                    } else {
+                        console.warn('⚠️  Multiple Garmin accounts present; cannot safely map PUSH userId. Skipping.');
+                        return;
+                    }
                 }
             } catch (mapError) {
                 console.warn('⚠️  Fallback mapping error:', mapError.message);
