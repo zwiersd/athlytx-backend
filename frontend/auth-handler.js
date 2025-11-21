@@ -124,14 +124,23 @@ function showAuthForm(formType) {
 async function handleSignup(event) {
     event.preventDefault();
 
-    const name = document.getElementById('signup-name-modal').value.trim();
+    const firstNameInput = document.getElementById('signup-first-name');
+    const lastNameInput = document.getElementById('signup-last-name');
+    const sportInput = document.getElementById('signup-sport');
+    const legacyNameInput = document.getElementById('signup-name-modal');
+
+    const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+    const lastName = lastNameInput ? lastNameInput.value.trim() : '';
+    const sport = sportInput ? sportInput.value : '';
+    const legacyName = legacyNameInput ? legacyNameInput.value.trim() : '';
     const email = document.getElementById('signup-email-modal').value.trim();
     const password = document.getElementById('signup-password-modal').value;
+    const displayName = legacyName || [firstName, lastName].filter(Boolean).join(' ').trim();
     const errorDiv = document.getElementById('signup-error-modal');
 
     // Validate inputs
-    if (!name || !email || !password) {
-        errorDiv.textContent = 'All fields are required';
+    if (!displayName || !email || !password) {
+        errorDiv.textContent = 'First name, last name, email, and password are required';
         errorDiv.style.display = 'block';
         return;
     }
@@ -149,8 +158,11 @@ async function handleSignup(event) {
             body: JSON.stringify({
                 email,
                 password,
-                name,
-                role: 'athlete'
+                name: displayName,
+                role: 'athlete',
+                firstName: firstName || null,
+                lastName: lastName || null,
+                sport: sport || null
             })
         });
 
@@ -164,6 +176,8 @@ async function handleSignup(event) {
             localStorage.setItem('userId', data.user.id);
             localStorage.setItem('userEmail', data.user.email);
             if (data.user.name) localStorage.setItem('userName', data.user.name);
+            // Prompt reconnect so guest tokens are rebound to this account
+            localStorage.setItem('reconnectPromptPending', '1');
 
             // Update current user
             currentUser = data.user;
