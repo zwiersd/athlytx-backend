@@ -500,6 +500,40 @@
                 </div>
             </div>
 
+            <!-- Reconnect Devices Modal (post-signup) -->
+            <div id="reconnectModal" class="auth-modal-overlay" style="display: none;">
+                <div class="auth-modal-container" style="max-width: 520px;">
+                    <button class="auth-modal-close" onclick="closeReconnectModal()">&times;</button>
+                    <div class="auth-modal-content">
+                        <h2>Reconnect your devices</h2>
+                        <p style="color: rgba(255,255,255,0.75); margin-bottom: 16px;">
+                            Guest connections stay in a temporary profile. Please reconnect so your devices sync to your new account.
+                        </p>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                            <button class="btn" onclick="switchTab('garmin'); closeReconnectModal();" style="justify-content:center;">
+                                <img src="src/images/Garmin.svg" alt="Garmin" style="height:14px; margin-right:6px;"> Garmin
+                            </button>
+                            <button class="btn" onclick="switchTab('whoop'); closeReconnectModal();" style="justify-content:center;">
+                                <img src="src/images/WHOOP.svg" alt="Whoop" style="height:14px; margin-right:6px;"> Whoop
+                            </button>
+                            <button class="btn" onclick="switchTab('oura'); closeReconnectModal();" style="justify-content:center;">
+                                <img src="src/images/oura.png" alt="Oura" style="height:14px; margin-right:6px;"> Oura
+                            </button>
+                            <button class="btn" onclick="switchTab('strava'); closeReconnectModal();" style="justify-content:center;">
+                                <img src="src/images/strava.svg" alt="Strava" style="height:14px; margin-right:6px;"> Strava
+                            </button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:12px; font-size:0.9rem; color: rgba(229,231,235,0.85);">
+                            <strong>Heads up:</strong> Garmin and some devices push data to us. After reconnecting, new data will flow in as the provider sends it forward. Historical data may require a manual sync/backfill.
+                        </div>
+                        <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:8px;">
+                            <button class="btn btn-ghost" onclick="closeReconnectModal()">Later</button>
+                            <button class="btn btn-primary" onclick="switchTab('overview'); closeReconnectModal();">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reset Password Modal (shown when user clicks email link) -->
             <div id="resetPasswordModal" class="auth-modal-overlay" style="display: none;">
                 <div class="auth-modal-container">
@@ -1859,6 +1893,16 @@
             document.body.style.overflow = ''; // Restore scrolling
         }
 
+        function showReconnectModal() {
+            const modal = document.getElementById('reconnectModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeReconnectModal() {
+            const modal = document.getElementById('reconnectModal');
+            if (modal) modal.style.display = 'none';
+        }
+
         function showAuthForm(formType) {
             console.log('🔄 showAuthForm called with:', formType);
             const signupForm = document.getElementById('signupFormModal');
@@ -2013,6 +2057,8 @@
                     localStorage.setItem('sessionToken', data.sessionToken);
                     localStorage.setItem('userEmail', data.user.email);
                     if (data.user.name) localStorage.setItem('userName', data.user.name);
+                    // Prompt device reconnect after signup so tokens bind to this account
+                    localStorage.setItem('reconnectPromptPending', '1');
 
                     // Close modal
                     closeAuthModal();
@@ -2607,6 +2653,12 @@
 
                 // Load connected services
                 loadConnectedServices(sessionToken);
+
+                // If user just signed up, prompt reconnect of devices
+                if (localStorage.getItem('reconnectPromptPending') === '1') {
+                    localStorage.removeItem('reconnectPromptPending');
+                    showReconnectModal();
+                }
             } else {
                 // User is not logged in - show guest view
                 document.getElementById('guestView').style.display = 'block';
