@@ -365,7 +365,8 @@
     </div>
 
     <script>
-        const API_URL = '';
+        // Point API requests to whichever origin is serving this page (local/staging/prod)
+        const API_URL = window.location.origin;
 
         function showTab(tab) {
             // Update tabs

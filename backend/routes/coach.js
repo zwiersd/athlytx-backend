@@ -238,7 +238,8 @@ router.get('/athletes', async (req, res) => {
             const recentActivities = await Activity.count({
                 where: {
                     userId: athlete.id,
-                    startDate: { [Op.gte]: sevenDaysAgo }
+                    // use startTime column (not startDate) to count last 7 days of activity
+                    startTime: { [Op.gte]: sevenDaysAgo }
                 }
             });
 
@@ -324,9 +325,10 @@ router.get('/athlete/:athleteId/dashboard', async (req, res) => {
         const activities = await Activity.findAll({
             where: {
                 userId: athleteId,
-                startDate: { [Op.gte]: startDate }
+                // use startTime column which exists in the schema
+                startTime: { [Op.gte]: startDate }
             },
-            order: [['startDate', 'DESC']]
+            order: [['startTime', 'DESC']]
         });
 
         // Get daily metrics
@@ -566,7 +568,8 @@ function generateAlerts(metrics, dailyMetrics) {
 function formatActivity(activity) {
     return {
         id: activity.id,
-        date: activity.startDate,
+        // startTime is the persisted timestamp field
+        date: activity.startTime,
         type: activity.type,
         name: activity.name,
         duration: activity.duration,
@@ -702,6 +705,10 @@ router.post('/resend-invite/:relationshipId', async (req, res) => {
 
         if (!coachId) {
             return res.status(400).json({ error: 'coachId required' });
+        }
+
+        if (!relationshipId || !validator.isUUID(relationshipId)) {
+            return res.status(400).json({ error: 'Valid relationshipId required' });
         }
 
         // Find the relationship

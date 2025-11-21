@@ -365,7 +365,8 @@
     </div>
 
     <script>
-        const API_URL = '';
+        // Use current origin so API calls target the running backend
+        const API_URL = window.location.origin;
 
         function showTab(tab) {
             // Update tabs
