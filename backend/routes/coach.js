@@ -207,14 +207,14 @@ router.get('/athletes', async (req, res) => {
         const { coachId } = req.query;
 
         const athletes = await CoachAthlete.findAll({
-            where: { coachId, status: 'active' },
+            where: { coachId, status: { [Op.in]: ['active', 'pending'] } },
             include: [{
                 model: User,
                 as: 'Athlete',
                 attributes: ['id', 'email', 'name', 'lastLogin'],
                 include: [{
                     model: OAuthToken,
-                    attributes: ['provider', 'createdAt'],
+                    attributes: ['provider', 'createdAt', 'lastSyncAt'],
                     required: false
                 }]
             }]
@@ -249,12 +249,19 @@ router.get('/athletes', async (req, res) => {
                 limit: 1
             });
 
+            // Map provider lastSyncAt from tokens
+            const providerLastSync = {};
+            (athlete.OAuthTokens || []).forEach(t => { providerLastSync[t.provider] = t.lastSyncAt || null; });
+
             return {
+                relationshipId: rel.id,
+                relationshipStatus: rel.status,
                 id: athlete.id,
                 email: athlete.email,
                 name: athlete.name,
                 lastLogin: athlete.lastLogin,
                 connectedServices: athlete.OAuthTokens.map(t => t.provider),
+                lastSyncByProvider: providerLastSync,
                 latestMetric: latestMetric ? {
                     date: latestMetric.date,
                     restingHr: latestMetric.restingHeartRate,

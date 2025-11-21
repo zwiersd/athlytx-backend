@@ -192,6 +192,16 @@
 
         /* Mobile tweaks: smaller, single row, hide descriptions */
         @media (max-width: 768px) {
+            .header-container { display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 8px 12px; }
+            .header-logo { height: 28px; width: auto; }
+            #headerMenu .nav-link, #headerMenu .elite-btn, #headerMenu .sync-btn, #headerMenu .refresh-btn, #headerMenu .refresh-btn + .refresh-btn { display: none !important; }
+            #readinessPill { display: none; }
+            .hamburger-btn { display: inline-flex; justify-self: end; background: transparent; border: none; padding: 6px; }
+            .hamburger-line { display: block; width: 18px; height: 2px; background: #e5e7eb; margin: 3px 0; border-radius: 2px; }
+            .header-center { display: flex; justify-content: center; }
+            .mobile-refresh-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.24); color: #e5e7eb; padding: 6px 8px; border-radius: 999px; font-size: 12px; }
+            .mobile-refresh-btn i { font-size: 14px; }
+            .header-right { justify-self: end; }
             .footer-badges { left: 0; right: 0; bottom: 0; border-radius: 10px 10px 0 0; padding: 4px; gap: 4px; justify-content: center; }
             .footer-badge { font-size: 9px; padding: 4px 5px; border-radius: 6px; gap: 2px; }
             .footer-badge img { height: 10px; }
@@ -220,6 +230,13 @@
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
             </button>
+
+            <!-- Mobile center refresh -->
+            <div class="header-center">
+                <button class="mobile-refresh-btn" onclick="refreshAllData()" aria-label="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
 
             <div class="header-right" id="headerMenu">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
