@@ -190,6 +190,14 @@
         .footer-badge .actions { margin-top:2px; }
         .footer-badge .actions button { font-size:9px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); color:#e5e7eb; cursor:pointer; }
 
+        /* Unified mobile drawer */
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80vw; max-width: 320px; background: rgba(10,14,39,0.96); border-left: 1px solid rgba(255,255,255,0.12); z-index: 1001; transform: translateX(100%); transition: transform 0.25s ease; padding: 16px; }
+        .drawer.open { transform: translateX(0); }
+        .drawer h3 { color: #fff; margin: 0 0 12px 0; font-size: 16px; }
+        .drawer .item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-radius: 8px; color: #e5e7eb; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 8px; }
+        .drawer .item button, .drawer .item a { font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #e5e7eb; text-decoration: none; }
+
         /* Mobile tweaks: smaller, single row, hide descriptions */
         @media (max-width: 768px) {
             .header-container { display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 8px 12px; }
@@ -249,6 +257,21 @@
             </div>
         </div>
     </header>
+
+    <!-- Mobile Drawer -->
+    <div class="drawer-overlay" id="homeDrawerOverlay" onclick="closeHomeDrawer()"></div>
+    <div class="drawer" id="homeDrawer">
+        <h3>Menu</h3>
+        <div class="item"><span>Refresh</span><button onclick="refreshAllData(); closeHomeDrawer()">Refresh</button></div>
+        <div class="item"><span>Connections</span><button onclick="switchTab('connections'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Overview</span><button onclick="switchTab('overview'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Garmin</span><button onclick="switchTab('garmin'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Strava</span><button onclick="switchTab('strava'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Oura</span><button onclick="switchTab('oura'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Whoop</span><button onclick="switchTab('whoop'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Running</span><button onclick="switchTab('running'); closeHomeDrawer()">Open</button></div>
+        <div class="item"><span>Contact</span><button onclick="switchTab('contact'); closeHomeDrawer()">Open</button></div>
+    </div>
 
     <!-- Tab Navigation (moved to top under header) -->
     <div class="tab-nav-wrapper">
@@ -7269,6 +7292,27 @@
             } else {
                 rightIndicator.classList.remove('visible');
             }
+        }
+
+        // Drawer controls (home)
+        (function initHomeDrawer(){
+            const btn = document.getElementById('hamburgerBtn');
+            if (btn) btn.addEventListener('click', toggleHomeDrawer);
+        })();
+        function toggleHomeDrawer(){
+            const drawer = document.getElementById('homeDrawer');
+            const overlay = document.getElementById('homeDrawerOverlay');
+            if (!drawer || !overlay) return;
+            const open = !drawer.classList.contains('open');
+            overlay.style.display = open ? 'block' : 'none';
+            drawer.classList.toggle('open', open);
+        }
+        function closeHomeDrawer(){
+            const drawer = document.getElementById('homeDrawer');
+            const overlay = document.getElementById('homeDrawerOverlay');
+            if (!drawer || !overlay) return;
+            overlay.style.display = 'none';
+            drawer.classList.remove('open');
         }
 
         // ---- Export current tab to PDF (uses browser print-to-PDF) ----
