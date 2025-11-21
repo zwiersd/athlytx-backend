@@ -6012,9 +6012,10 @@
                 return;
             }
 
-            const runActivities = fitnessData.strava.activities.filter(a => 
-                a.type === 'Run' || a.sport_type === 'Run'
-            );
+            const runActivities = fitnessData.strava.activities.filter(a => {
+                const t = (a.type || a.sport_type || '').toLowerCase();
+                return t.includes('run'); // includes Run, TrailRun, VirtualRun
+            });
 
             if (runActivities.length === 0) {
                 showEmptyRunningState();
@@ -6295,7 +6296,10 @@
             let easy = 0, moderate = 0, hard = 0;
             
             runs.forEach(run => {
-                const sufferPerMin = run.suffer_score / (run.moving_time / 60);
+                const moveMin = (run.moving_time || 0) / 60;
+                const suffer = run.suffer_score || 0;
+                if (moveMin <= 0) { easy++; return; }
+                const sufferPerMin = suffer / moveMin;
                 if (sufferPerMin < 0.5) easy++;
                 else if (sufferPerMin < 1.0) moderate++;
                 else hard++;
