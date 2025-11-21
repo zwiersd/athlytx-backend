@@ -1385,6 +1385,34 @@ body {
   background: var(--color-warning-bg);
 }
 
+/* Insight category filter dropdown */
+#insightCategoryFilter {
+  background: var(--glass-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+#insightCategoryFilter:hover {
+  background: var(--glass-4);
+  border-color: var(--border-2);
+}
+
+#insightCategoryFilter:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
+}
+
+#insightCategoryFilter option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
 /* ============================================
    FOOTER
    ============================================ */
