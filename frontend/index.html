@@ -175,20 +175,30 @@
         /* Small provider badges pinned bottom-right */
         .footer-badges {
             position: fixed; bottom: 10px; right: 10px; z-index: 9999;
-            display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 8px;
+            display: flex; flex-wrap: nowrap; gap: 6px;
             background: rgba(10,14,39,0.55); border: 1px solid rgba(255,255,255,0.12);
-            padding: 8px; border-radius: 12px; backdrop-filter: blur(8px);
-            max-width: min(90vw, 360px);
+            padding: 6px; border-radius: 10px; backdrop-filter: blur(8px);
+            max-width: 95vw; overflow-x: auto;
         }
-        .footer-badge { font-size: 11px; line-height: 1.2; font-weight: 700; padding: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); color: #e5e7eb; display: flex; flex-direction: column; gap: 4px; }
+        .footer-badge { font-size: 10px; line-height: 1.2; font-weight: 700; padding: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); color: #e5e7eb; display: flex; flex-direction: column; gap: 3px; white-space: nowrap; }
         .footer-badge img { height: 12px; width: auto; opacity: 0.9; }
         .badge-connected { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.35); }
         .badge-disconnected { background: rgba(148,163,184,0.18); border-color: rgba(148,163,184,0.35); }
-        .footer-badge .title { display:flex; align-items:center; gap:6px; font-size:12px; }
-        .footer-badge .subtitle { font-size:10px; font-weight:600; color: rgba(229,231,235,0.8); }
-        .footer-badge .status { font-size:10px; font-weight:800; color:#10b981; display:flex; align-items:center; gap:4px; }
+        .footer-badge .title { display:flex; align-items:center; gap:6px; font-size:11px; }
+        .footer-badge .subtitle { font-size:9px; font-weight:600; color: rgba(229,231,235,0.8); }
+        .footer-badge .status { font-size:9px; font-weight:800; color:#10b981; display:flex; align-items:center; gap:4px; }
         .footer-badge .actions { margin-top:2px; }
-        .footer-badge .actions button { font-size:10px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); color:#e5e7eb; cursor:pointer; }
+        .footer-badge .actions button { font-size:9px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); color:#e5e7eb; cursor:pointer; }
+
+        /* Mobile tweaks: smaller, single row, hide descriptions */
+        @media (max-width: 768px) {
+            .footer-badges { left: 0; right: 0; bottom: 0; border-radius: 10px 10px 0 0; padding: 4px; gap: 4px; justify-content: center; }
+            .footer-badge { font-size: 9px; padding: 4px 5px; border-radius: 6px; gap: 2px; }
+            .footer-badge img { height: 10px; }
+            .footer-badge .subtitle { display: none; }
+            .footer-badge .status { font-size: 8px; }
+            .footer-badge .actions button { font-size: 8px; padding: 1px 4px; }
+        }
     </style>
 </head>
 <body>
@@ -983,7 +993,7 @@
                 </div>
 
                 <!-- Hero Stats Grid - 4x2 even layout -->
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 8px;">
                     <!-- Activities -->
                     <div style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); padding: 20px; border-radius: 16px; border: 1px solid rgba(139,92,246,0.3); position: relative; overflow: hidden;">
                         <i class="fas fa-running" style="font-size: 48px; position: absolute; top: 10px; right: 10px; opacity: 0.1;"></i>
@@ -1079,6 +1089,9 @@
                             <span style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 500; letter-spacing: 0.3px;">Powered by Garmin</span>
                         </div>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom: 16px;">
+                    <div id="garminLastUpdated" style="font-size: 11px; color: rgba(255,255,255,0.6);">Last updated: —</div>
                 </div>
 
                 <!-- Garmin Actions: Register + Backfill -->
@@ -5094,12 +5107,28 @@
             const categoryFilter = document.getElementById('insightCategoryFilter');
             const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
 
-            if (!insightsContainer || !window.allInsights) return;
+            if (!insightsContainer) return;
+
+            // If insights haven't been generated yet, show loading message
+            if (!window.allInsights || window.allInsights.length === 0) {
+                console.log('⚠️ No insights available yet');
+                insightsContainer.innerHTML = `
+                    <div class="insight-card low">
+                        <h4>Loading Insights...</h4>
+                        <p>Analyzing your data to generate personalized insights.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            console.log(`📊 Filtering ${window.allInsights.length} insights by category: ${selectedCategory}`);
 
             // Filter insights based on selected category
             const filteredInsights = selectedCategory === 'all'
                 ? window.allInsights
                 : window.allInsights.filter(insight => insight.category === selectedCategory);
+
+            console.log(`✅ Found ${filteredInsights.length} insights in category: ${selectedCategory}`);
 
             // Render filtered insights
             if (filteredInsights.length === 0) {
@@ -5175,7 +5204,8 @@
                         : null,
                     sleep: null,
                     connected: true,
-                    pushOnly: true
+                    pushOnly: true,
+                    lastUpdated: new Date().toISOString()
                 };
 
                 button.innerHTML = '<span class="check-icon">✓</span> Connected';
@@ -5839,6 +5869,15 @@
                     console.log('❌ Dailies fetch failed:', dailiesResponse);
                 }
 
+                // Update "Last updated" timestamp
+                try {
+                    const el = document.getElementById('garminLastUpdated');
+                    if (el) {
+                        const ts = (fitnessData.garmin && fitnessData.garmin.lastUpdated) ? new Date(fitnessData.garmin.lastUpdated) : new Date();
+                        el.textContent = `Last updated: ${ts.toLocaleString()}`;
+                    }
+                } catch (_) {}
+
                 // Update hero stat cards
                 console.log('🎯 Setting garminActivities to:', activities.length);
                 const garminActivitiesElement = document.getElementById('garminActivities');
@@ -6091,11 +6130,17 @@
                 const token = localStorage.getItem(`${provider}_token`);
                 return !!fd || !!token;
             };
+            const last = (provider) => {
+                const ts = fitnessData[provider]?.lastUpdated || fitnessData.lastUpdated;
+                return ts ? new Date(ts).toLocaleString() : null;
+            };
             const setBadge = (id, connected) => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.classList.toggle('badge-connected', connected);
                 el.classList.toggle('badge-disconnected', !connected);
+                const title = connected ? `Last update: ${last(id.split('-')[1]) || '—'}` : 'Not connected';
+                el.title = title;
             };
             setBadge('badge-strava', status('strava'));
             setBadge('badge-garmin', status('garmin'));
@@ -6875,6 +6920,14 @@
 
             try {
                 await Promise.all(refreshPromises);
+                // Force UI refresh after data loads
+                try { if (typeof updateAnalytics === 'function') updateAnalytics(); } catch(_) {}
+                try {
+                    const garminTab = document.getElementById('garmin');
+                    if (garminTab && garminTab.classList.contains('active') && typeof updateGarminDisplay === 'function') {
+                        updateGarminDisplay();
+                    }
+                } catch(_) {}
                 showMessage('All data refreshed successfully!', 'success');
             } catch (error) {
                 showMessage('Some data failed to refresh', 'warning');
@@ -7528,25 +7581,25 @@
     <div class="footer-badges" id="footerBadges">
         <div id="badge-strava" class="footer-badge badge-disconnected">
             <div class="title"><img src="/src/images/strava.svg" alt="Strava"> Strava</div>
-            <div class="subtitle">Activities and performance</div>
+            <div class="subtitle">Activities and performance data</div>
             <div class="status" id="badge-strava-status">—</div>
             <div class="actions"><button onclick="disconnectDevice('strava')">Disconnect</button></div>
         </div>
         <div id="badge-oura" class="footer-badge badge-disconnected">
             <div class="title"><img src="/src/images/oura.png" alt="Oura"> Oura Ring</div>
-            <div class="subtitle">Readiness, activity, sleep</div>
+            <div class="subtitle">Readiness, activity, and sleep insights</div>
             <div class="status" id="badge-oura-status">—</div>
             <div class="actions"><button onclick="disconnectDevice('oura')">Disconnect</button></div>
         </div>
         <div id="badge-garmin" class="footer-badge badge-disconnected">
             <div class="title"><img src="/src/images/Garmin.svg" alt="Garmin"> Garmin Connect™</div>
-            <div class="subtitle">Activities & wellness</div>
+            <div class="subtitle">Activities, body battery, and wellness</div>
             <div class="status" id="badge-garmin-status">—</div>
             <div class="actions"><button onclick="disconnectDevice('garmin')">Disconnect</button></div>
         </div>
         <div id="badge-whoop" class="footer-badge badge-disconnected">
             <div class="title"><img src="/src/images/WHOOP.svg" alt="Whoop"> Whoop</div>
-            <div class="subtitle">Recovery & strain</div>
+            <div class="subtitle">Recovery, strain, and sleep data</div>
             <div class="status" id="badge-whoop-status">—</div>
             <div class="actions"><button onclick="disconnectDevice('whoop')">Disconnect</button></div>
         </div>
