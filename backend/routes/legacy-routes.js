@@ -405,17 +405,37 @@ app.post('/api/whoop/token', async (req, res) => {
         try {
             console.log('\n💾 === SAVING WHOOP TOKEN TO DATABASE ===');
 
-            const { OAuthToken } = require('../models');
+            const { OAuthToken, User } = require('../models');
             const { encrypt } = require('../utils/encryption');
+            // Prefer session token (Bearer or sessionToken param) for logged-in users
+            const sessionToken = req.headers.authorization?.replace('Bearer ', '') || req.query.sessionToken || req.body.sessionToken;
+            const requestedUserId = req.session?.userId || req.body.userId;
 
-            const userId = req.session?.userId || req.body.userId;
+            let userId = null;
+
+            if (sessionToken) {
+                const user = await User.findOne({
+                    where: { sessionToken, sessionExpiry: { [require('sequelize').Op.gt]: new Date() } },
+                    attributes: ['id']
+                });
+                if (user) {
+                    userId = user.id;
+                }
+            }
+
+            if (!userId && requestedUserId) {
+                // Fallback for guest/legacy flows, but ensure user exists
+                const user = await User.findOne({ where: { id: requestedUserId }, attributes: ['id'] });
+                if (user) {
+                    userId = user.id;
+                }
+            }
 
             if (!userId) {
-                console.error('❌ CRITICAL: No userId available - token will NOT be saved to database!');
-                console.error('   User will need to reconnect! This is a BUG that must be fixed!');
+                console.error('❌ CRITICAL: No valid user found for Whoop connect; aborting save');
                 return res.status(400).json({
                     error: 'No user session',
-                    message: 'You must be logged in to connect Whoop'
+                    message: 'Please log in and retry Whoop connect.'
                 });
             }
 

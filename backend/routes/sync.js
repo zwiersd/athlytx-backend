@@ -8,17 +8,36 @@ const { HeartRateZone, TrainingSummary, Activity } = require('../models');
  * For sync endpoints, we require authentication to prevent abuse
  */
 function requireAuth(req, res, next) {
-    const userId = req.session?.userId || req.body.userId || req.query.userId;
+    const sessionToken = req.headers.authorization?.replace('Bearer ', '') || req.body.sessionToken || req.query.sessionToken;
+    const userIdParam = req.body.userId || req.query.userId;
 
-    if (!userId) {
-        return res.status(401).json({
-            error: 'Unauthorized',
-            message: 'You must be logged in to use sync endpoints'
-        });
+    const respondUnauthorized = () => res.status(401).json({
+        error: 'Unauthorized',
+        message: 'You must be logged in to use sync endpoints'
+    });
+
+    // Prefer session token lookup for logged-in users
+    if (sessionToken) {
+        return require('../models').User.findOne({
+            where: {
+                sessionToken,
+                sessionExpiry: { [require('sequelize').Op.gt]: new Date() }
+            },
+            attributes: ['id']
+        }).then(user => {
+            if (!user) return respondUnauthorized();
+            req.authenticatedUserId = user.id;
+            next();
+        }).catch(() => respondUnauthorized());
     }
 
-    req.authenticatedUserId = userId;
-    next();
+    // Fallback: explicit userId (guest/manual tools)
+    if (userIdParam) {
+        req.authenticatedUserId = userIdParam;
+        return next();
+    }
+
+    return respondUnauthorized();
 }
 
 /**

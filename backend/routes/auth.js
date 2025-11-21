@@ -118,14 +118,16 @@ router.delete('/cleanup/:email', async (req, res) => {
  */
 router.post('/signup', async (req, res) => {
     try {
-        const { email, password, name, role } = req.body;
+        const { email, password, name, firstName, lastName, sport, role } = req.body;
 
         console.log('[SIGNUP] Request received:', { email, role });
 
+        const displayName = (name || '').trim() || [firstName, lastName].filter(Boolean).join(' ').trim();
+
         // Validation
-        if (!email || !password || !name || !role) {
+        if (!email || !password || !displayName || !role) {
             return res.status(400).json({
-                error: 'Email, password, name, and role are required'
+                error: 'Email, password, first and last name, and role are required'
             });
         }
 
@@ -158,8 +160,9 @@ router.post('/signup', async (req, res) => {
         const user = await User.create({
             email: normalizedEmail,
             passwordHash,
-            name: name.trim(),
+            name: displayName,
             role,
+            sport: sport || null,
             isActive: true,
             onboarded: true // Mark as onboarded since they filled out signup form
         });

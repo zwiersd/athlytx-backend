@@ -108,14 +108,16 @@ class WhoopOAuth2 {
 
         try {
             console.log('🔄 Starting token exchange with backend...');
-            console.log('Backend URL:', 'https://athlytx-backend-production.up.railway.app/api/whoop/token');
 
+            const backend = (window && window.location && window.location.origin) || 'https://athlytx-backend-production.up.railway.app';
             // Use backend API for token exchange (same pattern as Garmin/Strava/Oura)
             const userId = localStorage.getItem('userId');
-            const response = await fetch('https://athlytx-backend-production.up.railway.app/api/whoop/token', {
+            const sessionToken = localStorage.getItem('sessionToken');
+            const response = await fetch(`${backend}/api/whoop/token`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
                 },
                 body: JSON.stringify({
                     code: authorizationCode,
@@ -123,7 +125,8 @@ class WhoopOAuth2 {
                     client_secret: this.clientSecret,
                     redirect_uri: this.redirectUri,
                     code_verifier: codeVerifier,
-                    userId: userId  // CRITICAL: Required for database persistence
+                    userId: userId,  // fallback
+                    sessionToken: sessionToken
                 })
             });
 
@@ -153,7 +156,8 @@ class WhoopOAuth2 {
     // Refresh access token
     async refreshToken(refreshToken) {
         try {
-            const response = await fetch('https://athlytx-backend-production.up.railway.app/api/whoop/refresh', {
+            const backend = (window && window.location && window.location.origin) || 'https://athlytx-backend-production.up.railway.app';
+            const response = await fetch(`${backend}/api/whoop/refresh`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
