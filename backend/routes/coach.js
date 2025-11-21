@@ -833,9 +833,7 @@ router.post('/revoke-athlete/:relationshipId', async (req, res) => {
         // Find the relationship
         const relationship = await CoachAthlete.findOne({
             where: { id: relationshipId, coachId },
-            include: [
-                { model: User, as: 'Athlete', attributes: ['email', 'name'] }
-            ]
+            include: [{ model: User, as: 'Athlete', attributes: ['email', 'name'] }]
         });
 
         if (!relationship) {
@@ -847,19 +845,24 @@ router.post('/revoke-athlete/:relationshipId', async (req, res) => {
         }
 
         // Revoke access
-        relationship.status = 'revoked';
-        relationship.revokedAt = new Date();
-        relationship.revokedBy = coachId;
-        await relationship.save();
+        try {
+            relationship.status = 'revoked';
+            relationship.revokedAt = new Date();
+            relationship.revokedBy = coachId;
+            await relationship.save();
+        } catch (saveErr) {
+            console.error('Revoke save error:', saveErr);
+            return res.status(500).json({ error: 'Failed to update relationship' });
+        }
 
-        console.log(`✅ Coach ${coachId} revoked access to athlete ${relationship.Athlete.email}`);
+        console.log(`✅ Coach ${coachId} revoked access to athlete ${relationship.Athlete?.email || relationship.athleteId}`);
 
         res.json({
             success: true,
             message: `Access to ${relationship.Athlete.name || relationship.Athlete.email} has been revoked`,
             relationship: {
                 id: relationship.id,
-                athleteEmail: relationship.Athlete.email,
+                athleteEmail: relationship.Athlete?.email,
                 status: relationship.status,
                 revokedAt: relationship.revokedAt
             }
@@ -867,7 +870,7 @@ router.post('/revoke-athlete/:relationshipId', async (req, res) => {
 
     } catch (error) {
         console.error('Revoke athlete error:', error);
-        res.status(500).json({ error: 'Failed to revoke athlete access' });
+        res.status(500).json({ error: 'Failed to revoke athlete access', details: error.message });
     }
 });
 

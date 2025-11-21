@@ -23,12 +23,23 @@
             .header-left .header-logo { height: 28px; width:auto; }
             .header-center { display:flex !important; justify-content:center; }
             .athlete-selector, .nav-link { display: none !important; }
-            .footer-badges { left: 0; right: 0; bottom: 0; border-radius: 10px 10px 0 0; padding: 4px; gap: 4px; justify-content: center; }
-            .footer-badge { font-size: 9px; padding: 4px 5px; border-radius: 6px; gap: 2px; }
+            .footer-badges { left: 0; right: 0; bottom: 0; border-radius: 8px 8px 0 0; padding: 2px; gap: 3px; justify-content: center; }
+            .footer-badge { font-size: 9px; padding: 2px 4px; border-radius: 6px; gap: 2px; flex-direction: row; align-items: center; }
             .footer-badge img { height: 10px; }
             .footer-badge .subtitle { display: none; }
-            .footer-badge .status { font-size: 8px; }
+            .footer-badge .status { display: none; }
         }
+
+        /* Mobile drawer */
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80vw; max-width: 320px; background: rgba(10,14,39,0.96); border-left: 1px solid rgba(255,255,255,0.12); z-index: 1001; transform: translateX(100%); transition: transform 0.25s ease; padding: 16px; }
+        .drawer.open { transform: translateX(0); }
+        .drawer h3 { color: #fff; margin: 0 0 12px 0; font-size: 16px; }
+        .drawer .item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-radius: 8px; color: #e5e7eb; border: 1px solid rgba(255,255,255,0.12); margin-bottom: 8px; }
+        .drawer .item button, .drawer .item a { font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #e5e7eb; text-decoration: none; }
+        .drawer .athlete-mini { display:flex; align-items:center; justify-content: space-between; gap:6px; padding:6px 8px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; margin-bottom:6px; }
+        .drawer .athlete-mini .name { color:#fff; font-size:13px; font-weight:600; }
+        .drawer .athlete-mini .email { color:rgba(255,255,255,0.7); font-size:11px; }
     </style>
     <style>
         /* Print only selected area when exporting */
@@ -1195,8 +1206,25 @@
                     <a href="/about.html" class="nav-link">📖 About</a>
                     <a href="/privacy.html" class="nav-link">🔒 Privacy</a>
                 </div>
+                <!-- Mobile hamburger (top-right) -->
+                <button class="hamburger-btn" id="coachHamburger" aria-label="Menu" aria-expanded="false" style="display:none; position:absolute; top:10px; right:10px; background:transparent; border:none;">
+                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
+                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
+                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
+                </button>
             </div>
         </header>
+
+        <!-- Mobile Drawer -->
+        <div class="drawer-overlay" id="coachDrawerOverlay" onclick="closeCoachDrawer()"></div>
+        <div class="drawer" id="coachDrawer">
+            <h3>Menu</h3>
+            <div class="item"><span>Invite Athlete</span><button onclick="inviteAthlete(); closeCoachDrawer()">Invite</button></div>
+            <div class="item"><span>Manage Athletes</span><button onclick="openManageAthletesDrawer()">Open</button></div>
+            <div id="coachDrawerAthletes" style="margin:8px 0 12px 0;"></div>
+            <div class="item"><span>Refresh</span><button onclick="mobileRefreshCoach(); closeCoachDrawer()">Refresh</button></div>
+            <div class="item"><span>Logout</span><button onclick="logout()">Logout</button></div>
+        </div>
 
         <div class="container" id="coachDashboardContainer">
             <!-- Garmin Admin Actions for Selected Athlete -->
@@ -1671,8 +1699,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ coachId: currentCoach.id })
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Failed to revoke');
+                const text = await res.text();
+                let data = {};
+                try { data = JSON.parse(text); } catch (_) {}
+                if (!res.ok) throw new Error((data && (data.error || data.details)) || text || 'Failed to revoke');
                 showToast('Athlete removed');
                 await loadCoachAthletes();
                 renderAthleteMenu();
@@ -1681,7 +1711,7 @@
                     showNoDataState();
                 }
             } catch (e) {
-                alert('Failed to remove athlete: ' + e.message);
+                alert('Failed to remove athlete: ' + (e.message || 'Unknown error'));
             }
         }
 
@@ -2408,6 +2438,49 @@
             setBadge('badge-garmin', has('garmin'), 'garmin');
             setBadge('badge-oura', has('oura'), 'oura');
             setBadge('badge-whoop', has('whoop'), 'whoop');
+        }
+
+        // Drawer logic for coach
+        (function initCoachDrawer(){
+            const btn = document.getElementById('coachHamburger');
+            if (btn) btn.addEventListener('click', toggleCoachDrawer);
+        })();
+        function toggleCoachDrawer(){
+            const drawer = document.getElementById('coachDrawer');
+            const overlay = document.getElementById('coachDrawerOverlay');
+            if (!drawer || !overlay) return;
+            const open = !drawer.classList.contains('open');
+            overlay.style.display = open ? 'block' : 'none';
+            drawer.classList.toggle('open', open);
+            if (open) renderCoachDrawerAthletes();
+        }
+        function closeCoachDrawer(){
+            const drawer = document.getElementById('coachDrawer');
+            const overlay = document.getElementById('coachDrawerOverlay');
+            if (!drawer || !overlay) return;
+            overlay.style.display = 'none';
+            drawer.classList.remove('open');
+        }
+        function openManageAthletesDrawer(){ renderCoachDrawerAthletes(true); }
+        function renderCoachDrawerAthletes(expandOnly=false){
+            const list = document.getElementById('coachDrawerAthletes');
+            if (!list) return;
+            if (!athletes || athletes.length === 0) {
+                list.innerHTML = '<div class="athlete-mini">No athletes yet</div>';
+                return;
+            }
+            list.innerHTML = athletes.map(a => `
+                <div class=\"athlete-mini\">
+                    <div>
+                        <div class=\"name\">${a.name || a.email}</div>
+                        <div class=\"email\">${a.email} ${a.status !== 'active' ? '(pending)' : ''}</div>
+                    </div>
+                    <div style=\"display:flex; gap:6px;\">
+                        <button onclick=\"selectAthlete('${a.id}'); closeCoachDrawer()\">Select</button>
+                        <button onclick=\"revokeAthlete('${a.relationshipId}')\">Remove</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Mobile refresh helper
