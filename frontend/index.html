@@ -171,6 +171,19 @@
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/dashboard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        /* Small provider badges pinned bottom-right */
+        .footer-badges {
+            position: fixed; bottom: 10px; right: 10px; z-index: 50;
+            display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+            background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12);
+            padding: 6px 8px; border-radius: 10px; backdrop-filter: blur(6px);
+        }
+        .footer-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); color: #e5e7eb; display: inline-flex; align-items: center; gap: 4px; }
+        .footer-badge img { height: 12px; width: auto; opacity: 0.9; }
+        .badge-connected { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.35); }
+        .badge-disconnected { background: rgba(148,163,184,0.18); border-color: rgba(148,163,184,0.35); }
+    </style>
 </head>
 <body>
     <!-- Google Tag Manager (noscript) -->
@@ -194,7 +207,6 @@
 
             <div class="header-right" id="headerMenu">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
-                <span id="garminHeaderBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
                 <button onclick="syncAllProviders()" class="sync-btn" id="syncBtn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
                 <button onclick="refreshAllData()" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
                 <button onclick="clearAllData()" class="refresh-btn"><i class="fas fa-trash-alt"></i> Clear</button>
@@ -5864,90 +5876,114 @@
                 `).join('');
                 }
 
-                // Create Heart Rate Zones TIME IN ZONE chart from activity data
+                // Create Heart Rate Zones TIME IN ZONE chart from activity data, with min/hr toggle
                 const zonesCtx = document.getElementById('garminZonesChart');
-                if (zonesCtx && activities.length > 0) {
-                    // Calculate time in each zone (estimated based on avg HR and duration)
-                    const maxHRValue = Math.max(...activities.map(a => a.maxHeartRateInBeatsPerMinute || 0));
-
-                    // Define zone boundaries (% of max HR)
+                function renderGarminZonesChart(unit = (window.garminZonesUnit || 'min')) {
+                    if (!zonesCtx || activities.length === 0) return;
+                    const maxHRValue = Math.max(...activities.map(a => a.maxHeartRateInBeatsPerMinute || 0)) || 1;
                     const zones = {
                         recovery: { min: 0.5, max: 0.6, time: 0 },
-                        fatBurn: { min: 0.6, max: 0.7, time: 0 },
-                        cardio: { min: 0.7, max: 0.8, time: 0 },
-                        threshold: { min: 0.8, max: 0.9, time: 0 },
-                        peak: { min: 0.9, max: 1.0, time: 0 }
+                        fatBurn:  { min: 0.6, max: 0.7, time: 0 },
+                        cardio:   { min: 0.7, max: 0.8, time: 0 },
+                        threshold:{ min: 0.8, max: 0.9, time: 0 },
+                        peak:     { min: 0.9, max: 1.0, time: 0 }
                     };
-
-                    // Estimate time in each zone based on average HR
                     activities.forEach(activity => {
                         if (activity.averageHeartRateInBeatsPerMinute && activity.durationInSeconds) {
                             const avgHRPercent = activity.averageHeartRateInBeatsPerMinute / maxHRValue;
-                            const durationMinutes = activity.durationInSeconds / 60;
-
-                            // Find which zone the average HR falls into
-                            if (avgHRPercent >= zones.recovery.min && avgHRPercent < zones.recovery.max) {
-                                zones.recovery.time += durationMinutes;
-                            } else if (avgHRPercent >= zones.fatBurn.min && avgHRPercent < zones.fatBurn.max) {
-                                zones.fatBurn.time += durationMinutes;
-                            } else if (avgHRPercent >= zones.cardio.min && avgHRPercent < zones.cardio.max) {
-                                zones.cardio.time += durationMinutes;
-                            } else if (avgHRPercent >= zones.threshold.min && avgHRPercent < zones.threshold.max) {
-                                zones.threshold.time += durationMinutes;
-                            } else if (avgHRPercent >= zones.peak.min) {
-                                zones.peak.time += durationMinutes;
-                            }
+                            const durationMinutes = (activity.durationInSeconds || 0) / 60;
+                            if (avgHRPercent >= zones.recovery.min && avgHRPercent < zones.recovery.max) zones.recovery.time += durationMinutes;
+                            else if (avgHRPercent >= zones.fatBurn.min && avgHRPercent < zones.fatBurn.max) zones.fatBurn.time += durationMinutes;
+                            else if (avgHRPercent >= zones.cardio.min && avgHRPercent < zones.cardio.max) zones.cardio.time += durationMinutes;
+                            else if (avgHRPercent >= zones.threshold.min && avgHRPercent < zones.threshold.max) zones.threshold.time += durationMinutes;
+                            else if (avgHRPercent >= zones.peak.min) zones.peak.time += durationMinutes;
                         }
                     });
-
-                    // Destroy existing chart if it exists
+                    const toUnits = v => unit === 'hr' ? v / 60 : v;
+                    const label = unit === 'hr' ? 'Time (hours)' : 'Time (minutes)';
+                    const values = [zones.recovery.time, zones.fatBurn.time, zones.cardio.time, zones.threshold.time, zones.peak.time]
+                        .map(v => Math.round(toUnits(v)));
                     const existingChart = Chart.getChart(zonesCtx);
                     if (existingChart) existingChart.destroy();
-
                     new Chart(zonesCtx.getContext('2d'), {
                         type: 'bar',
                         data: {
                             labels: ['Recovery\n(50-60%)', 'Fat Burn\n(60-70%)', 'Cardio\n(70-80%)', 'Threshold\n(80-90%)', 'Peak\n(90-100%)'],
-                            datasets: [{
-                                label: 'Time (minutes)',
-                                data: [
-                                    Math.round(zones.recovery.time),
-                                    Math.round(zones.fatBurn.time),
-                                    Math.round(zones.cardio.time),
-                                    Math.round(zones.threshold.time),
-                                    Math.round(zones.peak.time)
-                                ],
-                                backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336']
-                            }]
+                            datasets: [{ label, data: values, backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF9800', '#F44336'] }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return context.parsed.y + ' minutes';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: { display: true, text: 'Time (minutes)' }
-                                }
-                            }
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, title: { display: true, text: label } } }
                         }
                     });
-                } else if (zonesCtx) {
-                    // Show placeholder
-                    zonesCtx.getContext('2d').clearRect(0, 0, zonesCtx.width, zonesCtx.height);
+                    // Add toggle control once
+                    if (!document.getElementById('garminZonesToggle')) {
+                        const toggle = document.createElement('button');
+                        toggle.id = 'garminZonesToggle';
+                        toggle.textContent = 'Toggle min/hr';
+                        toggle.style.cssText = 'margin:6px 0; padding:4px 8px; font-size:12px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#e5e7eb;';
+                        zonesCtx.parentNode.insertBefore(toggle, zonesCtx);
+                        toggle.addEventListener('click', () => { window.garminZonesUnit = (window.garminZonesUnit === 'hr' ? 'min' : 'hr'); renderGarminZonesChart(window.garminZonesUnit); });
+                    }
                 }
+                if (zonesCtx && activities.length > 0) renderGarminZonesChart();
 
-                // Body Battery, Stress, HRV charts will show once daily summaries arrive via PUSH
-                console.log('Charts ready - waiting for daily summary data from PUSH notifications');
+                // Body Battery Trend from daily summaries
+                if (dailySummaries.length > 0) {
+                    const sorted = [...dailySummaries].sort((a,b) => new Date(a.calendarDate) - new Date(b.calendarDate));
+                    const labels = sorted.map(d => d.calendarDate);
+                    const bodyBatt = sorted.map(d => d.bodyBatteryHighestValue ?? null);
+                    const stressLow = sorted.map(d => (d.lowStressDuration||0)/60);
+                    const stressMed = sorted.map(d => (d.mediumStressDuration||0)/60);
+                    const stressHigh= sorted.map(d => (d.highStressDuration||0)/60);
+                    const hrv = sorted.map(d => d.hrvAvg ?? null);
+                    const resp = sorted.map(d => d.avgWakingRespirationValue ?? null);
+
+                    const bbCtx = document.getElementById('garminBodyBatteryChart');
+                    if (bbCtx && bodyBatt.some(v => v !== null)) {
+                        const c = Chart.getChart(bbCtx); if (c) c.destroy();
+                        new Chart(bbCtx.getContext('2d'), {
+                            type: 'line',
+                            data: { labels, datasets: [{ label: 'Body Battery (max)', data: bodyBatt, borderColor: '#22c55e', backgroundColor: 'transparent', tension: 0.3 }] },
+                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min:0, max:100, title:{display:true,text:'Level'} } } }
+                        });
+                    }
+
+                    const stressCtx = document.getElementById('garminStressChart');
+                    if (stressCtx && (stressLow.some(v=>v>0)||stressMed.some(v=>v>0)||stressHigh.some(v=>v>0))) {
+                        const c = Chart.getChart(stressCtx); if (c) c.destroy();
+                        new Chart(stressCtx.getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels,
+                                datasets: [
+                                    { label: 'Low (min)',    data: stressLow, backgroundColor: '#10b981' },
+                                    { label: 'Medium (min)', data: stressMed, backgroundColor: '#f59e0b' },
+                                    { label: 'High (min)',   data: stressHigh,backgroundColor: '#dc2626' }
+                                ]
+                            },
+                            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true}}, scales:{ y:{ beginAtZero:true, title:{display:true,text:'Minutes'} } } }
+                        });
+                    }
+
+                    const hrvRespCtx = document.getElementById('garminHRVRespirationChart');
+                    if (hrvRespCtx && (hrv.some(v=>v!==null)||resp.some(v=>v!==null))) {
+                        const c = Chart.getChart(hrvRespCtx); if (c) c.destroy();
+                        new Chart(hrvRespCtx.getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels,
+                                datasets: [
+                                    { label: 'HRV (ms)', data: hrv, borderColor:'#3b82f6', backgroundColor:'transparent', yAxisID:'y' },
+                                    { label: 'Resp (br/min)', data: resp, borderColor:'#14b8a6', backgroundColor:'transparent', yAxisID:'y1' }
+                                ]
+                            },
+                            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true}}, scales:{ y:{ position:'left', title:{display:true, text:'HRV (ms)'} }, y1:{ position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Breaths/min'} } } }
+                        });
+                    }
+                }
 
             } catch (error) {
                 console.error(' Error updating Garmin display:', error);
@@ -5982,27 +6018,26 @@
                 }).join('');
             }
 
-            // Update header Garmin badge as well
-            try {
-                const garminConnected = !!fitnessData.garmin || !!localStorage.getItem('garmin_token');
-                setGarminHeaderBadge(garminConnected);
-            } catch (_) {}
+            // Update footer badges
+            try { updateFooterBadges(); } catch (_) {}
         }
 
-        function setGarminHeaderBadge(connected) {
-            const el = document.getElementById('garminHeaderBadge');
-            if (!el) return;
-            if (connected) {
-                el.textContent = 'Garmin: Connected';
-                el.style.background = 'rgba(34,197,94,0.15)';
-                el.style.border = '1px solid rgba(34,197,94,0.35)';
-                el.style.color = 'rgba(241,245,249,0.95)';
-            } else {
-                el.textContent = 'Garmin: Not Connected';
-                el.style.background = 'rgba(148,163,184,0.15)';
-                el.style.border = '1px solid rgba(148,163,184,0.35)';
-                el.style.color = 'rgba(241,245,249,0.95)';
-            }
+        function updateFooterBadges() {
+            const status = (provider) => {
+                const fd = fitnessData[provider];
+                const token = localStorage.getItem(`${provider}_token`);
+                return !!fd || !!token;
+            };
+            const setBadge = (id, connected) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle('badge-connected', connected);
+                el.classList.toggle('badge-disconnected', !connected);
+            };
+            setBadge('badge-strava', status('strava'));
+            setBadge('badge-garmin', status('garmin'));
+            setBadge('badge-oura', status('oura'));
+            setBadge('badge-whoop', status('whoop'));
         }
 
         // ===== RUNNING ANALYTICS =====
@@ -7400,5 +7435,13 @@
     <script src="oauth-handler.js"></script>
     <script src="auth-handler.js"></script>
     <script src="micro-interactions.js"></script>
+    
+    <!-- Footer provider badges -->
+    <div class="footer-badges" id="footerBadges">
+        <span id="badge-strava" class="footer-badge badge-disconnected"><img src="/src/images/strava.svg" alt="Strava"> Strava</span>
+        <span id="badge-garmin" class="footer-badge badge-disconnected"><img src="/src/images/Garmin.svg" alt="Garmin"> Garmin</span>
+        <span id="badge-oura" class="footer-badge badge-disconnected"><img src="/src/images/oura.png" alt="Oura"> Oura</span>
+        <span id="badge-whoop" class="footer-badge badge-disconnected"><img src="/src/images/WHOOP.svg" alt="Whoop"> Whoop</span>
+    </div>
 </body>
 </html>
