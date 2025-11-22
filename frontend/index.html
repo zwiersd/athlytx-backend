@@ -510,16 +510,16 @@
                             Guest connections stay in a temporary profile. Please reconnect so your devices sync to your new account.
                         </p>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                            <button class="btn" onclick="switchTab('garmin'); closeReconnectModal();" style="justify-content:center;">
+                            <button class="btn" onclick="connectDevice('garmin'); closeReconnectModal();" style="justify-content:center;">
                                 <img src="src/images/Garmin.svg" alt="Garmin" style="height:14px; margin-right:6px;"> Garmin
                             </button>
-                            <button class="btn" onclick="switchTab('whoop'); closeReconnectModal();" style="justify-content:center;">
+                            <button class="btn" onclick="connectDevice('whoop'); closeReconnectModal();" style="justify-content:center;">
                                 <img src="src/images/WHOOP.svg" alt="Whoop" style="height:14px; margin-right:6px;"> Whoop
                             </button>
-                            <button class="btn" onclick="switchTab('oura'); closeReconnectModal();" style="justify-content:center;">
+                            <button class="btn" onclick="connectDevice('oura'); closeReconnectModal();" style="justify-content:center;">
                                 <img src="src/images/oura.png" alt="Oura" style="height:14px; margin-right:6px;"> Oura
                             </button>
-                            <button class="btn" onclick="switchTab('strava'); closeReconnectModal();" style="justify-content:center;">
+                            <button class="btn" onclick="connectDevice('strava'); closeReconnectModal();" style="justify-content:center;">
                                 <img src="src/images/strava.svg" alt="Strava" style="height:14px; margin-right:6px;"> Strava
                             </button>
                         </div>
@@ -3699,16 +3699,43 @@
                 }
             }
 
-            // Get Strava training load as backup/supplement
+            // Get Strava training load as backup/supplement + ACWR/TSB-style balance
             if (fitnessData.strava && fitnessData.strava.activities) {
                 const recentActivities = fitnessData.strava.activities.filter(a => new Date(a.start_date) >= lastWeek);
                 if (recentActivities.length > 0) {
                     const avgLoad = recentActivities.reduce((sum, a) => sum + (a.suffer_score || 0), 0) / recentActivities.length;
                     const stravaScore = Math.max(0, 100 - (avgLoad * 0.5));
 
-                    // If we have both Whoop and Strava, blend them (70% Whoop, 30% Strava)
-                    if (strainScore !== null) {
+                    // Simple ACWR/TSB proxy: 7d vs 28d load ratio
+                    const now = new Date();
+                    const iso = d => new Date(d).toISOString().split('T')[0];
+                    const daysBack = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - n);
+                    const start7 = daysBack(now, 7);
+                    const start28 = daysBack(now, 28);
+                    let load7 = 0, load28 = 0, days7 = 0, days28 = 0;
+                    for (const a of fitnessData.strava.activities) {
+                        if (!a?.start_date) continue;
+                        const dt = new Date(a.start_date);
+                        const load = a.suffer_score || 0;
+                        if (dt >= start28) { load28 += load; days28 += 1; }
+                        if (dt >= start7) { load7 += load; days7 += 1; }
+                    }
+                    const avg7 = days7 ? load7 / days7 : 0;
+                    const avg28 = days28 ? load28 / days28 : 0;
+                    const acwr = avg28 > 0 ? avg7 / avg28 : null;
+                    let acwrScore = null;
+                    if (acwr !== null) {
+                        const diff = Math.abs(acwr - 1);
+                        acwrScore = Math.max(10, 100 - diff * 120); // 0.8-1.2 ~ high score; >1.5 drops
+                    }
+
+                    // Blend: Whoop strain (if present) + Strava load + balance
+                    if (strainScore !== null && acwrScore !== null) {
+                        strainScore = (strainScore * 0.6) + (stravaScore * 0.2) + (acwrScore * 0.2);
+                    } else if (strainScore !== null) {
                         strainScore = (strainScore * 0.7) + (stravaScore * 0.3);
+                    } else if (acwrScore !== null) {
+                        strainScore = (stravaScore * 0.6) + (acwrScore * 0.4);
                     } else {
                         strainScore = stravaScore;
                     }

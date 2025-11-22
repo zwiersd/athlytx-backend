@@ -1377,12 +1377,15 @@
 
             <!-- Recent Activities -->
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Recent Activities</h2>
-                    <div class="card-actions">
-                        <button class="btn btn-primary" onclick="syncData()">Refresh</button>
-                        <button class="btn btn-ghost" onclick="exportActivities()">Export CSV</button>
-                    </div>
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Activities</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="syncData()">Refresh</button>
+                            <button class="btn" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;" onclick="backfillAthleteGarmin(30)">
+                                <i class="fas fa-history" style="margin-right:6px;"></i>Backfill 30d
+                            </button>
+                            <button class="btn btn-ghost" onclick="exportActivities()">Export CSV</button>
+                        </div>
                 </div>
                 <div class="table-container">
                     <table id="activitiesTable">
@@ -1647,7 +1650,10 @@
                 const res = await fetch(`/api/coach/athletes?coachId=${currentCoach.id}`);
                 if (!res.ok) throw new Error('Failed to fetch athletes');
                 const data = await res.json();
-                athletes = (data.athletes || []).map(a => ({ id: a.id, relationshipId: a.relationshipId, name: a.name || a.email, email: a.email, status: a.relationshipStatus || 'active' }));
+                athletes = (data.athletes || []).map(a => {
+                    const status = a.relationshipStatus === 'pending' && a.relationshipAcceptedAt ? 'active' : (a.relationshipStatus || 'active');
+                    return { id: a.id, relationshipId: a.relationshipId, name: a.name || a.email, email: a.email, status };
+                });
                 console.log('[COACH] Athletes:', athletes);
             } catch (e) {
                 console.error('[COACH] loadCoachAthletes error:', e);

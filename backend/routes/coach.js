@@ -257,6 +257,7 @@ router.get('/athletes', async (req, res) => {
             return {
                 relationshipId: rel.id,
                 relationshipStatus: rel.status,
+                relationshipAcceptedAt: rel.acceptedAt,
                 id: athlete.id,
                 email: athlete.email,
                 name: athlete.name,
