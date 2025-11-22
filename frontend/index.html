@@ -6998,15 +6998,20 @@
         // Sync data from all connected providers to PostgreSQL database
         async function syncAllProviders() {
             const syncBtn = document.getElementById('syncBtn');
-            const originalContent = syncBtn.innerHTML;
+            const originalContent = syncBtn ? syncBtn.innerHTML : '';
 
             try {
-                syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-                syncBtn.disabled = true;
+                if (syncBtn) {
+                    syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                    syncBtn.disabled = true;
+                } else {
+                    console.warn('syncBtn not found; proceeding without UI update');
+                }
 
                 showMessage('Syncing data from all connected providers...', 'info');
 
                 const userId = localStorage.getItem('userId');
+                const sessionToken = localStorage.getItem('sessionToken');
                 if (!userId) {
                     showMessage('Please login or connect a device first', 'error');
                     return;
@@ -7015,8 +7020,11 @@
                 // Call backend sync endpoint
                 const response = await fetch(`${API_CONFIG.backend}/api/sync/manual`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, daysBack: 30 })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+                    },
+                    body: JSON.stringify({ userId, daysBack: 30, sessionToken })
                 });
 
                 const data = await response.json();
@@ -7036,8 +7044,10 @@
                 console.error('Sync error:', error);
                 showMessage('Sync failed. Please try again.', 'error');
             } finally {
-                syncBtn.innerHTML = originalContent;
-                syncBtn.disabled = false;
+                if (syncBtn) {
+                    syncBtn.innerHTML = originalContent;
+                    syncBtn.disabled = false;
+                }
             }
         }
 
