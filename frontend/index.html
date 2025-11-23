@@ -7034,6 +7034,18 @@
             return { avgDistance, weeklyRuns, avgPace, longestRun, avgHR };
         }
 
+        function updateRunningFitnessMetrics(allRuns){const r=allRuns.filter(a=>{const t=(a.type||a.sport_type||'').toLowerCase();return t.includes('run')});if(!r.length)return;const d={},t=new Date();for(let i=0;i<42;i++){const e=new Date(t);e.setDate(e.getDate()-i);d[e.toISOString().split('T')[0]]=0}r.forEach(a=>{if(!a.start_date)return;const k=a.start_date.split('T')[0];if(d[k]!==undefined)d[k]+=(a.suffer_score||0)});let c=0;const cd=1-1/42;Object.keys(d).sort().reverse().forEach(k=>c=c*cd+d[k]);let a=0;const ad=1-1/7;Object.keys(d).sort().reverse().slice(0,7).forEach(k=>a=a*ad+d[k]);const s=c-a;document.getElementById('runningCTL').textContent=c.toFixed(1);document.getElementById('runningATL').textContent=a.toFixed(1);document.getElementById('runningTSB').textContent=s>0?'+'+s.toFixed(1):s.toFixed(1);const st=s>25?'Fresh & Rested 🌟':s>=0?'Race Ready 💪':s>=-10?'Neutral ⚖️':s>=-30?'Training Zone 🔥':'High Fatigue ⚠️';const co=s>25?'#10b981':s>=0?'#3b82f6':s>=-10?'#f59e0b':s>=-30?'#ef4444':'#dc2626';const f=document.getElementById('runningFormStatus');f.textContent=st;f.style.color=co}
+        function updateRunningRecoveryMetrics(){let h='--',r='--',s='--',d='--';if(fitnessData.oura&&fitnessData.oura.sleep){const sl=fitnessData.oura.sleep.slice(0,7);const hv=sl.map(x=>x.hrv_average||(x.heart_rate?x.heart_rate.average_hrv:null)).filter(v=>v);const rv=sl.map(x=>x.resting_hr||(x.heart_rate?x.heart_rate.resting_hr:null)).filter(v=>v);const sv=sl.map(x=>x.score).filter(v=>v);if(hv.length>0)h=Math.round(hv.reduce((a,b)=>a+b)/hv.length);if(rv.length>0)r=Math.round(rv.reduce((a,b)=>a+b)/rv.length);if(sv.length>0)s=Math.round(sv.reduce((a,b)=>a+b)/sv.length);if(fitnessData.oura.readiness){const rs=fitnessData.oura.readiness.slice(0,7).map(x=>x.score).filter(v=>v);if(rs.length>0)d=Math.round(rs.reduce((a,b)=>a+b)/rs.length)}}document.getElementById('runningHRV').textContent=h;document.getElementById('runningRHR').textContent=r;document.getElementById('runningSleep').textContent=s;document.getElementById('runningReadiness').textContent=d}
+        function updateRunningPerformanceMetrics(runs){const p=runs.map(r=>r.distance>1000&&r.moving_time>0?(r.moving_time/60)/(r.distance/1000):null).filter(x=>x&&x<10&&x>2);if(p.length>0){const a=p.reduce((x,y)=>x+y)/p.length;const b=Math.min(...p);document.getElementById('runningAvgPace').textContent=Math.floor(a)+':'+Math.round((a%1)*60).toString().padStart(2,'0');document.getElementById('runningBestPace').textContent=Math.floor(b)+':'+Math.round((b%1)*60).toString().padStart(2,'0');const v=Math.round(-4.60+0.182258*(60/a)+0.000104*Math.pow(60/a,2));document.getElementById('runningVO2max').textContent=v>0?v:'--'}else{document.getElementById('runningAvgPace').textContent='--';document.getElementById('runningBestPace').textContent='--';document.getElementById('runningVO2max').textContent='--'}const h=runs.map(r=>r.average_heartrate).filter(x=>x>0);document.getElementById('runningAvgHR').textContent=h.length>0?Math.round(h.reduce((a,b)=>a+b)/h.length)+' bpm':'--'}
+        function updateRunningFormMetrics(runs){const c=runs.map(r=>r.average_cadence).filter(x=>x).map(x=>x*2);const s=runs.map(r=>r.average_stride_length).filter(x=>x);document.getElementById('runningCadence').textContent=c.length>0?Math.round(c.reduce((a,b)=>a+b)/c.length):'--';document.getElementById('runningStrideLength').textContent=s.length>0?(s.reduce((a,b)=>a+b)/s.length).toFixed(2):'--';document.getElementById('runningGCT').textContent='--';document.getElementById('runningVertOsc').textContent='--'}
+        function updateRunningWeeklyProgress(recent,prev,last){const o=new Date(Date.now()-7*86400000);const t=new Date(Date.now()-14*86400000);const tw=recent.filter(r=>new Date(r.start_date)>=o);const lw=recent.filter(r=>{const d=new Date(r.start_date);return d>=t&&d<o});const td=tw.reduce((s,r)=>s+(r.distance||0),0)/1000;const ld=lw.reduce((s,r)=>s+(r.distance||0),0)/1000;const dc=ld>0?((td-ld)/ld*100):0;document.getElementById('runningWeeklyDistChange').innerHTML='<span style="color:'+(dc>=0?'#10b981':'#ef4444')+'">'+(dc>=0?'+':'')+dc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyRunsChange').innerHTML='<span style="color:'+(tw.length>=lw.length?'#10b981':'#ef4444')+'">'+(tw.length>=lw.length?'+':'')+(tw.length-lw.length)+'</span>';const tl=tw.reduce((s,r)=>s+(r.suffer_score||0),0);const ll=lw.reduce((s,r)=>s+(r.suffer_score||0),0);const lc=ll>0?((tl-ll)/ll*100):0;document.getElementById('runningWeeklyLoadChange').innerHTML='<span style="color:'+(lc>=0?'#10b981':'#ef4444')+'">'+(lc>=0?'+':'')+lc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyPaceChange').textContent='--';document.getElementById('runningWeeklyLongestChange').textContent='--'}
+        function updateRunningPersonalRecords(all){const r=all.filter(a=>{const t=(a.type||a.sport_type||'').toLowerCase();return t.includes('run')});const f=(d)=>{const tol=d*0.05;const c=r.filter(x=>Math.abs(x.distance-d)<=tol&&x.moving_time>0);if(!c.length)return null;return c.reduce((b,c)=>(c.moving_time/c.distance)<(b.moving_time/b.distance)?c:b)};const ft=(s)=>{const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const se=Math.round(s%60);return h>0?h+':'+m.toString().padStart(2,'0')+':'+se.toString().padStart(2,'0'):m+':'+se.toString().padStart(2,'0')};const p5=f(5000);document.getElementById('runningPR5k').textContent=p5?ft(p5.moving_time):'--';const p10=f(10000);document.getElementById('runningPR10k').textContent=p10?ft(p10.moving_time):'--';const ph=f(21097);document.getElementById('runningPRHalf').textContent=ph?ft(ph.moving_time):'--';const pm=f(42195);document.getElementById('runningPRMarathon').textContent=pm?ft(pm.moving_time):'--';if(r.length>0){const l=r.reduce((m,x)=>x.distance>m.distance?x:m);document.getElementById('runningPRLongest').textContent=(l.distance/1000).toFixed(2)+' km';const e=r.reduce((m,x)=>(x.total_elevation_gain||0)>(m.total_elevation_gain||0)?x:m);document.getElementById('runningPRElevation').textContent=Math.round(e.total_elevation_gain||0)+' m'}}
+        function updateRunningHRZonesChart(r){}
+        function updateRunningIntensityPyramid(r){}
+        function updateRunningFitnessTrendChart(a){}
+        function updateRunningVolumeChart(a){}
+        function updateRunningPaceProgressionChart(r){}
+
         function formatPace(paceMinPerKm) {
             if (paceMinPerKm === 0) return '--';
             const minutes = Math.floor(paceMinPerKm);
@@ -7247,12 +7259,57 @@
             }
         }
 
+        async function ensureWhoopToken() {
+            const accessToken = localStorage.getItem('whoop_token');
+            const refreshToken = localStorage.getItem('whoop_refresh_token');
+            const expiresAtRaw = localStorage.getItem('whoop_token_expires_at');
+            const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
+            const now = new Date();
+
+            // If no token, return null so caller can skip
+            if (!accessToken) return null;
+
+            // If we have expiry and it's still valid for 5 more minutes, just return it
+            if (expiresAt && expiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
+                return accessToken;
+            }
+
+            // Need refresh
+            if (!refreshToken) {
+                console.warn('Whoop token expired and no refresh token stored');
+                return null;
+            }
+
+            try {
+                const res = await fetch(`${API_CONFIG.backend}/api/whoop/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken, client_id: whoopAuth?.clientId || '31c6c2ac-890c-46ef-81da-b961c1cb1ca7', client_secret: whoopAuth?.clientSecret || '45080f98c58c1aad56f6e0076b014e3dc58356f4763efaf3df2307057ce4b14f' })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.access_token) {
+                    console.warn('Whoop refresh failed:', data);
+                    return null;
+                }
+                localStorage.setItem('whoop_token', data.access_token);
+                if (data.refresh_token) localStorage.setItem('whoop_refresh_token', data.refresh_token);
+                if (data.expires_in) {
+                    const newExp = new Date(Date.now() + data.expires_in * 1000).toISOString();
+                    localStorage.setItem('whoop_token_expires_at', newExp);
+                }
+                return data.access_token;
+            } catch (e) {
+                console.warn('Whoop refresh error:', e);
+                return null;
+            }
+        }
+
         async function refreshAllData() {
             showMessage('Refreshing all connected data...', 'info');
 
             const stravaToken = localStorage.getItem('strava_token');
             const ouraToken = localStorage.getItem('oura_token');
-            const whoopToken = localStorage.getItem('whoop_token');
+            const whoopToken = await ensureWhoopToken();
             const garminToken = localStorage.getItem('garmin_token');
 
             const refreshPromises = [];
