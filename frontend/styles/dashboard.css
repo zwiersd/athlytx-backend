@@ -260,6 +260,34 @@ body {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+.confidence-tip {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+.confidence-tip .confidence-cta {
+  color: #93c5fd;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.data-sources-badge[data-tooltip]:hover::after,
+.data-sources-badge [data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  width: 240px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+}
 
 /* Position readiness on desktop - above the score */
 .score-hero-container .readiness-status-hero {

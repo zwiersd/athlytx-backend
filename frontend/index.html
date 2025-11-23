@@ -508,11 +508,12 @@
                     <div id="dataSourcesBadge" class="data-sources-badge">
                         <span id="deviceGuidance">Connect devices</span>
                     </div>
-                    <div id="scoreConfidenceBadge" class="data-sources-badge" style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; cursor: help;" title="Confidence reflects how much quality data we had (sleep, recovery, strain, HRV) over the last 7-30 days.">
+                    <div id="scoreConfidenceBadge" class="data-sources-badge" data-tooltip="Confidence reflects how much quality data we had (sleep, recovery, strain, HRV) over the last 7-30 days." style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; cursor: help; position: relative;">
                         <span style="font-weight: 600;">Confidence:</span>
                         <span id="confidenceText">No data</span>
-                        <span style="background: rgba(255,255,255,0.12); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;" title="We combine recovery (HRV/resting HR + device readiness), sleep quality, strain/load balance, and HRV trends. Confidence goes up when more of these signals are present and recent.">i</span>
+                        <span style="background: rgba(255,255,255,0.12); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; cursor: help;" data-tooltip="We combine recovery (HRV/resting HR + device readiness), sleep quality, strain/load balance, and HRV trends. Confidence goes up when more of these signals are present and recent.">i</span>
                     </div>
+                    <div id="confidenceTip" class="confidence-tip"></div>
                 </div>
             </div>
 
@@ -4530,7 +4531,13 @@
                 if (!componentAvailable) return sum;
                 return sum + weights[key] * (quality[key] || 0);
             }, 0);
-            const confidencePercent = Math.round((confidenceNumerator / Object.values(weights).reduce((s, v) => s + v, 0)) * 100);
+            let confidencePercent = Math.round((confidenceNumerator / Object.values(weights).reduce((s, v) => s + v, 0)) * 100);
+            const hasPremiumRecovery = (fitnessData.whoop?.recovery?.length || fitnessData.oura?.readiness?.length);
+            const hasAnyData = usedWeight > 0;
+            // Floor confidence for Garmin/Strava-only users so it doesn't look broken
+            if (!hasPremiumRecovery && hasAnyData && confidencePercent < 60) {
+                confidencePercent = 60;
+            }
             const confidenceLabel = confidencePercent >= 80 ? 'High' : (confidencePercent >= 55 ? 'Medium' : 'Low');
             const confidence = `${confidenceLabel} (${confidencePercent}%)`;
 
@@ -4662,6 +4669,18 @@
                         guidanceEl.innerHTML = `Data from: ${connected.join(' ')}`;
                     }
                 }
+                // Confidence guidance for users without HRV devices
+                const tipEl = document.getElementById('confidenceTip');
+                if (tipEl) {
+                    const hasOuraData = (fitnessData.oura && ((fitnessData.oura.readiness && fitnessData.oura.readiness.length) || (fitnessData.oura.sleep && fitnessData.oura.sleep.length))) || !!localStorage.getItem('oura_token');
+                    const hasWhoopData = (fitnessData.whoop && ((fitnessData.whoop.recovery && fitnessData.whoop.recovery.length) || (fitnessData.whoop.cycles && fitnessData.whoop.cycles.length))) || !!localStorage.getItem('whoop_token');
+                    const label = confidence.startsWith('High') ? 'High' : (confidence.startsWith('Medium') ? 'Medium' : 'Low');
+                    if (!hasOuraData && !hasWhoopData && (label === 'Medium' || label === 'Low')) {
+                        tipEl.innerHTML = `Tip: Connect Oura or Whoop to boost accuracy. <a class="confidence-cta" href="#connect-devices">Connect now</a>`;
+                    } else {
+                        tipEl.textContent = '';
+                    }
+                }
                 // Debug overlay for QA: enable with ?debugAthlytx=1
                 const debugParam = new URLSearchParams(window.location.search).get('debugAthlytx');
                 if (debugParam === '1') {
@@ -4721,6 +4740,8 @@
 
                 const guidanceEl = document.getElementById('deviceGuidance');
                 if (guidanceEl) guidanceEl.textContent = 'Connect devices for analysis';
+                const tipEl = document.getElementById('confidenceTip');
+                if (tipEl) tipEl.textContent = '';
                 const readinessBanner = document.getElementById('readinessBanner');
                 if (readinessBanner) {
                     readinessBanner.textContent = '🏁 Today’s Readiness: --';
