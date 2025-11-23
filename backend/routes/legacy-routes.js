@@ -794,43 +794,7 @@ app.post('/api/garmin/token', async (req, res) => {
             console.error('⚠️ Failed to decode JWT:', jwtError.message);
         }
 
-        // Register user for PUSH notifications
-        try {
-            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS (OAUTH2 BEARER) ===');
-            const regResponse = await fetch('https://apis.garmin.com/wellness-api/rest/user/registration', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${data.access_token}`,
-                    Accept: 'application/json'
-                }
-            });
-            const regText = await regResponse.text();
-            console.log('📝 Push registration response:', {
-                status: regResponse.status,
-                statusText: regResponse.statusText,
-                body: regText
-            });
-
-            if (regResponse.ok || regResponse.status === 409) {
-                console.log('✅ User registered for PUSH notifications (or already registered)');
-            } else {
-                console.warn('⚠️ Push registration failed (non-fatal):', regText);
-            }
-
-            // Optional: verify permissions for debug
-            try {
-                const permResponse = await fetch('https://apis.garmin.com/wellness-api/rest/user/permissions', {
-                    headers: { Authorization: `Bearer ${data.access_token}` }
-                });
-                const permText = await permResponse.text();
-                console.log('🔐 Permissions check:', { status: permResponse.status, body: permText.substring(0, 400) });
-            } catch (permErr) {
-                console.warn('⚠️ Permissions check failed (non-fatal):', permErr.message);
-            }
-
-        } catch (regError) {
-            console.error('⚠️ PUSH registration error (non-fatal):', regError);
-        }
+        // For OAuth2 apps there is no separate POST registration step; bearer access token is sufficient for push.
 
         // **CRITICAL:** Save token to database so PUSH webhooks can find the user
         try {
