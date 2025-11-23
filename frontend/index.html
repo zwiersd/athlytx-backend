@@ -6203,9 +6203,17 @@
                 if (dailySummaries.length > 0) {
                     const latest = dailySummaries[0];
 
-                    // Body Battery (allow 0)
-                    if (latest.bodyBatteryHighestValue !== undefined && latest.bodyBatteryHighestValue !== null) {
-                        document.getElementById('garminBodyBattery').textContent = latest.bodyBatteryHighestValue;
+                    // Body Battery (allow 0) - fallback to charged/drained if highest is null
+                    const bbValue =
+                        (latest.bodyBatteryHighestValue !== undefined && latest.bodyBatteryHighestValue !== null)
+                            ? latest.bodyBatteryHighestValue
+                            : (latest.bodyBatteryChargedValue !== undefined && latest.bodyBatteryChargedValue !== null)
+                                ? latest.bodyBatteryChargedValue
+                                : (latest.bodyBatteryDrainedValue !== undefined && latest.bodyBatteryDrainedValue !== null)
+                                    ? Math.max(0, 100 - latest.bodyBatteryDrainedValue)
+                                    : null;
+                    if (bbValue !== null) {
+                        document.getElementById('garminBodyBattery').textContent = bbValue;
                     }
 
                     // Stress Level (allow 0)
@@ -6333,7 +6341,12 @@
                 if (dailySummaries.length > 0) {
                     const sorted = [...dailySummaries].sort((a,b) => new Date(a.calendarDate) - new Date(b.calendarDate));
                     const labels = sorted.map(d => d.calendarDate);
-                    const bodyBatt = sorted.map(d => d.bodyBatteryHighestValue ?? null);
+                    const bodyBatt = sorted.map(d => {
+                        if (d.bodyBatteryHighestValue !== undefined && d.bodyBatteryHighestValue !== null) return d.bodyBatteryHighestValue;
+                        if (d.bodyBatteryChargedValue !== undefined && d.bodyBatteryChargedValue !== null) return d.bodyBatteryChargedValue;
+                        if (d.bodyBatteryDrainedValue !== undefined && d.bodyBatteryDrainedValue !== null) return Math.max(0, 100 - d.bodyBatteryDrainedValue);
+                        return null;
+                    });
                     const stressLow = sorted.map(d => (d.lowStressDuration||0)/60);
                     const stressMed = sorted.map(d => (d.mediumStressDuration||0)/60);
                     const stressHigh= sorted.map(d => (d.highStressDuration||0)/60);
