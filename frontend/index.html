@@ -3012,9 +3012,9 @@
                 whoop: !!whoopToken
             });
             
-            // Check Strava token
+            // Check Strava token - load from database instead of API
             if (stravaToken && (!stravaExpiry || now < parseInt(stravaExpiry))) {
-                fetchStravaData(stravaToken);
+                fetchStravaDataFromDB();
             } else if (stravaToken && stravaExpiry && now >= parseInt(stravaExpiry)) {
                 console.log(' Strava token expired, attempting to refresh...');
                 const refreshToken = localStorage.getItem('strava_refresh_token');
@@ -3376,6 +3376,80 @@
                 
                 button.disabled = false;
                 
+                // Set partial data to prevent null errors
+                if (!fitnessData.strava) {
+                    fitnessData.strava = {
+                        athlete: null,
+                        activities: [],
+                        error: error.message,
+                        lastUpdated: new Date().toISOString()
+                    };
+                }
+            }
+        }
+
+        // Fetch Strava data from database (used when already synced)
+        async function fetchStravaDataFromDB() {
+            const button = document.querySelector('.btn-strava');
+
+            try {
+                button.innerHTML = '<span class="loading-spinner"></span> Loading...';
+                button.disabled = true;
+
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    throw new Error('User ID not available');
+                }
+
+                console.log('📡 Fetching Strava data from database for user:', userId);
+
+                const [athleteResponse, activitiesResponse] = await Promise.allSettled([
+                    fetch(`${API_CONFIG.backend}/api/strava/athlete?token=${localStorage.getItem('strava_token')}`),
+                    fetch(`${API_CONFIG.backend}/api/strava/db/activities?userId=${userId}`)
+                ]);
+
+                let athlete = null;
+                let activities = [];
+
+                // Get athlete info from API (lightweight call)
+                if (athleteResponse.status === 'fulfilled' && athleteResponse.value.ok) {
+                    athlete = await athleteResponse.value.json();
+                }
+
+                // Get activities from database
+                if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.ok) {
+                    const data = await activitiesResponse.value.json();
+                    activities = data.activities || [];
+                    console.log('✅ Loaded', activities.length, 'Strava activities from database');
+                }
+
+                fitnessData.strava = {
+                    athlete,
+                    activities: activities,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                button.innerHTML = `✅ ${athlete?.firstname || 'Strava'} - Connected`;
+                button.disabled = false;
+
+                // Show disconnect button
+                const disconnectBtn = document.querySelector('.btn-strava-disconnect');
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'block';
+                }
+
+                showMessage(`Strava connected! Found ${activities.length} activities`, 'success');
+                updateAnalytics();
+                updateConnectionStatus();
+
+            } catch (error) {
+                console.error('Error fetching Strava data from database:', error);
+
+                button.innerHTML = '❌ Strava Error';
+                button.disabled = false;
+
+                showMessage(`Strava error: ${error.message}`, 'error');
+
                 // Set partial data to prevent null errors
                 if (!fitnessData.strava) {
                     fitnessData.strava = {

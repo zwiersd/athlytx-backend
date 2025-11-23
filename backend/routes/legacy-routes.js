@@ -180,6 +180,55 @@ app.get('/api/strava/activities', async (req, res) => {
     }
 });
 
+// Get Strava activities from database (not Strava API)
+app.get('/api/strava/db/activities', async (req, res) => {
+    try {
+        const { Activity } = require('../models');
+        const userId = req.query.userId;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        const activities = await Activity.findAll({
+            where: {
+                userId: userId,
+                provider: 'strava'
+            },
+            order: [['startTime', 'DESC']],
+            limit: 100,
+            raw: true
+        });
+
+        console.log(`✅ Fetched ${activities.length} Strava activities from database for user ${userId}`);
+
+        // Transform database format to match Strava API format for frontend compatibility
+        const formattedActivities = activities.map(act => ({
+            id: act.externalId,
+            type: act.activityType,
+            name: act.activityName,
+            start_date: act.startTime,
+            moving_time: act.durationSeconds,
+            distance: act.distanceMeters,
+            calories: act.calories,
+            average_heartrate: act.avgHr,
+            max_heartrate: act.maxHr,
+            suffer_score: act.rawData?.suffer_score,
+            total_elevation_gain: act.rawData?.total_elevation_gain,
+            average_watts: act.rawData?.average_watts,
+            device_watts: act.rawData?.device_watts,
+            has_heartrate: act.avgHr ? true : false,
+            // Include any additional fields from rawData
+            ...act.rawData
+        }));
+
+        res.json({ activities: formattedActivities });
+    } catch (error) {
+        console.error('Strava DB activities error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ===== OURA ENDPOINTS =====
 app.post('/api/oura/token', async (req, res) => {
     try {
