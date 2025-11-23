@@ -6517,15 +6517,67 @@
 
         // ===== RUNNING ANALYTICS =====
         function updateRunningAnalytics() {
-            if (!fitnessData.strava || !fitnessData.strava.activities) {
-                showEmptyRunningState();
-                return;
+            // Collect running activities from all sources
+            let allRunActivities = [];
+
+            // Get Strava running activities
+            if (fitnessData.strava && fitnessData.strava.activities) {
+                const stravaRuns = fitnessData.strava.activities.filter(a => {
+                    const t = (a.type || a.sport_type || '').toLowerCase();
+                    return t.includes('run');
+                });
+                allRunActivities.push(...stravaRuns.map(a => ({...a, source: 'strava'})));
             }
 
-            const runActivities = fitnessData.strava.activities.filter(a => {
-                const t = (a.type || a.sport_type || '').toLowerCase();
-                return t.includes('run'); // includes Run, TrailRun, VirtualRun
+            // Get Garmin running activities
+            if (fitnessData.garmin && fitnessData.garmin.activities) {
+                const garminRuns = fitnessData.garmin.activities.filter(a => {
+                    const t = (a.activityType || a.type || a.sport_type || '').toLowerCase();
+                    return t.includes('run');
+                });
+                allRunActivities.push(...garminRuns.map(a => ({
+                    ...a,
+                    source: 'garmin',
+                    // Normalize Garmin fields to match Strava format
+                    start_date: a.startTimeInSeconds ? new Date(a.startTimeInSeconds * 1000).toISOString() : a.start_date,
+                    distance: a.distanceInMeters || a.distance,
+                    moving_time: a.durationInSeconds || a.moving_time,
+                    total_elevation_gain: a.elevationGain || a.total_elevation_gain,
+                    average_heartrate: a.averageHeartRateInBeatsPerMinute || a.average_heartrate,
+                    max_heartrate: a.maxHeartRateInBeatsPerMinute || a.max_heartrate
+                })));
+            }
+
+            // Deduplicate activities (same start time within 60 seconds and similar distance)
+            const runActivities = [];
+            const seen = new Set();
+
+            allRunActivities.sort((a, b) => {
+                // Prefer Strava over Garmin if both exist (Strava has more detailed metrics)
+                if (a.source === 'strava' && b.source === 'garmin') return -1;
+                if (a.source === 'garmin' && b.source === 'strava') return 1;
+                return new Date(b.start_date) - new Date(a.start_date);
             });
+
+            for (const activity of allRunActivities) {
+                const startTime = new Date(activity.start_date).getTime();
+                const distance = activity.distance || 0;
+
+                // Create a deduplication key based on start time (within 60 sec) and distance (within 100m)
+                let isDuplicate = false;
+                for (const key of seen) {
+                    const [keyTime, keyDist] = key.split('_').map(Number);
+                    if (Math.abs(startTime - keyTime) < 60000 && Math.abs(distance - keyDist) < 100) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate) {
+                    runActivities.push(activity);
+                    seen.add(`${startTime}_${distance}`);
+                }
+            }
 
             if (runActivities.length === 0) {
                 showEmptyRunningState();
