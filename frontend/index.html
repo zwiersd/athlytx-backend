@@ -6685,6 +6685,9 @@
                 const start = a.start_date || a.start_date_local;
                 const startTs = start ? new Date(start).getTime() : 0;
 
+                // Strava cadence is per-leg; convert later when rendering
+                const cadence = a.average_cadence || a.cadence || null;
+
                 runs.push({
                     ...a,
                     source: 'strava',
@@ -6695,7 +6698,11 @@
                     moving_time: a.moving_time || a.elapsed_time || 0,
                     total_elevation_gain: a.total_elevation_gain || 0,
                     average_heartrate: a.average_heartrate || null,
-                    max_heartrate: a.max_heartrate || null
+                    max_heartrate: a.max_heartrate || null,
+                    average_cadence: cadence,
+                    average_stride_length: a.average_stride_length || null,
+                    ground_contact_time: a.ground_contact_time || null,
+                    vertical_oscillation: a.vertical_oscillation || null
                 });
             }
 
@@ -6709,6 +6716,20 @@
                     : (a.startTimeLocal || a.startTime || a.start_date || null);
                 const startTs = startIso ? new Date(startIso).getTime() : 0;
 
+                const cadenceRaw = a.averageRunCadenceInStepsPerMinute
+                    || a.averageCadenceInStepsPerMinute
+                    || a.average_cadence
+                    || a.averageCadence
+                    || null;
+
+                const strideRaw = a.averageStrideLengthInMeters
+                    || a.average_stride_length
+                    || a.averageStrideLength
+                    || null;
+
+                const gctRaw = a.averageGroundContactTimeInMs || a.ground_contact_time || null;
+                const voRaw = a.averageVerticalOscillation || a.vertical_oscillation || null;
+
                 runs.push({
                     ...a,
                     source: 'garmin',
@@ -6719,7 +6740,11 @@
                     moving_time: a.durationInSeconds || a.moving_time || a.elapsedTimeInSeconds || 0,
                     total_elevation_gain: a.elevationGain || a.total_elevation_gain || a.elevationGainInMeters || 0,
                     average_heartrate: a.averageHeartRateInBeatsPerMinute || a.average_heartrate || null,
-                    max_heartrate: a.maxHeartRateInBeatsPerMinute || a.max_heartrate || null
+                    max_heartrate: a.maxHeartRateInBeatsPerMinute || a.max_heartrate || null,
+                    average_cadence: cadenceRaw,
+                    average_stride_length: strideRaw,
+                    ground_contact_time: gctRaw,
+                    vertical_oscillation: voRaw
                 });
             }
 
@@ -7088,17 +7113,18 @@
                 });
             }
 
-            // Categorize runs by intensity based on suffer score per minute
+            // Categorize runs by intensity based on suffer score per minute (fallback to HR-derived load)
             let easy = 0, moderate = 0, hard = 0;
             
             runs.forEach(run => {
                 const moveMin = (run.moving_time || 0) / 60;
-                const suffer = run.suffer_score || 0;
-                if (moveMin <= 0) { easy++; return; }
+                const baseHr = run.average_heartrate || run.max_heartrate || 0;
+                const suffer = run.suffer_score || (baseHr > 0 ? (baseHr / 200) * moveMin : 0);
+                if (moveMin <= 0) { easy += 1; return; }
                 const sufferPerMin = suffer / moveMin;
-                if (sufferPerMin < 0.5) easy++;
-                else if (sufferPerMin < 1.0) moderate++;
-                else hard++;
+                if (sufferPerMin < 0.5) easy += moveMin;
+                else if (sufferPerMin < 1.0) moderate += moveMin;
+                else hard += moveMin;
             });
 
             charts.runningIntensity.data = {
@@ -7327,19 +7353,24 @@
             let s = '--';
             let d = '--';
 
-            // Primary: Oura data
-            if (fitnessData.oura && fitnessData.oura.sleep) {
-                const sl = fitnessData.oura.sleep.slice(-7); // most recent 7 entries
-                const hv = sl.map(x => x.hrv_average || (x.heart_rate ? x.heart_rate.average_hrv : null)).filter(v => v);
-                const rv = sl.map(x => x.resting_hr || (x.heart_rate ? x.heart_rate.resting_hr : null)).filter(v => v);
+            const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0) / arr.length) : null;
+
+            // Primary: Oura data (most recent first if available)
+            if (fitnessData.oura && Array.isArray(fitnessData.oura.sleep)) {
+                const sortedSleep = [...fitnessData.oura.sleep].sort((a,b) => new Date(b.day || b.summary_date || b.date || 0) - new Date(a.day || a.summary_date || a.date || 0));
+                const sl = sortedSleep.slice(0, 7);
+                const hv = sl.map(x => x.hrv_average || x.average_hrv || (x.heart_rate ? x.heart_rate.average_hrv : null)).filter(v => v);
+                const rv = sl.map(x => x.resting_hr || x.average_heart_rate || (x.heart_rate ? x.heart_rate.resting_hr : null)).filter(v => v);
                 const sv = sl.map(x => x.score).filter(v => v);
                 if (hv.length > 0) h = Math.round(hv.reduce((a, b) => a + b) / hv.length);
                 if (rv.length > 0) r = Math.round(rv.reduce((a, b) => a + b) / rv.length);
                 if (sv.length > 0) s = Math.round(sv.reduce((a, b) => a + b) / sv.length);
-                if (fitnessData.oura.readiness) {
-                    const rs = fitnessData.oura.readiness.slice(-7).map(x => x.score).filter(v => v);
-                    if (rs.length > 0) d = Math.round(rs.reduce((a, b) => a + b) / rs.length);
-                }
+            }
+
+            if (fitnessData.oura && Array.isArray(fitnessData.oura.readiness)) {
+                const sortedReadiness = [...fitnessData.oura.readiness].sort((a,b) => new Date(b.day || b.summary_date || b.date || 0) - new Date(a.day || a.summary_date || a.date || 0));
+                const rs = sortedReadiness.slice(0, 7).map(x => x.score).filter(v => v);
+                if (rs.length > 0) d = Math.round(rs.reduce((a, b) => a + b) / rs.length);
             }
 
             // Fallback: Garmin daily summaries (when Oura/Whoop not connected)
@@ -7347,8 +7378,8 @@
                 const raw = fitnessData.garmin?.dailySummary;
                 const dailies = Array.isArray(raw) ? raw : (raw?.dailies || []);
                 if (dailies.length > 0) {
-                    const recent = dailies.slice(0, 7);
-                    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+                    const sorted = [...dailies].sort((a,b) => new Date(b.calendarDate || b.startDate || 0) - new Date(a.calendarDate || a.startDate || 0));
+                    const recent = sorted.slice(0, 7);
 
                     const hrvVals = recent.map(x => x.hrvAvg ?? x.averageHrv ?? x.hrvAverage ?? x.hrv).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
                     const rhrVals = recent.map(x => x.restingHr ?? x.restingHeartRate ?? x.resting_heart_rate).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
@@ -7368,7 +7399,40 @@
             document.getElementById('runningReadiness').textContent = d;
         }
         function updateRunningPerformanceMetrics(runs){const p=runs.map(r=>r.distance>1000&&r.moving_time>0?(r.moving_time/60)/(r.distance/1000):null).filter(x=>x&&x<10&&x>2);if(p.length>0){const a=p.reduce((x,y)=>x+y)/p.length;const b=Math.min(...p);document.getElementById('runningAvgPace').textContent=Math.floor(a)+':'+Math.round((a%1)*60).toString().padStart(2,'0');document.getElementById('runningBestPace').textContent=Math.floor(b)+':'+Math.round((b%1)*60).toString().padStart(2,'0');const v=Math.round(-4.60+0.182258*(60/a)+0.000104*Math.pow(60/a,2));document.getElementById('runningVO2max').textContent=v>0?v:'--'}else{document.getElementById('runningAvgPace').textContent='--';document.getElementById('runningBestPace').textContent='--';document.getElementById('runningVO2max').textContent='--'}const h=runs.map(r=>r.average_heartrate).filter(x=>x>0);document.getElementById('runningAvgHR').textContent=h.length>0?Math.round(h.reduce((a,b)=>a+b)/h.length)+' bpm':'--'}
-        function updateRunningFormMetrics(runs){const c=runs.map(r=>r.average_cadence).filter(x=>x).map(x=>x*2);const s=runs.map(r=>r.average_stride_length).filter(x=>x);document.getElementById('runningCadence').textContent=c.length>0?Math.round(c.reduce((a,b)=>a+b)/c.length):'--';document.getElementById('runningStrideLength').textContent=s.length>0?(s.reduce((a,b)=>a+b)/s.length).toFixed(2):'--';document.getElementById('runningGCT').textContent='--';document.getElementById('runningVertOsc').textContent='--'}
+        function updateRunningFormMetrics(runs){
+            const cadenceValues = runs
+                .map(r => r.average_cadence)
+                .filter(x => x)
+                .map(x => x > 120 ? x : Math.round(x * 2)); // Strava per-leg cadence -> steps/min
+
+            const strideValues = runs
+                .map(r => r.average_stride_length)
+                .filter(x => x);
+
+            const gctValues = runs
+                .map(r => r.ground_contact_time)
+                .filter(x => x);
+
+            const voValues = runs
+                .map(r => r.vertical_oscillation)
+                .filter(x => x);
+
+            document.getElementById('runningCadence').textContent = cadenceValues.length > 0
+                ? Math.round(cadenceValues.reduce((a,b)=>a+b)/cadenceValues.length)
+                : '--';
+
+            document.getElementById('runningStrideLength').textContent = strideValues.length > 0
+                ? (strideValues.reduce((a,b)=>a+b)/strideValues.length).toFixed(2)
+                : '--';
+
+            document.getElementById('runningGCT').textContent = gctValues.length > 0
+                ? Math.round(gctValues.reduce((a,b)=>a+b)/gctValues.length) + ' ms'
+                : '--';
+
+            document.getElementById('runningVertOsc').textContent = voValues.length > 0
+                ? (voValues.reduce((a,b)=>a+b)/voValues.length).toFixed(1) + ' cm'
+                : '--';
+        }
         function updateRunningWeeklyProgress(recent,prev,last){const o=new Date(Date.now()-7*86400000);const t=new Date(Date.now()-14*86400000);const tw=recent.filter(r=>new Date(r.start_date)>=o);const lw=recent.filter(r=>{const d=new Date(r.start_date);return d>=t&&d<o});const td=tw.reduce((s,r)=>s+(r.distance||0),0)/1000;const ld=lw.reduce((s,r)=>s+(r.distance||0),0)/1000;const dc=ld>0?((td-ld)/ld*100):0;document.getElementById('runningWeeklyDistChange').innerHTML='<span style="color:'+(dc>=0?'#10b981':'#ef4444')+'">'+(dc>=0?'+':'')+dc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyRunsChange').innerHTML='<span style="color:'+(tw.length>=lw.length?'#10b981':'#ef4444')+'">'+(tw.length>=lw.length?'+':'')+(tw.length-lw.length)+'</span>';const tl=tw.reduce((s,r)=>s+(r.suffer_score||0),0);const ll=lw.reduce((s,r)=>s+(r.suffer_score||0),0);const lc=ll>0?((tl-ll)/ll*100):0;document.getElementById('runningWeeklyLoadChange').innerHTML='<span style="color:'+(lc>=0?'#10b981':'#ef4444')+'">'+(lc>=0?'+':'')+lc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyPaceChange').textContent='--';document.getElementById('runningWeeklyLongestChange').textContent='--'}
         function updateRunningPersonalRecords(all){const r=all.filter(a=>{const t=(a.type||a.sport_type||'').toLowerCase();return t.includes('run')});const f=(d)=>{const tol=d*0.05;const c=r.filter(x=>Math.abs(x.distance-d)<=tol&&x.moving_time>0);if(!c.length)return null;return c.reduce((b,c)=>(c.moving_time/c.distance)<(b.moving_time/b.distance)?c:b)};const ft=(s)=>{const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const se=Math.round(s%60);return h>0?h+':'+m.toString().padStart(2,'0')+':'+se.toString().padStart(2,'0'):m+':'+se.toString().padStart(2,'0')};const p5=f(5000);document.getElementById('runningPR5k').textContent=p5?ft(p5.moving_time):'--';const p10=f(10000);document.getElementById('runningPR10k').textContent=p10?ft(p10.moving_time):'--';const ph=f(21097);document.getElementById('runningPRHalf').textContent=ph?ft(ph.moving_time):'--';const pm=f(42195);document.getElementById('runningPRMarathon').textContent=pm?ft(pm.moving_time):'--';if(r.length>0){const l=r.reduce((m,x)=>x.distance>m.distance?x:m);document.getElementById('runningPRLongest').textContent=(l.distance/1000).toFixed(2)+' km';const e=r.reduce((m,x)=>(x.total_elevation_gain||0)>(m.total_elevation_gain||0)?x:m);document.getElementById('runningPRElevation').textContent=Math.round(e.total_elevation_gain||0)+' m'}}
         function updateRunningHRZonesChart(runs) {
@@ -7460,7 +7524,9 @@
                 const d = new Date(run.start_date);
                 if (d < start) return;
                 const key = d.toISOString().split('T')[0];
-                const load = run.suffer_score || (run.distance ? run.distance / 1000 : 0);
+                const baseHr = run.average_heartrate || run.max_heartrate || 0;
+                const pseudoLoad = baseHr > 0 ? (baseHr / 200) * ((run.moving_time || 0) / 60) : (run.distance ? run.distance / 1000 : 0);
+                const load = run.suffer_score || pseudoLoad;
                 daily[key] = (daily[key] || 0) + load;
             });
 
@@ -7507,7 +7573,9 @@
 
             const weeks = {};
             runs.forEach(run => {
-                const week = getWeekStart(new Date(run.start_date)).toISOString().split('T')[0];
+                const d = new Date(run.start_date);
+                if (Number.isNaN(d.getTime())) return;
+                const week = getWeekStart(d).toISOString().split('T')[0];
                 weeks[week] = (weeks[week] || 0) + (run.distance || 0);
             });
 
