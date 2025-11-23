@@ -3397,6 +3397,9 @@
                 button.disabled = true;
 
                 const userId = localStorage.getItem('userId');
+                console.log('🔍 DEBUG fetchStravaDataFromDB: localStorage userId:', userId);
+                console.log('🔍 DEBUG: All localStorage keys:', Object.keys(localStorage));
+
                 if (!userId) {
                     throw new Error('User ID not available');
                 }
@@ -6591,6 +6594,12 @@
 
         // ===== RUNNING ANALYTICS =====
         function updateRunningAnalytics() {
+            console.log('🏃 ===== UPDATE RUNNING ANALYTICS CALLED =====');
+            console.log('🏃 fitnessData.strava:', fitnessData.strava);
+            console.log('🏃 fitnessData.garmin:', fitnessData.garmin);
+            console.log('🏃 Strava activities count:', fitnessData.strava?.activities?.length || 0);
+            console.log('🏃 Garmin activities count:', fitnessData.garmin?.activities?.length || 0);
+
             // Collect running activities from all sources
             let allRunActivities = [];
 
@@ -6600,6 +6609,7 @@
                     const t = (a.type || a.sport_type || '').toLowerCase();
                     return t.includes('run');
                 });
+                console.log('🏃 Found', stravaRuns.length, 'Strava running activities');
                 allRunActivities.push(...stravaRuns.map(a => ({...a, source: 'strava'})));
             }
 
