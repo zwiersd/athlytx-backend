@@ -14,11 +14,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
     <!-- Primary Meta Tags -->
-    <title>Track Athletic Performance & Power Zones | Athlytx</title>
-    <meta name="title" content="Track Athletic Performance & Power Zones | Athlytx">
-    <meta name="description" content="Track your athletic performance with real-time power zones, heart rate monitoring, and personalized training insights. Connect Strava, Garmin, Oura, and Whoop for data-driven results.">
+    <title>Athlytx | Unified Athlete Data Platform & Top-Down Analytics</title>
+    <meta name="title" content="Athlytx | Unified Athlete Data Platform & Top-Down Analytics">
+    <meta name="description" content="Unify Strava, Garmin, Oura, and Whoop data in one top-down athlete performance platform. Track power zones, HRV, readiness, and coach dashboards with AI insights.">
     <meta name="author" content="Athlytx Team">
     <meta name="language" content="en">
+    <meta name="keywords" content="unified athlete data platform, sports analytics, power zones, HRV, training readiness, coach dashboard, Garmin Strava Oura Whoop, AI training insights, performance analytics">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://athlytx.com/">
@@ -29,9 +30,10 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://athlytx.com/">
-    <meta property="og:title" content="Track Athletic Performance & Power Zones | Athlytx">
-    <meta property="og:description" content="Real-time power zones, heart rate monitoring, and personalized training insights. Connect your fitness devices for data-driven athletic performance.">
+    <meta property="og:title" content="Athlytx | Unified Athlete Data Platform & Top-Down Analytics">
+    <meta property="og:description" content="Unify Strava, Garmin, Oura, and Whoop data in one top-down athlete performance platform. Track power zones, HRV, readiness, and coach dashboards with AI insights.">
     <meta property="og:image" content="https://athlytx.com/src/images/og-athlytx-dashboard.jpg">
+    <meta property="og:image:secure_url" content="https://athlytx.com/src/images/og-athlytx-dashboard.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Athlytx Dashboard showing power zones, heart rate data, and performance metrics">
@@ -42,6 +44,10 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@athlytx">
     <meta name="twitter:creator" content="@athlytx">
+    <meta name="twitter:title" content="Athlytx | Unified Athlete Data Platform & Top-Down Analytics">
+    <meta name="twitter:description" content="Unify Strava, Garmin, Oura, and Whoop data in one top-down athlete performance platform. Track power zones, HRV, readiness, and coach dashboards with AI insights.">
+    <meta name="twitter:image" content="https://athlytx.com/src/images/og-athlytx-dashboard.jpg">
+    <meta name="twitter:image:alt" content="Athlytx Dashboard showing power zones, heart rate data, and performance metrics">
 
     <!-- iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -63,11 +69,21 @@
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
+      "@id": "https://athlytx.com/#app",
       "name": "Athlytx",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Web",
-      "description": "Athletic performance tracking platform connecting Strava, Garmin, Oura, and Whoop for comprehensive fitness analytics",
+      "description": "Unified athlete data platform delivering top-down analytics across power, heart rate, readiness, and coaching dashboards for endurance teams.",
       "url": "https://athlytx.com",
+      "keywords": "unified athlete data, sports analytics, power zones, HRV, training readiness, coach dashboards",
+      "audience": {
+        "@type": "Audience",
+        "audienceType": [
+          "Endurance athletes",
+          "Coaches",
+          "High-performance teams"
+        ]
+      },
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -97,10 +113,103 @@
       "name": "Athlytx",
       "description": "Advanced fitness analytics platform for data-driven athletic performance",
       "url": "https://athlytx.com",
+      "@id": "https://athlytx.com/#organization",
       "logo": "https://athlytx.com/src/images/AthlytxLogo.png",
       "sameAs": [
         "https://twitter.com/athlytx",
         "https://facebook.com/athlytx"
+      ]
+    }
+    </script>
+
+    <!-- WebSite Schema for branded entity -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://athlytx.com/#website",
+      "url": "https://athlytx.com/",
+      "name": "Athlytx",
+      "description": "Unified athlete data platform with top-down analytics, readiness scoring, and coach dashboards.",
+      "publisher": {
+        "@id": "https://athlytx.com/#organization"
+      }
+    }
+    </script>
+
+    <!-- WebPage Schema to reinforce topic relevance -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Unified Athlete Data Platform | Athlytx",
+      "url": "https://athlytx.com/",
+      "description": "Unify Strava, Garmin, Oura, and Whoop data into a top-down performance dashboard with power zones, HRV, readiness, and AI insights for athletes and coaches.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://athlytx.com/#website"
+      },
+      "about": [
+        { "@type": "Thing", "name": "Unified athlete data" },
+        { "@type": "Thing", "name": "Endurance performance analytics" },
+        { "@type": "Thing", "name": "Training readiness" },
+        { "@type": "Thing", "name": "Coach dashboards" },
+        { "@type": "Thing", "name": "Power zones and HRV insights" }
+      ],
+      "primaryImageOfPage": "https://athlytx.com/src/images/og-athlytx-dashboard.jpg"
+    }
+    </script>
+
+    <!-- HowTo Schema to surface setup flows in AI overviews -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Connect your fitness devices to Athlytx",
+      "description": "How to unify Strava, Garmin, Oura, and Whoop data inside Athlytx for top-down performance analytics.",
+      "totalTime": "PT5M",
+      "estimatedCost": {
+        "@type": "MonetaryAmount",
+        "currency": "USD",
+        "value": "0"
+      },
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Create your Athlytx account",
+          "url": "https://athlytx.com/#sign-up",
+          "text": "Sign up with your email to start a unified athlete profile."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Connect Strava",
+          "url": "https://athlytx.com/#connect-strava",
+          "text": "Authorize Strava to sync activities so power and pace flow into your dashboard."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Connect Garmin",
+          "url": "https://athlytx.com/#connect-garmin",
+          "text": "Link Garmin Connect to pull training load, heart rate, and device metrics."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Connect Oura",
+          "url": "https://athlytx.com/#connect-oura",
+          "text": "Link Oura to sync HRV, sleep, and readiness signals."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Connect Whoop",
+          "url": "https://athlytx.com/#connect-whoop",
+          "text": "Authorize Whoop to bring in strain and recovery data."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "View unified analytics",
+          "url": "https://athlytx.com/#dashboard",
+          "text": "Open your dashboard to see top-down analytics across power zones, HRV trends, readiness, and coach insights."
+        }
       ]
     }
     </script>
@@ -117,6 +226,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Athlytx is an advanced fitness analytics platform that integrates data from Strava, Garmin, Oura, and Whoop to provide real-time power zones, heart rate monitoring, and personalized training insights for athletes and coaches."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I connect all my devices in one place?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Create your Athlytx account, then connect Strava, Garmin, Oura, and Whoop from the connections tab. All activity, HRV, sleep, and readiness data sync automatically into one unified dashboard with power zones, readiness, and coach views."
           }
         },
         {
