@@ -122,61 +122,76 @@
         /* Hero Section */
         .hero-section {
             text-align: center;
-            padding: 40px 0 32px;
-            margin-bottom: 32px;
+            padding: 60px 0 40px;
+            margin-bottom: 48px;
+            position: relative;
         }
 
         .hero-title {
-            font-size: 2.5rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            line-height: 1.2;
+            line-height: 1.1;
+            letter-spacing: -1px;
         }
 
         .hero-subtitle {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 0;
-            font-weight: 500;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         /* Glass Cards */
         .glass-card {
-            background: rgba(255, 255, 255, 0.08);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
 
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             gap: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .section-subtitle {
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            margin: 24px 0 12px;
+            margin: 28px 0 16px;
             color: #667eea;
         }
 
         .content-text {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 16px;
-            line-height: 1.6;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            line-height: 1.7;
         }
 
         /* Feature Grid */
@@ -320,51 +335,73 @@
 
         /* Founder Section */
         .founder-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            padding: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 20px;
+            padding: 48px;
             display: flex;
             align-items: center;
-            gap: 24px;
-            margin: 24px 0;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            gap: 32px;
+            margin: 40px 0;
+            box-shadow: 0 16px 48px rgba(102, 126, 234, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .founder-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.03)"/></svg>');
+            opacity: 0.3;
         }
 
         .founder-avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            font-weight: 700;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            font-size: 40px;
+            font-weight: 800;
+            border: 4px solid rgba(255, 255, 255, 0.4);
             flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
         }
 
         .founder-info {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .founder-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 4px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .founder-title {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 12px;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 16px;
+            font-weight: 600;
         }
 
         .founder-quote {
-            font-size: 0.95rem;
+            font-size: 1.15rem;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.95);
-            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.98);
+            line-height: 1.7;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         /* Mobile */
@@ -437,23 +474,22 @@
     <div class="main-content">
         <!-- Hero Section -->
         <div class="hero-section">
-            <h1 class="hero-title">Unified Athlete Data Platform</h1>
-            <p class="hero-subtitle">Connect Strava, Garmin, Oura, and Whoop. Get one readiness score.</p>
+            <h1 class="hero-title">Where All Your Fitness Data Makes Sense</h1>
+            <p class="hero-subtitle">One unified score. Infinite possibilities.</p>
         </div>
 
         <!-- Mission -->
         <div class="glass-card">
             <h2 class="section-title">
                 <i class="fas fa-bullseye"></i>
-                What We Do
+                The Problem We Solve
             </h2>
             <p class="content-text">
-                You're tracking with Strava, Garmin, Oura, or Whoop. Each platform gives you great data, but checking multiple apps to figure out if you're ready to train is a pain. Athlytx pulls it all together into one readiness score (0-100) so you know whether to push hard or take it easy.
+                You have incredible devices from Strava, Garmin, Oura, and Whoop—each providing amazing data. But how do you make sense of it all? How do you know if you're ready to train hard or need to recover?
             </p>
-            <div class="highlight-box">
-                <strong>The Problem:</strong> Multiple devices, fragmented data, no clear answer.<br>
-                <strong>The Solution:</strong> One score combining recovery, sleep, training load, and HRV.
-            </div>
+            <p class="content-text">
+                <strong>The Athlytx Score</strong> is a unified 0-100 metric that answers the most important question: "How ready am I to perform today?"
+            </p>
         </div>
 
         <!-- Founder -->
@@ -461,9 +497,9 @@
             <div class="founder-avatar">DZ</div>
             <div class="founder-info">
                 <div class="founder-name">Darren Zwiers</div>
-                <div class="founder-title">Founder & Endurance Athlete</div>
+                <div class="founder-title">Founder & Geeky Athlete</div>
                 <p class="founder-quote">
-                    "Built this because I was tired of checking four different apps to figure out if I should train hard or recover. Your devices already have the data—Athlytx just makes sense of it."
+                    "As an athlete with multiple tracking devices, I was drowning in data but starving for insights. Strava told me one thing, Oura another, Garmin something else. I needed a platform that could see the big picture—not to replace these incredible apps, but to help them work together. Athlytx is where all the magic comes together."
                 </p>
             </div>
         </div>
@@ -478,56 +514,56 @@
                 The algorithm looks at recovery, sleep, training load, and HRV to give you a 0-100 readiness score.
             </p>
 
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0;">
-                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">
-                    <div style="font-size: 1rem; font-weight: 700; color: #10b981;">80-100</div>
-                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Go hard</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0;">
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border-radius: 12px; padding: 24px 16px; border: 2px solid rgba(16, 185, 129, 0.3); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 32px rgba(16, 185, 129, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <div style="font-size: 2rem; font-weight: 900; color: #10b981; margin-bottom: 8px;">80-100</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Go hard</div>
                 </div>
 
-                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">
-                    <div style="font-size: 1rem; font-weight: 700; color: #3b82f6;">60-79</div>
-                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Train</div>
+                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border-radius: 12px; padding: 24px 16px; border: 2px solid rgba(59, 130, 246, 0.3); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <div style="font-size: 2rem; font-weight: 900; color: #3b82f6; margin-bottom: 8px;">60-79</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Train</div>
                 </div>
 
-                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #f59e0b;">
-                    <div style="font-size: 1rem; font-weight: 700; color: #f59e0b;">40-59</div>
-                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Light</div>
+                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)); border-radius: 12px; padding: 24px 16px; border: 2px solid rgba(245, 158, 11, 0.3); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 32px rgba(245, 158, 11, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <div style="font-size: 2rem; font-weight: 900; color: #f59e0b; margin-bottom: 8px;">40-59</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Light</div>
                 </div>
 
-                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #ef4444;">
-                    <div style="font-size: 1rem; font-weight: 700; color: #ef4444;">0-39</div>
-                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Rest</div>
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); border-radius: 12px; padding: 24px 16px; border: 2px solid rgba(239, 68, 68, 0.3); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 32px rgba(239, 68, 68, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <div style="font-size: 2rem; font-weight: 900; color: #ef4444; margin-bottom: 8px;">0-39</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Rest</div>
                 </div>
             </div>
         </div>
 
         <!-- Two Column Layout -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
             <!-- Supported Platforms -->
             <div class="glass-card">
                 <h2 class="section-title">
                     <i class="fas fa-plug"></i>
                     Devices
                 </h2>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <div style="background: rgba(252, 76, 2, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(252, 76, 2, 0.2);">
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #fc4c02;">Strava</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Training load, activities</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div style="background: linear-gradient(135deg, rgba(252, 76, 2, 0.15), rgba(252, 76, 2, 0.05)); border-radius: 12px; padding: 20px; border: 2px solid rgba(252, 76, 2, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 24px rgba(252, 76, 2, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #fc4c02; margin-bottom: 6px;">Strava</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Training load, activities</div>
                     </div>
 
-                    <div style="background: rgba(0, 172, 228, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(0, 172, 228, 0.2);">
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #00ace4;">Garmin</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Body Battery, HRV</div>
+                    <div style="background: linear-gradient(135deg, rgba(0, 172, 228, 0.15), rgba(0, 172, 228, 0.05)); border-radius: 12px; padding: 20px; border: 2px solid rgba(0, 172, 228, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 24px rgba(0, 172, 228, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #00ace4; margin-bottom: 6px;">Garmin</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Body Battery, HRV</div>
                     </div>
 
-                    <div style="background: rgba(180, 92, 243, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(180, 92, 243, 0.2);">
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #b45cf3;">Oura</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Sleep, readiness</div>
+                    <div style="background: linear-gradient(135deg, rgba(180, 92, 243, 0.15), rgba(180, 92, 243, 0.05)); border-radius: 12px; padding: 20px; border: 2px solid rgba(180, 92, 243, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 24px rgba(180, 92, 243, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #b45cf3; margin-bottom: 6px;">Oura</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Sleep, readiness</div>
                     </div>
 
-                    <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #10b981;">Whoop</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Strain, recovery</div>
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border-radius: 12px; padding: 20px; border: 2px solid rgba(16, 185, 129, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #10b981; margin-bottom: 6px;">Whoop</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Strain, recovery</div>
                     </div>
                 </div>
             </div>
@@ -538,28 +574,28 @@
                     <i class="fas fa-users"></i>
                     For Coaches
                 </h2>
-                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                    <div style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">
-                        <div style="font-size: 0.9rem; font-weight: 700; color: #3b82f6;">Multi-Athlete Dashboard</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Compare team readiness</div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #3b82f6; border: 2px solid rgba(59, 130, 246, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateX(6px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #3b82f6; margin-bottom: 6px;">Multi-Athlete Dashboard</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Compare team readiness</div>
                     </div>
 
-                    <div style="background: rgba(147, 51, 234, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #9333ea;">
-                        <div style="font-size: 0.9rem; font-weight: 700; color: #9333ea;">Top-Down Analytics</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Team health trends</div>
+                    <div style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(147, 51, 234, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #9333ea; border: 2px solid rgba(147, 51, 234, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateX(6px)'; this.style.boxShadow='0 8px 24px rgba(147, 51, 234, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #9333ea; margin-bottom: 6px;">Top-Down Analytics</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Team health trends</div>
                     </div>
 
-                    <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">
-                        <div style="font-size: 0.9rem; font-weight: 700; color: #10b981;">Athlete Invitations</div>
-                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Connect with athletes</div>
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #10b981; border: 2px solid rgba(16, 185, 129, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateX(6px)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #10b981; margin-bottom: 6px;">Athlete Invitations</div>
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);">Connect with athletes</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="/" class="sidebar-link" style="display: inline-flex; padding: 14px 28px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; font-size: 1rem; font-weight: 600; text-decoration: none; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);">
-                <i class="fas fa-arrow-left" style="margin-right: 10px;"></i>
+        <div style="text-align: center; margin: 56px 0;">
+            <a href="/" class="sidebar-link" style="display: inline-flex; align-items: center; padding: 18px 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 14px; font-size: 1.1rem; font-weight: 700; text-decoration: none; box-shadow: 0 8px 28px rgba(102, 126, 234, 0.4); transition: all 0.3s ease; color: white;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 36px rgba(102, 126, 234, 0.5)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 8px 28px rgba(102, 126, 234, 0.4)'">
+                <i class="fas fa-arrow-left" style="margin-right: 12px; font-size: 1rem;"></i>
                 Back to Dashboard
             </a>
         </div>
