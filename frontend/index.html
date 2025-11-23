@@ -4645,23 +4645,67 @@
                 return;
             }
 
-            // Estimate time in zones based on average HR and moving time
+            // Estimate time in zones based on average and max HR
             // Zone 1: <60%, Zone 2: 60-70%, Zone 3: 70-80%, Zone 4: 80-90%, Zone 5: >90%
-            // Assume max HR = 220 - age (or use 190 as default)
-            const estimatedMaxHR = 190;
+            // Use max HR from activities or default to 190
+            let userMaxHR = 190;
+            recentActivities.forEach(a => {
+                if (a.max_heartrate && a.max_heartrate > userMaxHR) {
+                    userMaxHR = a.max_heartrate;
+                }
+            });
+
             const zones = [0, 0, 0, 0, 0];
 
             recentActivities.forEach(a => {
                 const avgHR = a.average_heartrate;
+                const maxHR = a.max_heartrate || avgHR;
                 const movingTime = (a.moving_time || 0) / 60; // convert to minutes
-                const hrPercent = (avgHR / estimatedMaxHR) * 100;
 
-                // Distribute time based on average HR (simplified)
-                if (hrPercent < 60) zones[0] += movingTime;
-                else if (hrPercent < 70) zones[1] += movingTime;
-                else if (hrPercent < 80) zones[2] += movingTime;
-                else if (hrPercent < 90) zones[3] += movingTime;
-                else zones[4] += movingTime;
+                // Calculate HR percentages
+                const avgPercent = (avgHR / userMaxHR) * 100;
+                const maxPercent = (maxHR / userMaxHR) * 100;
+
+                // Better distribution: assume HR gradually builds up during activity
+                // We'll estimate time distribution across zones based on avg and max HR
+                if (movingTime < 5) {
+                    // Short activity - put in zone based on average
+                    const zone = avgPercent < 60 ? 0 : avgPercent < 70 ? 1 : avgPercent < 80 ? 2 : avgPercent < 90 ? 3 : 4;
+                    zones[zone] += movingTime;
+                } else {
+                    // Longer activity - distribute across likely zones
+                    // Assume bell curve distribution around average HR
+                    const minPercent = Math.max(50, avgPercent - 10); // Estimate minimum effort
+
+                    // Simple distribution model: most time near average, some at max
+                    if (avgPercent < 65) {
+                        // Easy effort - mostly Zone 1-2
+                        zones[0] += movingTime * 0.7;
+                        zones[1] += movingTime * 0.25;
+                        zones[2] += movingTime * 0.05;
+                    } else if (avgPercent < 75) {
+                        // Moderate effort - mostly Zone 2-3
+                        zones[0] += movingTime * 0.2;
+                        zones[1] += movingTime * 0.5;
+                        zones[2] += movingTime * 0.25;
+                        zones[3] += movingTime * 0.05;
+                    } else if (avgPercent < 85) {
+                        // Tempo effort - mostly Zone 3-4
+                        zones[1] += movingTime * 0.15;
+                        zones[2] += movingTime * 0.5;
+                        zones[3] += movingTime * 0.3;
+                        zones[4] += movingTime * 0.05;
+                    } else if (avgPercent < 95) {
+                        // Threshold effort - mostly Zone 4
+                        zones[2] += movingTime * 0.2;
+                        zones[3] += movingTime * 0.6;
+                        zones[4] += movingTime * 0.2;
+                    } else {
+                        // Hard effort - mostly Zone 4-5
+                        zones[3] += movingTime * 0.4;
+                        zones[4] += movingTime * 0.6;
+                    }
+                }
             });
 
             charts.stravaHRZones.data = {
