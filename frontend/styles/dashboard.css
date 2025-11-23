@@ -1398,6 +1398,10 @@ body {
   line-height: var(--leading-relaxed);
 }
 
+#running {
+  padding-top: 16px;
+}
+
 /* Tab-specific insight card styling */
 #running .insight-card h4,
 #oura .insight-card h4,

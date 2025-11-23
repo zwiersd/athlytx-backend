@@ -1508,6 +1508,39 @@
                     </div>
                 </div>
 
+                <div class="analytics-card glass-card" style="margin-bottom: 24px;">
+                    <h3>📈 Training Load Insight</h3>
+                    <div id="runningLoadInsight" style="margin-top: 8px; padding: 12px; background: rgba(59,130,246,0.08); border-radius: 8px; font-size: 0.95rem; color: rgba(255,255,255,0.8);">
+                        Connect Strava or Garmin to see load trends
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card glass-card">
+                        <h3>🧱 Training Load (Suffer Score)</h3>
+                        <div class="chart-container">
+                            <canvas id="runningLoadChart"></canvas>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Daily load with heart rate overlay</div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>⚡ Weekly Pace Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="runningPaceChart"></canvas>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Average pace and HR by week</div>
+                    </div>
+
+                    <div class="analytics-card glass-card">
+                        <h3>🎯 Intensity Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="runningIntensityChart"></canvas>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Easy / moderate / hard split (last 4 weeks)</div>
+                    </div>
+                </div>
+
                 <!-- Fitness & Form (CTL, ATL, TSB) -->
                 <div class="analytics-grid">
                     <div class="analytics-card glass-card">
