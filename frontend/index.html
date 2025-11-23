@@ -1000,17 +1000,6 @@
                     </div>
                 </div>
 
-                <!-- Strava Actions -->
-                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
-                    <button class="btn" onclick="refreshStravaNow()" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
-                        Refresh Strava Data
-                    </button>
-                    <button class="btn" onclick="exportTabToPDF('strava','Strava')" style="padding:8px 12px; border-radius:8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); color:#e5e7eb;">
-                        Export Strava PDF
-                    </button>
-                    <div id="stravaActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
-                </div>
-
                 <!-- Full-width Activities Table -->
                 <div class="analytics-card glass-card" style="grid-column: 1 / -1;">
                     <h3>📋 All Strava Activities (Detailed View)</h3>
@@ -1063,6 +1052,16 @@
 
             <!-- Oura Data Tab -->
             <div id="oura" class="tab-panel" role="tabpanel" aria-labelledby="oura-tab">
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <label for="ouraPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
+                    <select id="ouraPeriodSelector" onchange="updateOuraPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(180,92,243,0.15); border: 1px solid rgba(180,92,243,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
+                        <option value="1" selected>Today</option>
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                    </select>
+                </div>
+
                 <!-- Oura Attribution Header -->
                 <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
@@ -1188,6 +1187,17 @@
 
             <!-- Garmin Data Tab -->
             <div id="garmin" class="tab-panel" role="tabpanel" aria-labelledby="garmin-tab">
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <label for="garminPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
+                    <select id="garminPeriodSelector" onchange="updateGarminPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(0,172,228,0.15); border: 1px solid rgba(0,172,228,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
+                        <option value="1">Today</option>
+                        <option value="7" selected>Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+
                 <!-- Garmin Attribution Header -->
                 <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
                     <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
@@ -1426,6 +1436,16 @@
 
             <!-- Whoop Data Tab -->
             <div id="whoop" class="tab-panel" role="tabpanel" aria-labelledby="whoop-tab">
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <label for="whoopPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
+                    <select id="whoopPeriodSelector" onchange="updateWhoopPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
+                        <option value="1" selected>Today</option>
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                    </select>
+                </div>
+
                 <!-- Whoop Attribution Header -->
                 <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
@@ -3837,217 +3857,469 @@
 
         // ===== ATHLYTX SCORE CALCULATION =====
         function calculateAthlytxScore(targetDate = null) {
-            const referenceDate = targetDate || new Date();
-            const lastWeek = new Date(referenceDate);
-            lastWeek.setDate(lastWeek.getDate() - 7);
+            const referenceDate = targetDate ? new Date(targetDate) : new Date();
+            const last7 = new Date(referenceDate);
+            last7.setDate(last7.getDate() - 6);
+            const last30 = new Date(referenceDate);
+            last30.setDate(last30.getDate() - 29);
 
-            let components = {
-                recovery: null,    // 30% weight - Most important metric
-                strain: null,      // 25% weight - Training load balance
-                sleep: null,       // 25% weight - Sleep quality
-                hrv: null,         // 20% weight - Autonomic recovery
+            const clamp = (val, min = 0, max = 100) => Math.min(max, Math.max(min, val));
+            const avg = (arr) => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
+            const asDate = (value) => {
+                const d = value ? new Date(value) : null;
+                return d && !Number.isNaN(d.valueOf()) ? d : null;
+            };
+            const garminRaw = fitnessData.garmin?.dailySummary;
+            const garminDailies = Array.isArray(garminRaw) ? garminRaw : (garminRaw?.dailies || []);
+            const garminActivities = Array.isArray(fitnessData.garmin?.activities?.activities)
+                ? fitnessData.garmin.activities.activities
+                : Array.isArray(fitnessData.garmin?.activities)
+                    ? fitnessData.garmin.activities
+                    : [];
+            const valuesSince = (items, getDate, getValue, since) => {
+                if (!items || !Array.isArray(items)) return [];
+                return items
+                    .map(item => ({ date: getDate(item), value: getValue(item) }))
+                    .filter(entry =>
+                        entry.date &&
+                        entry.date >= since &&
+                        entry.value !== undefined &&
+                        entry.value !== null &&
+                        !Number.isNaN(Number(entry.value))
+                    )
+                    .map(entry => Number(entry.value));
             };
 
-            // RECOVERY SCORE - Blend Whoop (primary) and Oura (secondary) when both available
-            let recoveryWhoopAvg = null;
-            let recoveryOuraAvg = null;
-            if (fitnessData.whoop && fitnessData.whoop.recovery) {
-                const recentRecovery = fitnessData.whoop.recovery.filter(r => new Date(r.created_at || r.date) >= lastWeek);
-                if (recentRecovery.length > 0) {
-                    const avgRecovery = recentRecovery.reduce((sum, r) => sum + (r.score?.recovery_score || 0), 0) / recentRecovery.length;
-                    recoveryWhoopAvg = avgRecovery > 1 ? avgRecovery : avgRecovery * 100; // normalize to 0-100
-                }
-            }
-            if (fitnessData.oura && fitnessData.oura.readiness) {
-                const recentReadiness = fitnessData.oura.readiness.filter(r => new Date(r.day) >= lastWeek);
-                if (recentReadiness.length > 0) {
-                    recoveryOuraAvg = recentReadiness.reduce((sum, r) => sum + (r.score || 0), 0) / recentReadiness.length;
-                }
-            }
-            if (recoveryWhoopAvg !== null && recoveryOuraAvg !== null) {
-                // Intelligent blend: 80% Whoop, 20% Oura
-                components.recovery = (recoveryWhoopAvg * 0.8) + (recoveryOuraAvg * 0.2);
-            } else if (recoveryWhoopAvg !== null) {
-                components.recovery = recoveryWhoopAvg;
-            } else if (recoveryOuraAvg !== null) {
-                components.recovery = recoveryOuraAvg;
-            }
+            const components = {
+                recovery: null,
+                strain: null,
+                sleep: null,
+                hrv: null
+            };
 
-            // HRV SCORE - Prioritize Whoop HRV over Oura
-            if (fitnessData.whoop && fitnessData.whoop.recovery) {
-                const recentRecovery = fitnessData.whoop.recovery.filter(r =>
-                    new Date(r.created_at || r.date) >= lastWeek
-                );
-                if (recentRecovery.length > 0) {
-                    const avgHRV = recentRecovery.reduce((sum, r) =>
-                        sum + (r.score?.hrv_rmssd_milli || 0), 0
-                    ) / recentRecovery.length;
-                    // Normalize HRV: 20ms = 0%, 80ms = 100%
-                    if (avgHRV > 0) {
-                        components.hrv = Math.min(100, Math.max(0, (avgHRV - 20) * 1.33));
-                    }
-                }
-            } else if (fitnessData.oura && fitnessData.oura.sleep) {
-                // Fallback to Oura HRV
-                const recentSleep = fitnessData.oura.sleep.filter(s => new Date(s.day) >= lastWeek);
-                if (recentSleep.length > 0) {
-                    const avgHRV = recentSleep.reduce((sum, s) => sum + (s.average_hrv || 0), 0) / recentSleep.length;
-                    components.hrv = Math.min(100, Math.max(0, (avgHRV - 20) * 1.25));
-                }
-            }
+            const dataSources = {
+                recovery: '--',
+                strain: '--',
+                sleep: '--',
+                hrv: '--'
+            };
 
-            // SLEEP SCORE - Prioritize Whoop sleep performance over Oura
-            if (fitnessData.whoop && fitnessData.whoop.sleep) {
-                const recentSleep = fitnessData.whoop.sleep.filter(s =>
-                    new Date(s.created_at || s.start) >= lastWeek
-                );
-                if (recentSleep.length > 0) {
-                    const avgSleepPerformance = recentSleep.reduce((sum, s) =>
-                        sum + (s.score?.sleep_performance_percentage || 0), 0
-                    ) / recentSleep.length;
-                    // Handle both decimal (0.46) and percentage (46.0) formats
-                    components.sleep = avgSleepPerformance > 1 ? avgSleepPerformance : avgSleepPerformance * 100;
-                }
-            } else if (fitnessData.oura && fitnessData.oura.sleep) {
-                // Fallback to calculated Oura sleep score
-                const recentSleep = fitnessData.oura.sleep.filter(s => new Date(s.day) >= lastWeek);
-                if (recentSleep.length > 0) {
-                    const sleepScores = recentSleep.map(s => {
-                        const efficiency = s.efficiency || 85;
-                        const totalSleepHours = (s.total_sleep_duration || 0) / 3600;
-                        const deepSleepHours = (s.deep_sleep_duration || 0) / 3600;
-                        const remSleepHours = (s.rem_sleep_duration || 0) / 3600;
-                        const latency = s.latency || 0;
-
-                        const efficiencyScore = efficiency;
-                        const durationScore = Math.min(100, Math.max(0, 100 - Math.abs(totalSleepHours - 8) * 12.5));
-                        const deepSleepScore = Math.min(100, (deepSleepHours / totalSleepHours) * 100 * 4);
-                        const remSleepScore = Math.min(100, (remSleepHours / totalSleepHours) * 100 * 4);
-                        const latencyScore = Math.max(0, 100 - (latency / 60) * 5);
-
-                        return (
-                            efficiencyScore * 0.3 +
-                            durationScore * 0.25 +
-                            deepSleepScore * 0.2 +
-                            remSleepScore * 0.15 +
-                            latencyScore * 0.1
-                        );
-                    });
-                    components.sleep = sleepScores.reduce((sum, score) => sum + score, 0) / sleepScores.length;
-                }
-            }
-
-            // STRAIN SCORE - Intelligent combination of Whoop strain and Strava load
-            let strainScore = null;
-
-            // Get Whoop strain (optimal range: 8-15)
-            if (fitnessData.whoop && fitnessData.whoop.cycles) {
-                const recentCycles = fitnessData.whoop.cycles.filter(c =>
-                    new Date(c.start || c.created_at) >= lastWeek
-                );
-                if (recentCycles.length > 0) {
-                    const avgStrain = recentCycles.reduce((sum, c) =>
-                        sum + (c.score?.strain || 0), 0
-                    ) / recentCycles.length;
-
-                    // Convert Whoop strain to 0-100 score (inverted for balance)
-                    // 8-15 strain = 80-100 score, >18 strain = low score (overreaching)
-                    if (avgStrain <= 8) {
-                        strainScore = 60 + (avgStrain / 8) * 20; // 60-80 for low strain
-                    } else if (avgStrain <= 15) {
-                        strainScore = 80 + ((avgStrain - 8) / 7) * 20; // 80-100 for optimal strain
-                    } else {
-                        strainScore = Math.max(20, 100 - ((avgStrain - 15) * 10)); // Decrease for high strain
-                    }
-                }
-            }
-
-            // Get Strava training load as backup/supplement + ACWR/TSB-style balance
-            if (fitnessData.strava && fitnessData.strava.activities) {
-                const recentActivities = fitnessData.strava.activities.filter(a => new Date(a.start_date) >= lastWeek);
-                if (recentActivities.length > 0) {
-                    const avgLoad = recentActivities.reduce((sum, a) => sum + (a.suffer_score || 0), 0) / recentActivities.length;
-                    const stravaScore = Math.max(0, 100 - (avgLoad * 0.5));
-
-                    // Simple ACWR/TSB proxy: 7d vs 28d load ratio
-                    const now = new Date();
-                    const iso = d => new Date(d).toISOString().split('T')[0];
-                    const daysBack = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - n);
-                    const start7 = daysBack(now, 7);
-                    const start28 = daysBack(now, 28);
-                    let load7 = 0, load28 = 0, days7 = 0, days28 = 0;
-                    for (const a of fitnessData.strava.activities) {
-                        if (!a?.start_date) continue;
-                        const dt = new Date(a.start_date);
-                        const load = a.suffer_score || 0;
-                        if (dt >= start28) { load28 += load; days28 += 1; }
-                        if (dt >= start7) { load7 += load; days7 += 1; }
-                    }
-                    const avg7 = days7 ? load7 / days7 : 0;
-                    const avg28 = days28 ? load28 / days28 : 0;
-                    const acwr = avg28 > 0 ? avg7 / avg28 : null;
-                    let acwrScore = null;
-                    if (acwr !== null) {
-                        const diff = Math.abs(acwr - 1);
-                        acwrScore = Math.max(10, 100 - diff * 120); // 0.8-1.2 ~ high score; >1.5 drops
-                    }
-
-                    // Blend: Whoop strain (if present) + Strava load + balance
-                    if (strainScore !== null && acwrScore !== null) {
-                        strainScore = (strainScore * 0.6) + (stravaScore * 0.2) + (acwrScore * 0.2);
-                    } else if (strainScore !== null) {
-                        strainScore = (strainScore * 0.7) + (stravaScore * 0.3);
-                    } else if (acwrScore !== null) {
-                        strainScore = (stravaScore * 0.6) + (acwrScore * 0.4);
-                    } else {
-                        strainScore = stravaScore;
-                    }
-                }
-            }
-
-            components.strain = strainScore;
-
-            // Calculate weighted score with new algorithm
             const weights = {
-                recovery: 0.30,  // Most important - overall recovery state
-                strain: 0.25,    // Training load balance
-                sleep: 0.25,     // Sleep quality
-                hrv: 0.20        // Autonomic nervous system recovery
+                recovery: 0.35,
+                sleep: 0.25,
+                strain: 0.20,
+                hrv: 0.20
+            };
+            const modifiers = {
+                stressPenalty: false,
+                bodyBatteryPenalty: false,
+                stressAdjustedHRV: false,
+                garminSleepConsistencyPenalty: false
             };
 
-            let totalScore = 0;
-            let totalWeight = 0;
+            // ===== HRV & RHR TRENDS =====
+            const whoopRecovery = fitnessData.whoop?.recovery || [];
+            const ouraSleep = fitnessData.oura?.sleep || [];
+            const ouraReadiness = fitnessData.oura?.readiness || [];
+
+            const hrvShort = [
+                ...valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.hrv_rmssd_milli, last7),
+                ...valuesSince(ouraSleep, s => asDate(s.day), s => s.average_hrv, last7)
+            ];
+            const hrvBaselineVals = [
+                ...valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.hrv_rmssd_milli, last30),
+                ...valuesSince(ouraSleep, s => asDate(s.day), s => s.average_hrv, last30)
+            ];
+            if (!hrvShort.length && garminDailies.length) {
+                hrvShort.push(...valuesSince(
+                    garminDailies,
+                    d => asDate(d.calendarDate || d.startDate),
+                    d => d.hrvAvg ?? d.averageHrv ?? d.hrvAverage ?? d.hrv,
+                    last7
+                ));
+            }
+            if (!hrvBaselineVals.length && garminDailies.length) {
+                hrvBaselineVals.push(...valuesSince(
+                    garminDailies,
+                    d => asDate(d.calendarDate || d.startDate),
+                    d => d.hrvAvg ?? d.averageHrv ?? d.hrvAverage ?? d.hrv,
+                    last30
+                ));
+            }
+            const hrvShortAvg = avg(hrvShort);
+            const hrvBaseline = avg(hrvBaselineVals);
+            let hrvTrendScore = null;
+            if (hrvShortAvg && hrvBaseline) {
+                const ratio = hrvShortAvg / hrvBaseline;
+                hrvTrendScore = clamp(70 + (ratio - 1) * 120); // ~70 at baseline, drops if <1, rises if >1
+            }
+            let hrvAbsoluteScore = hrvShortAvg ? clamp(((hrvShortAvg - 25) / 70) * 100) : null; // normalize 25–95ms
+            if (hrvTrendScore !== null && garminDailies.length) {
+                const stressVals = valuesSince(
+                    garminDailies,
+                    d => asDate(d.calendarDate || d.startDate),
+                    d => d.averageStressLevel ?? d.avgStress ?? null,
+                    last7
+                );
+                const stressAvg = avg(stressVals.filter(v => v !== null && !Number.isNaN(v)));
+                if (stressAvg && stressAvg > 70) {
+                    hrvTrendScore = clamp(hrvTrendScore * 0.9);
+                    modifiers.stressAdjustedHRV = true;
+                }
+            }
+            components.hrv = hrvTrendScore !== null ? hrvTrendScore : hrvAbsoluteScore;
+            dataSources.hrv = hrvShort.length
+                ? (valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.hrv_rmssd_milli, last7).length ? 'Whoop'
+                    : valuesSince(ouraSleep, s => asDate(s.day), s => s.average_hrv, last7).length ? 'Oura'
+                        : 'Garmin')
+                : '--';
+
+            const rhrShort = [
+                ...valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.resting_heart_rate, last7),
+                ...valuesSince(ouraReadiness, r => asDate(r.day), r => r.resting_heart_rate, last7)
+            ];
+            const rhrBaselineVals = [
+                ...valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.resting_heart_rate, last30),
+                ...valuesSince(ouraReadiness, r => asDate(r.day), r => r.resting_heart_rate, last30)
+            ];
+            if (!rhrShort.length && garminDailies.length) {
+                rhrShort.push(...valuesSince(
+                    garminDailies,
+                    d => asDate(d.calendarDate || d.startDate),
+                    d => d.restingHr ?? d.restingHeartRate ?? d.resting_heart_rate,
+                    last7
+                ));
+            }
+            if (!rhrBaselineVals.length && garminDailies.length) {
+                rhrBaselineVals.push(...valuesSince(
+                    garminDailies,
+                    d => asDate(d.calendarDate || d.startDate),
+                    d => d.restingHr ?? d.restingHeartRate ?? d.resting_heart_rate,
+                    last30
+                ));
+            }
+            const rhrShortAvg = avg(rhrShort);
+            const rhrBaseline = avg(rhrBaselineVals);
+            let rhrTrendScore = null;
+            if (rhrShortAvg && rhrBaseline) {
+                const delta = (rhrBaseline - rhrShortAvg) / rhrBaseline; // positive when current HR lower than baseline
+                rhrTrendScore = clamp(70 + delta * 220);
+            }
+
+            // ===== RECOVERY (DEVICE + PHYSIOLOGY) =====
+            const whoopRecoveryScores = valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.recovery_score, last7);
+            const ouraReadinessScores = valuesSince(ouraReadiness, r => asDate(r.day), r => r.score, last7);
+            const garminBodyBattery = valuesSince(
+                garminDailies,
+                d => asDate(d.calendarDate || d.startDate),
+                d => d.bodyBatteryHighestValue ?? d.bodyBatteryChargedValue ?? d.bodyBatteryLowestValue ?? d.bodyBatteryDrainedValue,
+                last7
+            );
+            const garminStress = valuesSince(
+                garminDailies,
+                d => asDate(d.calendarDate || d.startDate),
+                d => d.averageStressLevel ?? d.avgStress ?? d.maxStressLevel ?? null,
+                last7
+            );
+            let deviceRecovery = null;
+            if (whoopRecoveryScores.length && ouraReadinessScores.length) {
+                const whoopAvg = avg(whoopRecoveryScores);
+                const ouraAvg = avg(ouraReadinessScores);
+                deviceRecovery = (whoopAvg > 1 ? whoopAvg : whoopAvg * 100) * 0.6 + ouraAvg * 0.4;
+                dataSources.recovery = 'Whoop+Oura';
+            } else if (whoopRecoveryScores.length) {
+                const whoopAvg = avg(whoopRecoveryScores);
+                deviceRecovery = whoopAvg > 1 ? whoopAvg : whoopAvg * 100;
+                dataSources.recovery = 'Whoop';
+            } else if (ouraReadinessScores.length) {
+                deviceRecovery = avg(ouraReadinessScores);
+                dataSources.recovery = 'Oura';
+            } else if (garminBodyBattery.length) {
+                deviceRecovery = avg(garminBodyBattery);
+                dataSources.recovery = 'Garmin';
+            }
+
+            const physioRecovery = (() => {
+                const parts = [];
+                if (hrvTrendScore !== null) parts.push({ score: hrvTrendScore, weight: 0.6 });
+                if (rhrTrendScore !== null) parts.push({ score: rhrTrendScore, weight: 0.4 });
+                if (!parts.length) return null;
+                const totalW = parts.reduce((s, p) => s + p.weight, 0);
+                return parts.reduce((s, p) => s + p.score * p.weight, 0) / totalW;
+            })();
+
+            if (deviceRecovery !== null && physioRecovery !== null) {
+                components.recovery = deviceRecovery * 0.6 + physioRecovery * 0.4;
+            } else if (deviceRecovery !== null) {
+                components.recovery = deviceRecovery;
+            } else if (physioRecovery !== null) {
+                components.recovery = physioRecovery;
+                dataSources.recovery = 'HRV/RHR trend';
+            }
+            // Sympathetic burden modifiers: high stress or low Body Battery
+            const stressAvg = avg(garminStress.filter(v => v !== null && !Number.isNaN(v)));
+            const bodyBatteryLow = garminBodyBattery.length ? Math.min(...garminBodyBattery) : null;
+            let recoveryPenalty = 0;
+            if (stressAvg && stressAvg > 70) {
+                recoveryPenalty += 7;
+                modifiers.stressPenalty = true;
+            }
+            if (bodyBatteryLow !== null && bodyBatteryLow < 25) {
+                recoveryPenalty += 8;
+                modifiers.bodyBatteryPenalty = true;
+            }
+            if (components.recovery !== null && recoveryPenalty > 0) {
+                components.recovery = clamp(components.recovery - recoveryPenalty);
+            }
+
+            // ===== SLEEP QUALITY =====
+            const scoreOuraSleep = (sleepRecord) => {
+                const totalSleepHours = (sleepRecord.total_sleep_duration || sleepRecord.duration || 0) / 3600;
+                if (!totalSleepHours) return null;
+                const efficiency = sleepRecord.efficiency || 0;
+                const deepHours = (sleepRecord.deep_sleep_duration || 0) / 3600;
+                const remHours = (sleepRecord.rem_sleep_duration || 0) / 3600;
+                const latencyMin = (sleepRecord.latency || 0) / 60;
+                const awakeTime = sleepRecord.awake_time || 0;
+                const durationScore = clamp(100 - Math.abs(totalSleepHours - 8) * 12);
+                const efficiencyScore = efficiency ? clamp((efficiency - 75) * 5) : null; // >85 good, <80 declines
+                const deepPct = totalSleepHours ? (deepHours / totalSleepHours) * 100 : null;
+                const remPct = totalSleepHours ? (remHours / totalSleepHours) * 100 : null;
+                const deepScore = deepPct !== null ? clamp(100 - Math.abs(deepPct - 20) * 5) : null;
+                const remScore = remPct !== null ? clamp(100 - Math.abs(remPct - 22) * 4) : null;
+                const latencyScore = latencyMin ? clamp(100 - Math.abs(latencyMin - 20) * 3.5) : 75;
+                const restfulnessScore = awakeTime ? clamp(100 - (awakeTime / (sleepRecord.total_sleep_duration || 1)) * 180) : null;
+
+                const parts = [
+                    { score: durationScore, weight: 0.3 },
+                    { score: efficiencyScore, weight: 0.2 },
+                    { score: deepScore, weight: 0.2 },
+                    { score: remScore, weight: 0.15 },
+                    { score: latencyScore, weight: 0.1 },
+                    { score: restfulnessScore, weight: 0.05 }
+                ].filter(p => p.score !== null);
+
+                const totalWeight = parts.reduce((s, p) => s + p.weight, 0);
+                return totalWeight ? parts.reduce((s, p) => s + p.score * p.weight, 0) / totalWeight : null;
+            };
+
+            let sleepScore = null;
+            let sleepQualityFlag = 0;
+            if (fitnessData.whoop?.sleep?.length) {
+                const recentSleep = fitnessData.whoop.sleep.filter(s => asDate(s.created_at || s.start) >= last7);
+                if (recentSleep.length) {
+                    const whoopAvg = avg(recentSleep.map(s => {
+                        const perf = s.score?.sleep_performance_percentage;
+                        return perf !== undefined && perf !== null ? (perf > 1 ? perf : perf * 100) : null;
+                    }).filter(v => v !== null));
+                    if (whoopAvg !== null) {
+                        sleepScore = whoopAvg;
+                        dataSources.sleep = 'Whoop';
+                        sleepQualityFlag = recentSleep.length >= 2 ? 1 : 0.7;
+                    }
+                }
+            }
+
+            if (fitnessData.oura?.sleep?.length) {
+                const recentOuraSleep = fitnessData.oura.sleep.filter(s => asDate(s.day) >= last7);
+                const ouraScores = recentOuraSleep.map(scoreOuraSleep).filter(v => v !== null);
+                if (ouraScores.length) {
+                    const ouraAvg = avg(ouraScores);
+                    if (sleepScore !== null) {
+                        sleepScore = sleepScore * 0.5 + ouraAvg * 0.5;
+                        dataSources.sleep = dataSources.sleep === 'Whoop' ? 'Whoop+Oura' : 'Oura';
+                    } else {
+                        sleepScore = ouraAvg;
+                        dataSources.sleep = 'Oura';
+                    }
+                    sleepQualityFlag = Math.max(sleepQualityFlag, recentOuraSleep.length >= 2 ? 1 : 0.7);
+                }
+            }
+            if (sleepScore === null && garminDailies.length) {
+                const recentDailies = garminDailies.filter(d => asDate(d.calendarDate || d.startDate) >= last7);
+                if (recentDailies.length) {
+                    const hours = recentDailies
+                        .map(d => d.sleepHours ?? (d.sleepingSeconds !== undefined ? d.sleepingSeconds / 3600 : null))
+                        .filter(v => v !== null && !Number.isNaN(v));
+                    if (hours.length) {
+                        const avgHours = avg(hours);
+                        const durationScore = clamp(100 - Math.abs(avgHours - 8) * 12);
+                        const stressVals = recentDailies
+                            .map(d => d.averageStressLevel ?? d.avgStress ?? null)
+                            .filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+                        const restfulness = stressVals.length ? clamp(100 - avg(stressVals) * 0.8) : 75;
+                        sleepScore = durationScore * 0.7 + restfulness * 0.3;
+                        dataSources.sleep = 'Garmin';
+                        sleepQualityFlag = 0.6;
+                    }
+                }
+            }
+            // Garmin sleep fallback if no Whoop/Oura sleep
+            if (sleepScore === null && garminDailies.length) {
+                const recentDailies = garminDailies.filter(d => asDate(d.calendarDate || d.startDate) >= last7);
+                if (recentDailies.length) {
+                    const hours = recentDailies
+                        .map(d => d.sleepHours ?? (d.sleepingSeconds !== undefined ? d.sleepingSeconds / 3600 : null))
+                        .filter(v => v !== null && !Number.isNaN(v));
+                    if (hours.length) {
+                        const avgHours = avg(hours);
+                        const durationScore = clamp(100 - Math.abs(avgHours - 8) * 12);
+                        const stressVals = recentDailies
+                            .map(d => d.averageStressLevel ?? d.avgStress ?? null)
+                            .filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+                        const restfulness = stressVals.length ? clamp(100 - avg(stressVals) * 0.8) : 75;
+                        sleepScore = durationScore * 0.7 + restfulness * 0.3;
+                        dataSources.sleep = 'Garmin';
+                        sleepQualityFlag = 0.6;
+                    }
+                }
+            }
+            // Set sleep component before consistency penalty
+            components.sleep = sleepScore;
+
+            // Sleep consistency (Garmin): penalize big bedtime variability if present
+            // If Garmin provides sleep/wake variability, apply a subtle penalty
+            if (garminDailies.length && components.sleep !== null) {
+                const sleepTimes = garminDailies
+                    .map(d => d.sleepStartTime || d.bedtimeStart || d.sleepStart || d.sleepWindowStart || null)
+                    .map(ts => asDate(ts))
+                    .filter(Boolean);
+                const wakeTimes = garminDailies
+                    .map(d => d.sleepEndTime || d.bedtimeEnd || d.sleepEnd || d.sleepWindowEnd || null)
+                    .map(ts => asDate(ts))
+                    .filter(Boolean);
+                if (sleepTimes.length >= 3 && wakeTimes.length >= 3) {
+                    const toMinutes = (dates) => dates.map(dt => dt.getHours() * 60 + dt.getMinutes());
+                    const bedtimeVar = Math.max(...toMinutes(sleepTimes)) - Math.min(...toMinutes(sleepTimes));
+                    const wakeVar = Math.max(...toMinutes(wakeTimes)) - Math.min(...toMinutes(wakeTimes));
+                    const windowVar = Math.max(bedtimeVar, wakeVar);
+                    if (windowVar > 90) {
+                        const penalty = Math.min(8, (windowVar - 90) * 0.1);
+                        components.sleep = clamp(components.sleep - penalty);
+                        modifiers.garminSleepConsistencyPenalty = true;
+                    }
+                }
+            }
+
+            // ===== STRAIN / LOAD =====
+            let strainScore = null;
+            let strainQuality = 0;
+
+            const whoopCycles = fitnessData.whoop?.cycles || [];
+            const whoopStrainValues = valuesSince(whoopCycles, c => asDate(c.start || c.created_at || c.updated_at || c.day), c => c.score?.strain, last7);
+            if (whoopStrainValues.length) {
+                const avgStrain = avg(whoopStrainValues);
+                if (avgStrain !== null) {
+                    if (avgStrain < 6) {
+                        strainScore = clamp(55 + (avgStrain / 6) * 15);
+                    } else if (avgStrain <= 12) {
+                        strainScore = clamp(75 + ((avgStrain - 6) / 6) * 15);
+                    } else if (avgStrain <= 16) {
+                        strainScore = clamp(90 - ((avgStrain - 12) / 4) * 25);
+                    } else {
+                        strainScore = clamp(55 - (avgStrain - 16) * 4, 10, 60);
+                    }
+                    dataSources.strain = 'Whoop';
+                    strainQuality = 0.8;
+                }
+            }
+
+            let acwrScore = null;
+            let stravaLoadScore = null;
+            const stravaActivities = fitnessData.strava?.activities || [];
+            if (stravaActivities.length) {
+                const loadWindow = (days) => {
+                    const boundary = new Date(referenceDate);
+                    boundary.setDate(boundary.getDate() - (days - 1));
+                    return stravaActivities
+                        .filter(a => asDate(a.start_date) && asDate(a.start_date) >= boundary)
+                        .reduce((sum, a) => sum + (a.suffer_score || 0), 0);
+                };
+                const load7 = loadWindow(7);
+                const load28 = loadWindow(28);
+                const baselineWeekly = load28 / 4;
+                if (baselineWeekly > 0) {
+                    const acwr = load7 / baselineWeekly;
+                    acwrScore = clamp(90 - Math.abs(acwr - 1) * 70, 15, 100);
+                }
+                if (load7 > 0) {
+                    const avgDaily = load7 / 7;
+                    stravaLoadScore = clamp(70 + Math.tanh((avgDaily - 40) / 60) * 25, 40, 95);
+                }
+                if (acwrScore !== null || stravaLoadScore !== null) {
+                    strainQuality = Math.max(strainQuality, acwrScore !== null && stravaLoadScore !== null ? 1 : 0.7);
+                    dataSources.strain = dataSources.strain === 'Whoop' ? 'Whoop+Strava' : 'Strava';
+                }
+            }
+
+            // Garmin strain fallback (avoid double-counting if Strava/Whoop already used)
+            if (strainScore === null && acwrScore === null && stravaLoadScore === null && garminActivities.length) {
+                const recentGarminActs = garminActivities.filter(a => {
+                    const start = a.startTimeInSeconds ? new Date(a.startTimeInSeconds * 1000) : asDate(a.startTimeLocal || a.startTime || a.start_date);
+                    return start && start >= last7;
+                });
+                if (recentGarminActs.length) {
+                    const kcals = recentGarminActs
+                        .map(a => a.activeKilocalories ?? a.activeCalories ?? a.totalKilocalories ?? 0)
+                        .filter(v => v > 0);
+                    const durations = recentGarminActs
+                        .map(a => a.durationInSeconds ?? a.durationSeconds ?? a.elapsedTimeInSeconds ?? 0)
+                        .filter(v => v > 0);
+                    const loadProxy = kcals.length ? avg(kcals) : (durations.length ? avg(durations) / 60 : 0);
+                    if (loadProxy) {
+                        strainScore = clamp(65 + Math.tanh((loadProxy - 450) / 400) * 25, 40, 95);
+                        dataSources.strain = 'Garmin';
+                        strainQuality = 0.6;
+                    }
+                }
+            }
+
+            const strainParts = [];
+            if (strainScore !== null) strainParts.push({ score: strainScore, weight: 0.55 });
+            if (acwrScore !== null) strainParts.push({ score: acwrScore, weight: 0.3 });
+            if (stravaLoadScore !== null) strainParts.push({ score: stravaLoadScore, weight: 0.15 });
+            if (strainParts.length) {
+                const total = strainParts.reduce((s, p) => s + p.weight, 0);
+                components.strain = strainParts.reduce((s, p) => s + p.score * p.weight, 0) / total;
+            }
+
+            // ===== OVERALL SCORE + CONFIDENCE =====
+            let weightedScore = 0;
+            let usedWeight = 0;
+            const quality = {
+                recovery: (deviceRecovery !== null && physioRecovery !== null) ? 1 : (components.recovery !== null ? 0.75 : 0),
+                sleep: components.sleep !== null ? (sleepQualityFlag || 0.7) : 0,
+                strain: components.strain !== null ? (strainQuality || 0.6) : 0,
+                hrv: components.hrv !== null ? (hrvTrendScore !== null && hrvBaseline ? 1 : 0.6) : 0
+            };
 
             Object.keys(components).forEach(key => {
-                if (components[key] !== null) {
-                    totalScore += components[key] * weights[key];
-                    totalWeight += weights[key];
+                if (components[key] !== null && weights[key]) {
+                    weightedScore += components[key] * weights[key];
+                    usedWeight += weights[key];
                 }
             });
 
-            const athlytxScore = totalWeight > 0 ? Math.round(totalScore / totalWeight) : null;
+            const athlytxScore = usedWeight > 0 ? Math.round(weightedScore / usedWeight) : null;
 
-            // Confidence based on data completeness
-            const confidence = totalWeight >= 0.8 ? 'High' : (totalWeight >= 0.5 ? 'Medium' : 'Low');
-
-            // Data source transparency
-            const usedWhoopRecovery = recoveryWhoopAvg !== null;
-            const usedOuraRecovery = recoveryOuraAvg !== null;
-            const dataSources = {
-                recovery: usedWhoopRecovery && usedOuraRecovery ? 'Whoop+Oura' : (usedWhoopRecovery ? 'Whoop' : (usedOuraRecovery ? 'Oura' : null)),
-                strain: (fitnessData.whoop?.cycles ? 'Whoop' : null) && (fitnessData.strava?.activities ? 'Strava' : null) ? 'Whoop+Strava' : (fitnessData.whoop?.cycles ? 'Whoop' : (fitnessData.strava?.activities ? 'Strava' : null)),
-                sleep: fitnessData.whoop?.sleep ? 'Whoop' : (fitnessData.oura?.sleep ? 'Oura' : null),
-                hrv: fitnessData.whoop?.recovery ? 'Whoop' : (fitnessData.oura?.sleep ? 'Oura' : null)
-            };
+            const confidenceNumerator = Object.keys(weights).reduce((sum, key) => {
+                const componentAvailable = components[key] !== null;
+                if (!componentAvailable) return sum;
+                return sum + weights[key] * (quality[key] || 0);
+            }, 0);
+            const confidencePercent = Math.round((confidenceNumerator / Object.values(weights).reduce((s, v) => s + v, 0)) * 100);
+            const confidenceLabel = confidencePercent >= 80 ? 'High' : (confidencePercent >= 55 ? 'Medium' : 'Low');
+            const confidence = `${confidenceLabel} (${confidencePercent}%)`;
 
             console.log('Athlytx Score Calculation:', {
                 score: athlytxScore,
                 components,
                 weights,
-                dataSources
+                dataSources,
+                confidence
             });
 
-            return { score: athlytxScore, components, dataSources, weights, totalWeight, confidence };
+            return { score: athlytxScore, components, dataSources, weights, totalWeight: usedWeight, confidence, confidenceScore: confidencePercent };
         }
 
         function updateAthlytxScore() {
@@ -4319,8 +4591,9 @@
         function updateOuraData() {
             if (!fitnessData.oura) return;
 
+            const periodDays = ouraPeriodDays || 1;
             const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
+            lastWeek.setDate(lastWeek.getDate() - periodDays);
             
             const recentReadiness = fitnessData.oura.readiness.filter(r => new Date(r.day) >= lastWeek);
             const avgReadiness = recentReadiness.length > 0 ? 
@@ -4809,9 +5082,9 @@
                 return;
             }
 
-            // Estimate time in zones based on average and max HR
+            // Prefer exact Strava-provided time_in_heart_rate_zone when present, fallback to estimation
             // Zone 1: <60%, Zone 2: 60-70%, Zone 3: 70-80%, Zone 4: 80-90%, Zone 5: >90%
-            // Use max HR from activities or default to 190
+            // Use max HR from activities or default to 190 when estimating
             let userMaxHR = 190;
             recentActivities.forEach(a => {
                 if (a.max_heartrate && a.max_heartrate > userMaxHR) {
@@ -4819,53 +5092,48 @@
                 }
             });
 
-            const zones = [0, 0, 0, 0, 0];
+            const zones = [0, 0, 0, 0, 0]; // minutes per zone
 
             recentActivities.forEach(a => {
+                const movingTime = (a.moving_time || 0) / 60; // minutes
                 const avgHR = a.average_heartrate;
                 const maxHR = a.max_heartrate || avgHR;
-                const movingTime = (a.moving_time || 0) / 60; // convert to minutes
 
-                // Calculate HR percentages
+                const timeInZones = a.time_in_heart_rate_zone || a.time_in_hr_zone || a.timeInHeartRateZone || null;
+                if (Array.isArray(timeInZones) && timeInZones.length) {
+                    timeInZones.forEach((sec, idx) => {
+                        if (idx < 5) zones[idx] += (sec || 0) / 60;
+                    });
+                    return;
+                }
+
+                // Fallback: estimate distribution from avg/max HR
+                if (!avgHR || movingTime <= 0) return;
                 const avgPercent = (avgHR / userMaxHR) * 100;
-                const maxPercent = (maxHR / userMaxHR) * 100;
 
-                // Better distribution: assume HR gradually builds up during activity
-                // We'll estimate time distribution across zones based on avg and max HR
                 if (movingTime < 5) {
-                    // Short activity - put in zone based on average
                     const zone = avgPercent < 60 ? 0 : avgPercent < 70 ? 1 : avgPercent < 80 ? 2 : avgPercent < 90 ? 3 : 4;
                     zones[zone] += movingTime;
                 } else {
-                    // Longer activity - distribute across likely zones
-                    // Assume bell curve distribution around average HR
-                    const minPercent = Math.max(50, avgPercent - 10); // Estimate minimum effort
-
-                    // Simple distribution model: most time near average, some at max
                     if (avgPercent < 65) {
-                        // Easy effort - mostly Zone 1-2
                         zones[0] += movingTime * 0.7;
                         zones[1] += movingTime * 0.25;
                         zones[2] += movingTime * 0.05;
                     } else if (avgPercent < 75) {
-                        // Moderate effort - mostly Zone 2-3
                         zones[0] += movingTime * 0.2;
                         zones[1] += movingTime * 0.5;
                         zones[2] += movingTime * 0.25;
                         zones[3] += movingTime * 0.05;
                     } else if (avgPercent < 85) {
-                        // Tempo effort - mostly Zone 3-4
                         zones[1] += movingTime * 0.15;
                         zones[2] += movingTime * 0.5;
                         zones[3] += movingTime * 0.3;
                         zones[4] += movingTime * 0.05;
                     } else if (avgPercent < 95) {
-                        // Threshold effort - mostly Zone 4
                         zones[2] += movingTime * 0.2;
                         zones[3] += movingTime * 0.6;
                         zones[4] += movingTime * 0.2;
                     } else {
-                        // Hard effort - mostly Zone 4-5
                         zones[3] += movingTime * 0.4;
                         zones[4] += movingTime * 0.6;
                     }
@@ -6031,6 +6299,19 @@
             if (!fitnessData.whoop) return;
 
             const { profile, recovery, workouts, sleep, cycles } = fitnessData.whoop;
+            const cutoff = new Date(Date.now() - (whoopPeriodDays || 1) * 86400000);
+
+            const filterByDate = (arr, getter) => Array.isArray(arr)
+                ? arr.filter(item => {
+                    const d = getter(item);
+                    return d && !Number.isNaN(d.getTime()) ? d >= cutoff : true;
+                })
+                : [];
+
+            const filteredRecovery = filterByDate(recovery, r => new Date(r.updated_at || r.created_at || r.date));
+            const filteredSleep = filterByDate(sleep, s => new Date(s.end || s.updated_at || s.start));
+            const filteredCycles = filterByDate(cycles, c => new Date(c.end || c.updated_at || c.start));
+            const filteredWorkouts = filterByDate(workouts, w => new Date(w.start || w.end || w.updated_at));
 
             console.log('🎨 Updating Whoop display with data:', {
                 profile: !!profile,
@@ -6049,9 +6330,9 @@
             };
 
             // Update recovery data - sort by updated_at to get most recent
-            if (recovery && recovery.length > 0) {
+            if (filteredRecovery && filteredRecovery.length > 0) {
                 // Sort by updated_at or created_at descending (newest first)
-                const sortedRecovery = [...recovery].sort((a, b) => {
+                const sortedRecovery = [...filteredRecovery].sort((a, b) => {
                     const dateA = new Date(a.updated_at || a.created_at);
                     const dateB = new Date(b.updated_at || b.created_at);
                     return dateB - dateA;
@@ -6076,9 +6357,9 @@
             }
 
             // Update sleep data - sort by end time to get most recent
-            if (sleep && sleep.length > 0) {
+            if (filteredSleep && filteredSleep.length > 0) {
                 // Sort by end time descending (newest first)
-                const sortedSleep = [...sleep].sort((a, b) => {
+                const sortedSleep = [...filteredSleep].sort((a, b) => {
                     const dateA = new Date(a.end || a.updated_at);
                     const dateB = new Date(b.end || b.updated_at);
                     return dateB - dateA;
@@ -6098,9 +6379,9 @@
             }
 
             // Update strain from cycles data - sort by end time to get most recent
-            if (cycles && cycles.length > 0) {
+            if (filteredCycles && filteredCycles.length > 0) {
                 // Sort by end time or updated_at descending (newest first)
-                const sortedCycles = [...cycles].sort((a, b) => {
+                const sortedCycles = [...filteredCycles].sort((a, b) => {
                     const dateA = new Date(a.end || a.updated_at);
                     const dateB = new Date(b.end || b.updated_at);
                     return dateB - dateA;
@@ -6165,20 +6446,33 @@
             if (!charts.whoopTrend || !fitnessData.whoop) return;
 
             const { recovery, sleep } = fitnessData.whoop;
-
-            // Get last 7 days of data for the trend
-            const last7Days = [];
+            const days = whoopPeriodDays || 1;
+            const lastDays = [];
             const today = new Date();
-            for (let i = 6; i >= 0; i--) {
+            for (let i = days - 1; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(date.getDate() - i);
-                last7Days.push(date);
+                lastDays.push(date);
             }
 
+            const cutoff = new Date(Date.now() - days * 86400000);
+            const filteredRecovery = Array.isArray(recovery)
+                ? recovery.filter(r => {
+                    const d = new Date(r.updated_at || r.created_at || r.date);
+                    return d.toString() !== 'Invalid Date' ? d >= cutoff : true;
+                })
+                : [];
+            const filteredSleep = Array.isArray(sleep)
+                ? sleep.filter(s => {
+                    const d = new Date(s.end || s.updated_at || s.start);
+                    return d.toString() !== 'Invalid Date' ? d >= cutoff : true;
+                })
+                : [];
+
             // Prepare recovery data for the last 7 days
-            const recoveryData = last7Days.map(date => {
+            const recoveryData = lastDays.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
-                const dayRecovery = recovery?.find(r => {
+                const dayRecovery = filteredRecovery?.find(r => {
                     const recordDate = new Date(r.created_at || r.date).toISOString().split('T')[0];
                     return recordDate === dateStr;
                 });
@@ -6191,9 +6485,9 @@
             });
 
             // Prepare sleep data for the last 7 days
-            const sleepData = last7Days.map(date => {
+            const sleepData = lastDays.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
-                const daySleep = sleep?.find(s => {
+                const daySleep = filteredSleep?.find(s => {
                     const recordDate = new Date(s.created_at || s.start).toISOString().split('T')[0];
                     return recordDate === dateStr;
                 });
@@ -6205,7 +6499,7 @@
                 return null;
             });
 
-            const labels = last7Days.map(date =>
+            const labels = lastDays.map(date =>
                 date.toLocaleDateString('en-US', { weekday: 'short' })
             );
 
@@ -6330,6 +6624,26 @@
                     console.log('❌ Dailies fetch failed:', dailiesResponse);
                 }
 
+                // Apply period filter
+                const now = new Date();
+                const cutoff = new Date(now.getTime() - (garminPeriodDays || 7) * 86400000);
+                const actDate = (a) => a.startTimeInSeconds
+                    ? new Date(a.startTimeInSeconds * 1000)
+                    : new Date(a.startTimeLocal || a.startTime || a.start_date || a.startTimeGmt || a.activityStartTime || 0);
+                const dailyDate = (d) => new Date(d.calendarDate || d.startDate || d.date || d.calendar_date || 0);
+
+                const filteredActivities = activities.filter(a => {
+                    const d = actDate(a);
+                    return d.toString() !== 'Invalid Date' ? d >= cutoff : true;
+                });
+                const filteredDailies = dailySummaries.filter(d => {
+                    const dt = dailyDate(d);
+                    return dt.toString() !== 'Invalid Date' ? dt >= cutoff : true;
+                });
+
+                fitnessData.garmin.filteredActivities = filteredActivities;
+                fitnessData.garmin.filteredDailies = filteredDailies;
+
                 // Update "Last updated" timestamp
                 try {
                     const el = document.getElementById('garminLastUpdated');
@@ -6340,32 +6654,32 @@
                 } catch (_) {}
 
                 // Update hero stat cards
-                console.log('🎯 Setting garminActivities to:', activities.length);
+                console.log('🎯 Setting garminActivities to:', filteredActivities.length);
                 const garminActivitiesElement = document.getElementById('garminActivities');
                 console.log('🎯 garminActivities element:', garminActivitiesElement);
                 if (garminActivitiesElement) {
-                    garminActivitiesElement.textContent = activities.length;
-                    console.log('✅ Successfully set garminActivities.textContent to:', activities.length);
+                    garminActivitiesElement.textContent = filteredActivities.length;
+                    console.log('✅ Successfully set garminActivities.textContent to:', filteredActivities.length);
                 } else {
                     console.log('❌ ERROR: garminActivities element not found in DOM!');
                 }
 
-                const totalDistance = activities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
+                const totalDistance = filteredActivities.reduce((sum, a) => sum + (a.distanceInMeters || 0), 0);
                 document.getElementById('garminDistance').textContent = (totalDistance / 1000).toFixed(1) + ' km';
 
-                const avgHr = activities.length > 0
-                    ? Math.round(activities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / activities.length)
+                const avgHr = filteredActivities.length > 0
+                    ? Math.round(filteredActivities.reduce((sum, a) => sum + (a.averageHeartRateInBeatsPerMinute || 0), 0) / filteredActivities.length)
                     : '--';
                 document.getElementById('garminAvgHR').textContent = avgHr === '--' ? avgHr : avgHr + ' bpm';
 
-                const totalTime = activities.reduce((sum, a) => sum + (a.durationInSeconds || 0), 0);
+                const totalTime = filteredActivities.reduce((sum, a) => sum + (a.durationInSeconds || 0), 0);
                 const hours = Math.floor(totalTime / 3600);
                 const minutes = Math.floor((totalTime % 3600) / 60);
                 document.getElementById('garminTrainingTime').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 
                 // Update new health metrics from daily summaries
-                if (dailySummaries.length > 0) {
-                    const latest = dailySummaries[0];
+                if (filteredDailies.length > 0) {
+                    const latest = filteredDailies[0];
 
                     // Body Battery (allow 0) - fallback to charged/drained if highest is null
                     const bbValue =
@@ -6415,10 +6729,10 @@
 
                 // Update activities list with real activities
                 const activitiesList = document.getElementById('garminActivitiesList');
-                if (activities.length === 0) {
+                if (filteredActivities.length === 0) {
                     activitiesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #9ca3af;">No activities yet. Record a workout on your Garmin device!</div>';
                 } else {
-                    activitiesList.innerHTML = activities.map(activity => `
+                    activitiesList.innerHTML = filteredActivities.map(activity => `
                     <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
@@ -6655,11 +6969,36 @@
 
         // ===== RUNNING ANALYTICS =====
         let runningPeriodDays = 28;
+        let garminPeriodDays = 7;
+        let whoopPeriodDays = 1;
+        let ouraPeriodDays = 1;
 
         function updateRunningPeriod() {
             const selector = document.getElementById('runningPeriodSelector');
             runningPeriodDays = parseInt(selector?.value || '28', 10) || 28;
             updateRunningAnalytics();
+        }
+
+        function updateGarminPeriod() {
+            const selector = document.getElementById('garminPeriodSelector');
+            garminPeriodDays = parseInt(selector?.value || '7', 10) || 7;
+            updateGarminDisplay();
+        }
+
+        function updateWhoopPeriod() {
+            const selector = document.getElementById('whoopPeriodSelector');
+            whoopPeriodDays = parseInt(selector?.value || '1', 10) || 1;
+            updateWhoopDisplay();
+        }
+
+        function updateOuraPeriod() {
+            const selector = document.getElementById('ouraPeriodSelector');
+            ouraPeriodDays = parseInt(selector?.value || '1', 10) || 1;
+            updateOuraData();
+            updateOuraSleepStagesChart();
+            updateOuraCorrelationChart();
+            updateOuraTrendCharts();
+            updateOuraConsistencyCard();
         }
 
         function normalizeRunActivities() {
