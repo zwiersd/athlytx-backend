@@ -122,14 +122,14 @@
         /* Hero Section */
         .hero-section {
             text-align: center;
-            padding: 80px 0 60px;
-            margin-bottom: 60px;
+            padding: 40px 0 32px;
+            margin-bottom: 32px;
         }
 
         .hero-title {
-            font-size: 4rem;
+            font-size: 2.5rem;
             font-weight: 900;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -138,17 +138,10 @@
         }
 
         .hero-subtitle {
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .hero-description {
             font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.6);
-            max-width: 700px;
-            margin: 0 auto;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0;
+            font-weight: 500;
         }
 
         /* Glass Cards */
@@ -156,34 +149,34 @@
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 48px;
-            margin-bottom: 48px;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .section-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 32px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .section-subtitle {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin: 40px 0 20px;
+            margin: 24px 0 12px;
             color: #667eea;
         }
 
         .content-text {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 24px;
-            line-height: 1.8;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 16px;
+            line-height: 1.6;
         }
 
         /* Feature Grid */
@@ -328,45 +321,50 @@
         /* Founder Section */
         .founder-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 24px;
-            padding: 60px;
-            text-align: center;
-            margin: 60px 0;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin: 24px 0;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
         }
 
         .founder-avatar {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            margin: 0 auto 24px;
             background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            font-size: 32px;
+            font-weight: 700;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .founder-info {
+            flex: 1;
         }
 
         .founder-name {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 4px;
         }
 
         .founder-title {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 24px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 12px;
         }
 
         .founder-quote {
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-style: italic;
             color: rgba(255, 255, 255, 0.95);
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.8;
+            line-height: 1.5;
         }
 
         /* Mobile */
@@ -439,284 +437,129 @@
     <div class="main-content">
         <!-- Hero Section -->
         <div class="hero-section">
-            <h1 class="hero-title">Unified Athlete Intelligence</h1>
-            <p class="hero-subtitle">One platform. All your data. Crystal clear insights.</p>
-            <p class="hero-description">
-                Athlytx transforms fragmented fitness data from Strava, Garmin, Oura, and Whoop into a unified training readiness platform for athletes and coaches.
-            </p>
+            <h1 class="hero-title">Unified Athlete Data Platform</h1>
+            <p class="hero-subtitle">Connect Strava, Garmin, Oura, and Whoop. Get one readiness score.</p>
         </div>
 
         <!-- Mission -->
         <div class="glass-card">
             <h2 class="section-title">
                 <i class="fas fa-bullseye"></i>
-                Our Mission
+                What We Do
             </h2>
             <p class="content-text">
-                Athletes today have access to incredible tracking technology, but managing data across multiple platforms creates complexity and confusion. Should you train hard today or prioritize recovery? What does your HRV trend really mean when combined with your training load and sleep quality?
+                You're tracking with Strava, Garmin, Oura, or Whoop. Each platform gives you great data, but checking multiple apps to figure out if you're ready to train is a pain. Athlytx pulls it all together into one readiness score (0-100) so you know whether to push hard or take it easy.
             </p>
-            <p class="content-text">
-                <strong>Athlytx solves this.</strong> We unify data from your devices into a single, actionable readiness score that answers the most important question every athlete asks: "How ready am I to perform today?"
-            </p>
-
             <div class="highlight-box">
-                <strong>The Problem:</strong> Multiple devices, fragmented insights, decision paralysis.<br>
-                <strong>Our Solution:</strong> One unified score (0-100) that combines recovery, sleep, strain, and HRV trends into clear, actionable guidance.
+                <strong>The Problem:</strong> Multiple devices, fragmented data, no clear answer.<br>
+                <strong>The Solution:</strong> One score combining recovery, sleep, training load, and HRV.
             </div>
         </div>
 
         <!-- Founder -->
         <div class="founder-section">
             <div class="founder-avatar">DZ</div>
-            <div class="founder-name">Darren Zwiers</div>
-            <div class="founder-title">Founder & Endurance Athlete</div>
-            <p class="founder-quote">
-                "I built Athlytx because I was frustrated with the disconnected nature of fitness tracking. Each device gave me incredible data, but I needed them to work together. Athlytx doesn't replace your favorite apps—it makes them exponentially more valuable by revealing the complete picture of your readiness."
-            </p>
+            <div class="founder-info">
+                <div class="founder-name">Darren Zwiers</div>
+                <div class="founder-title">Founder & Endurance Athlete</div>
+                <p class="founder-quote">
+                    "Built this because I was tired of checking four different apps to figure out if I should train hard or recover. Your devices already have the data—Athlytx just makes sense of it."
+                </p>
+            </div>
         </div>
 
         <!-- The Athlytx Score -->
         <div class="glass-card">
             <h2 class="section-title">
                 <i class="fas fa-chart-line"></i>
-                The Athlytx Score
+                How It Works
             </h2>
             <p class="content-text">
-                Our proprietary algorithm combines data from all your devices into a single 0-100 readiness score that answers one critical question: <strong>"How ready am I to perform today?"</strong>
+                The algorithm looks at recovery, sleep, training load, and HRV to give you a 0-100 readiness score.
             </p>
 
-            <h3 class="section-subtitle">Key Components</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0;">
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #667eea;">Recovery</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Body's recovery from training stress</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0;">
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">
+                    <div style="font-size: 1rem; font-weight: 700; color: #10b981;">80-100</div>
+                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Go hard</div>
                 </div>
 
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #764ba2;">Sleep Quality</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Duration, efficiency, and consistency</div>
+                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">
+                    <div style="font-size: 1rem; font-weight: 700; color: #3b82f6;">60-79</div>
+                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Train</div>
                 </div>
 
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #3b82f6;">Training Load</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Recent workout intensity and volume</div>
+                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #f59e0b;">
+                    <div style="font-size: 1rem; font-weight: 700; color: #f59e0b;">40-59</div>
+                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Light</div>
                 </div>
 
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #10b981;">Vital Signs</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">HRV, heart rate, and stress markers</div>
-                </div>
-            </div>
-
-            <h3 class="section-subtitle">Score Interpretation</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 24px 0;">
-                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #10b981;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #10b981;">80-100</div>
-                    <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">Peak condition - ready for intense training</div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #3b82f6;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #3b82f6;">60-79</div>
-                    <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">Ready to train - moderate to high intensity</div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #f59e0b;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #f59e0b;">40-59</div>
-                    <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">Light training - focus on recovery</div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 12px; padding: 18px; border-left: 4px solid #ef4444;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #ef4444;">0-39</div>
-                    <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">Rest day - prioritize recovery</div>
-                </div>
-            </div>
-
-            <div class="highlight-box" style="margin-top: 24px;">
-                <strong>Smart Confidence Indicators:</strong> Every score includes a confidence level based on data quality and completeness, so you always know how much to trust your readiness assessment.
-            </div>
-        </div>
-
-        <!-- Supported Platforms -->
-        <div class="glass-card">
-            <h2 class="section-title">
-                <i class="fas fa-plug"></i>
-                Integrated Platforms
-            </h2>
-            <p class="content-text">
-                Athlytx connects with the world's leading fitness platforms, respecting their individual strengths while creating unified insights:
-            </p>
-
-            <div class="device-logos">
-                <div class="device-logo-item">
-                    <img src="/src/images/strava.svg" alt="Strava">
-                    <span class="device-name">Strava</span>
-                </div>
-                <div class="device-logo-item">
-                    <img src="/src/images/Garmin.svg" alt="Garmin">
-                    <span class="device-name">Garmin</span>
-                </div>
-                <div class="device-logo-item">
-                    <img src="/src/images/oura.png" alt="Oura">
-                    <span class="device-name">Oura</span>
-                </div>
-                <div class="device-logo-item">
-                    <img src="/src/images/WHOOP.svg" alt="Whoop" style="filter: invert(1) brightness(2);">
-                    <span class="device-name">Whoop</span>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0;">
-                <div style="background: rgba(252, 76, 2, 0.1); border-radius: 12px; padding: 20px; border: 1px solid rgba(252, 76, 2, 0.2);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #fc4c02;">Strava</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Activity analytics, training load, power zones</div>
-                </div>
-
-                <div style="background: rgba(0, 172, 228, 0.1); border-radius: 12px; padding: 20px; border: 1px solid rgba(0, 172, 228, 0.2);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #00ace4;">Garmin</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Body Battery, HRV, stress, daily summaries</div>
-                </div>
-
-                <div style="background: rgba(180, 92, 243, 0.1); border-radius: 12px; padding: 20px; border: 1px solid rgba(180, 92, 243, 0.2);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #b45cf3;">Oura Ring</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Sleep stages, readiness scores, recovery</div>
-                </div>
-
-                <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #10b981;">Whoop</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Strain vs recovery, sleep performance</div>
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 8px; padding: 12px; border-left: 3px solid #ef4444;">
+                    <div style="font-size: 1rem; font-weight: 700; color: #ef4444;">0-39</div>
+                    <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.7);">Rest</div>
                 </div>
             </div>
         </div>
 
-        <!-- Coach Features -->
-        <div class="glass-card">
-            <h2 class="section-title">
-                <i class="fas fa-users"></i>
-                Built for Athletes & Coaches
-            </h2>
-            <p class="content-text">
-                Athlytx isn't just for individual athletes—it's a powerful platform for coaches managing multiple athletes:
-            </p>
+        <!-- Two Column Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <!-- Supported Platforms -->
+            <div class="glass-card">
+                <h2 class="section-title">
+                    <i class="fas fa-plug"></i>
+                    Devices
+                </h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div style="background: rgba(252, 76, 2, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(252, 76, 2, 0.2);">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #fc4c02;">Strava</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Training load, activities</div>
+                    </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0;">
-                <div style="background: rgba(59, 130, 246, 0.1); border-radius: 12px; padding: 20px; border-left: 4px solid #3b82f6;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #3b82f6;">Multi-Athlete Dashboard</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">View and compare readiness scores across your entire roster</div>
+                    <div style="background: rgba(0, 172, 228, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(0, 172, 228, 0.2);">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #00ace4;">Garmin</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Body Battery, HRV</div>
+                    </div>
+
+                    <div style="background: rgba(180, 92, 243, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(180, 92, 243, 0.2);">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #b45cf3;">Oura</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Sleep, readiness</div>
+                    </div>
+
+                    <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 16px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #10b981;">Whoop</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Strain, recovery</div>
+                    </div>
                 </div>
+            </div>
 
-                <div style="background: rgba(147, 51, 234, 0.1); border-radius: 12px; padding: 20px; border-left: 4px solid #9333ea;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #9333ea;">Top-Down Analytics</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Unified view of team health and recovery trends</div>
-                </div>
+            <!-- Coach Features -->
+            <div class="glass-card">
+                <h2 class="section-title">
+                    <i class="fas fa-users"></i>
+                    For Coaches
+                </h2>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                    <div style="background: rgba(59, 130, 246, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #3b82f6;">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #3b82f6;">Multi-Athlete Dashboard</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Compare team readiness</div>
+                    </div>
 
-                <div style="background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 20px; border-left: 4px solid #10b981;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #10b981;">Athlete Invitations</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Secure invitation system for coach-athlete connections</div>
-                </div>
+                    <div style="background: rgba(147, 51, 234, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #9333ea;">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #9333ea;">Top-Down Analytics</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Team health trends</div>
+                    </div>
 
-                <div style="background: rgba(245, 158, 11, 0.1); border-radius: 12px; padding: 20px; border-left: 4px solid #f59e0b;">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #f59e0b;">Data-Driven Decisions</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Make informed training adjustments</div>
+                    <div style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid #10b981;">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #10b981;">Athlete Invitations</div>
+                        <div style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">Connect with athletes</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Privacy & Security -->
-        <div class="glass-card">
-            <h2 class="section-title">
-                <i class="fas fa-shield-alt"></i>
-                Privacy & Security
-            </h2>
-            <p class="content-text">
-                Your health data is personal. We've built Athlytx with privacy and security as foundational principles:
-            </p>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0;">
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #10b981;">Encrypted Storage</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">AES-256 encryption, PostgreSQL with SSL</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #3b82f6;">Full Control</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Connect and disconnect devices anytime</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #f59e0b;">Secure Authentication</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Magic link login, session-based auth</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #667eea;">Transparent</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">See exactly what data we access</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Why Athlytx -->
-        <div class="glass-card">
-            <h2 class="section-title">
-                <i class="fas fa-star"></i>
-                Why Athlytx?
-            </h2>
-
-            <h3 class="section-subtitle">For Data-Driven Athletes</h3>
-            <p class="content-text">
-                You've invested in premium tracking technology. Strava knows your training, Garmin tracks your wellness, Oura understands your sleep, Whoop monitors your strain. Each platform excels in its domain—but the real insights emerge when they work together. Athlytx is that missing layer of intelligence.
-            </p>
-
-            <h3 class="section-subtitle">One Score, Infinite Insights</h3>
-            <p class="content-text">
-                Stop juggling multiple apps. Wake up, check your Athlytx Score, and instantly know: "Am I ready to push hard today, or should I focus on recovery?" Our algorithm does the heavy lifting, so you can focus on training and performing.
-            </p>
-
-            <h3 class="section-subtitle">Science Meets Simplicity</h3>
-            <p class="content-text">
-                Our scoring methodology is grounded in sports science—HRV trends, training stress balance (CTL/ATL/TSB), sleep architecture, recovery metrics—but presented in an instantly actionable format. Complexity under the hood, clarity on the surface.
-            </p>
-
-            <div class="highlight-box">
-                <strong>Built by Athletes, For Athletes:</strong> Athlytx was created by someone who lived the problem—drowning in data, thirsting for insights. We respect your individual devices while creating something greater than the sum of its parts.
-            </div>
-        </div>
-
-        <!-- Future -->
-        <div class="glass-card">
-            <h2 class="section-title">
-                <i class="fas fa-rocket"></i>
-                The Road Ahead
-            </h2>
-            <p class="content-text">
-                We're continuously evolving Athlytx with new features and deeper insights:
-            </p>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0;">
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #667eea;">AI Coaching Assistant</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Personalized training recommendations</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #764ba2;">Predictive Analytics</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Forecast performance and recovery needs</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #3b82f6;">Mobile App</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Native iOS/Android experience</div>
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #10b981;">Advanced Reporting</div>
-                    <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); line-height: 1.5;">Export analytics and custom dashboards</div>
-                </div>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin: 60px 0;">
-            <a href="/" class="sidebar-link" style="display: inline-flex; padding: 16px 32px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; font-size: 1.1rem; font-weight: 600; text-decoration: none; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);">
-                <i class="fas fa-arrow-left" style="margin-right: 12px;"></i>
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="/" class="sidebar-link" style="display: inline-flex; padding: 14px 28px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; font-size: 1rem; font-weight: 600; text-decoration: none; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);">
+                <i class="fas fa-arrow-left" style="margin-right: 10px;"></i>
                 Back to Dashboard
             </a>
         </div>
