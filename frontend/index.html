@@ -508,6 +508,11 @@
                     <div id="dataSourcesBadge" class="data-sources-badge">
                         <span id="deviceGuidance">Connect devices</span>
                     </div>
+                    <div id="scoreConfidenceBadge" class="data-sources-badge" style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; cursor: help;" title="Confidence reflects how much quality data we had (sleep, recovery, strain, HRV) over the last 7-30 days.">
+                        <span style="font-weight: 600;">Confidence:</span>
+                        <span id="confidenceText">No data</span>
+                        <span style="background: rgba(255,255,255,0.12); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;" title="We combine recovery (HRV/resting HR + device readiness), sleep quality, strain/load balance, and HRV trends. Confidence goes up when more of these signals are present and recent.">i</span>
+                    </div>
                 </div>
             </div>
 
@@ -515,6 +520,7 @@
             <div style="display: none;">
                 <div id="scoreSources"></div>
                 <div id="readinessBanner"></div>
+                <div id="athlytxDebug" style="padding: 12px; margin-top: 10px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 8px; color: #e5e7eb; background: rgba(0,0,0,0.35);"></div>
             </div>
 
             <!-- Login/Signup Modal Overlay -->
@@ -686,28 +692,134 @@
 
                     <!-- Authenticated View -->
                     <div id="authenticatedView" class="account-view" style="display: none; margin-top: 0; padding-top: 0;">
-                        <div class="account-card glass-card" style="margin-top: 0;">
-                            <h2>Account</h2>
-                            <div class="account-info">
-                                <div class="info-row">
-                                    <span class="info-label">Email:</span>
-                                    <span id="user-email" class="info-value">-</span>
+
+                        <!-- Profile Header Card -->
+                        <div class="account-profile-card glass-card" style="margin-bottom: 24px; padding: 32px;">
+                            <div class="profile-header" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                                <div class="profile-avatar" id="user-avatar-container" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3); flex-shrink: 0;">
+                                    DZ
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">Name:</span>
-                                    <span id="user-name" class="info-value">-</span>
+                                <div class="profile-details" style="flex: 1; min-width: 200px;">
+                                    <h1 class="profile-name" id="user-name-display" style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0; color: white;">-</h1>
+                                    <p class="profile-email" id="user-email-display" style="font-size: 14px; color: rgba(255,255,255,0.7); margin: 0 0 12px 0;">-</p>
+                                    <div class="profile-badges" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <span class="profile-badge" style="padding: 4px 12px; background: rgba(102, 126, 234, 0.2); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 12px; font-size: 12px; font-weight: 600; color: #667eea;">
+                                            <i class="fas fa-check-circle"></i> Verified
+                                        </span>
+                                        <span class="profile-badge" id="member-since-badge" style="padding: 4px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7);">
+                                            <i class="fas fa-calendar"></i> Member since 2024
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">User ID:</span>
-                                    <span id="user-id" class="info-value">-</span>
+                                <button onclick="handleLogout()" class="logout-btn-new" style="padding: 12px 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; color: #ef4444; font-weight: 600; cursor: pointer; transition: all 0.2s ease; border: none; font-size: 14px;">
+                                    <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="account-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                            <div class="stat-card glass-card" style="padding: 20px; text-align: center;">
+                                <div class="stat-icon" style="width: 48px; height: 48px; margin: 0 auto 12px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                    <i class="fas fa-plug"></i>
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">Connected Services:</span>
-                                    <span id="connected-services" class="info-value">Loading...</span>
+                                <div class="stat-value" id="connected-count" style="font-size: 28px; font-weight: 700; color: white; margin-bottom: 4px;">0</div>
+                                <div class="stat-label" style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Connected</div>
+                            </div>
+                            <div class="stat-card glass-card" style="padding: 20px; text-align: center;">
+                                <div class="stat-icon" style="width: 48px; height: 48px; margin: 0 auto 12px; background: linear-gradient(135deg, #f093fb, #f5576c); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="stat-value" id="last-sync-display" style="font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px;">Never</div>
+                                <div class="stat-label" style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Last Sync</div>
+                            </div>
+                            <div class="stat-card glass-card" style="padding: 20px; text-align: center;">
+                                <div class="stat-icon" style="width: 48px; height: 48px; margin: 0 auto 12px; background: linear-gradient(135deg, #fa709a, #fee140); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div class="stat-value" id="account-readiness" style="font-size: 28px; font-weight: 700; color: white; margin-bottom: 4px;">--</div>
+                                <div class="stat-label" style="font-size: 12px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Readiness</div>
+                            </div>
+                        </div>
+
+                        <!-- Connected Services -->
+                        <div class="account-section" style="margin-bottom: 24px;">
+                            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: white; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-link"></i> Connected Services
+                            </h3>
+                            <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+                                <div id="service-strava" class="service-card glass-card service-disconnected" style="padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+                                    <div class="service-icon" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(252, 76, 2, 0.15); display: flex; align-items: center; justify-content: center;">
+                                        <img src="/src/images/strava.svg" alt="Strava" style="width: 24px; height: 24px;">
+                                    </div>
+                                    <div class="service-info" style="flex: 1;">
+                                        <div class="service-name" style="font-weight: 600; color: white; margin-bottom: 2px; font-size: 14px;">Strava</div>
+                                        <div class="service-status" style="font-size: 11px; color: rgba(255,255,255,0.5);">Not connected</div>
+                                    </div>
+                                    <div class="service-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(148,163,184,0.5);"></div>
+                                </div>
+                                <div id="service-oura" class="service-card glass-card service-disconnected" style="padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+                                    <div class="service-icon" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;">
+                                        <img src="/src/images/oura.png" alt="Oura" style="width: 24px; height: 24px;">
+                                    </div>
+                                    <div class="service-info" style="flex: 1;">
+                                        <div class="service-name" style="font-weight: 600; color: white; margin-bottom: 2px; font-size: 14px;">Oura</div>
+                                        <div class="service-status" style="font-size: 11px; color: rgba(255,255,255,0.5);">Not connected</div>
+                                    </div>
+                                    <div class="service-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(148,163,184,0.5);"></div>
+                                </div>
+                                <div id="service-garmin" class="service-card glass-card service-disconnected" style="padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+                                    <div class="service-icon" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 114, 206, 0.15); display: flex; align-items: center; justify-content: center;">
+                                        <img src="/src/images/Garmin.svg" alt="Garmin" style="width: 24px; height: 24px;">
+                                    </div>
+                                    <div class="service-info" style="flex: 1;">
+                                        <div class="service-name" style="font-weight: 600; color: white; margin-bottom: 2px; font-size: 14px;">Garmin</div>
+                                        <div class="service-status" style="font-size: 11px; color: rgba(255,255,255,0.5);">Not connected</div>
+                                    </div>
+                                    <div class="service-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(148,163,184,0.5);"></div>
+                                </div>
+                                <div id="service-whoop" class="service-card glass-card service-disconnected" style="padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease;">
+                                    <div class="service-icon" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center;">
+                                        <img src="/src/images/WHOOP.svg" alt="Whoop" style="width: 24px; height: 24px;">
+                                    </div>
+                                    <div class="service-info" style="flex: 1;">
+                                        <div class="service-name" style="font-weight: 600; color: white; margin-bottom: 2px; font-size: 14px;">Whoop</div>
+                                        <div class="service-status" style="font-size: 11px; color: rgba(255,255,255,0.5);">Not connected</div>
+                                    </div>
+                                    <div class="service-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(148,163,184,0.5);"></div>
                                 </div>
                             </div>
-                            <button onclick="handleLogout()" class="logout-btn">Logout</button>
                         </div>
+
+                        <!-- Account Details -->
+                        <div class="account-section">
+                            <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0; color: white; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-info-circle"></i> Account Details
+                            </h3>
+                            <div class="account-details-card glass-card" style="padding: 24px;">
+                                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 14px;">User ID</span>
+                                    <span id="user-id-display" style="color: white; font-size: 13px; font-family: monospace; font-weight: 500;">-</span>
+                                </div>
+                                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 14px;">Account Type</span>
+                                    <span style="color: white; font-size: 14px; font-weight: 600;">
+                                        <span style="padding: 4px 12px; background: rgba(102, 126, 234, 0.2); border-radius: 12px; color: #667eea;">Athlete</span>
+                                    </span>
+                                </div>
+                                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 12px 0;">
+                                    <span style="color: rgba(255,255,255,0.6); font-size: 14px;">Data Storage</span>
+                                    <span style="color: white; font-size: 14px; font-weight: 500;"><i class="fas fa-lock"></i> Encrypted & Secure</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legacy fields for JS compatibility -->
+                        <input type="hidden" id="user-email" />
+                        <input type="hidden" id="user-name" />
+                        <input type="hidden" id="user-id" />
+                        <input type="hidden" id="connected-services" />
+
                     </div>
                 </div>
 
@@ -2742,7 +2854,10 @@
                 localStorage.removeItem('garmin_token_expires_at');
             } else if (device === 'whoop') {
                 localStorage.removeItem('whoop_token');
+                localStorage.removeItem('whoop_access_token');
                 localStorage.removeItem('whoop_expiry');
+                localStorage.removeItem('whoop_token_expires_at');
+                localStorage.removeItem('whoop_access_token_expires_at');
                 localStorage.removeItem('whoop_refresh_token');
             }
 
@@ -2825,8 +2940,73 @@
                             return `${emoji} ${s.provider.charAt(0).toUpperCase() + s.provider.slice(1)}${status}`;
                         }).join(', ');
                         servicesSpan.textContent = services;
+
+                        // Update Account page UI elements
+                        const connectedCount = document.getElementById('connected-count');
+                        if (connectedCount) {
+                            connectedCount.textContent = data.connected.length;
+                        }
+
+                        // Update service cards with connection status
+                        const connectedProviders = new Set(data.connected.map(s => s.provider.toLowerCase()));
+
+                        const serviceCards = {
+                            'strava': document.getElementById('service-strava'),
+                            'oura': document.getElementById('service-oura'),
+                            'garmin': document.getElementById('service-garmin'),
+                            'whoop': document.getElementById('service-whoop')
+                        };
+
+                        Object.keys(serviceCards).forEach(provider => {
+                            const card = serviceCards[provider];
+                            if (card) {
+                                const isConnected = connectedProviders.has(provider);
+                                const statusText = card.querySelector('.service-status');
+                                const indicator = card.querySelector('.service-indicator');
+
+                                if (isConnected) {
+                                    card.classList.remove('service-disconnected');
+                                    card.classList.add('service-connected');
+                                    if (statusText) statusText.textContent = 'Connected';
+                                    if (indicator) indicator.style.background = '#10b981';
+                                } else {
+                                    card.classList.add('service-disconnected');
+                                    card.classList.remove('service-connected');
+                                    if (statusText) statusText.textContent = 'Not connected';
+                                    if (indicator) indicator.style.background = 'rgba(148,163,184,0.5)';
+                                }
+                            }
+                        });
+
+                        // Update last sync time (use most recent connection)
+                        const lastSyncDisplay = document.getElementById('last-sync-display');
+                        if (lastSyncDisplay && data.connected.length > 0) {
+                            const mostRecent = data.connected.reduce((latest, current) => {
+                                const currentDate = current.lastSync ? new Date(current.lastSync) : new Date(0);
+                                const latestDate = latest.lastSync ? new Date(latest.lastSync) : new Date(0);
+                                return currentDate > latestDate ? current : latest;
+                            });
+
+                            if (mostRecent.lastSync) {
+                                const syncDate = new Date(mostRecent.lastSync);
+                                const now = new Date();
+                                const diffMinutes = Math.floor((now - syncDate) / 60000);
+
+                                if (diffMinutes < 1) {
+                                    lastSyncDisplay.textContent = 'Just now';
+                                } else if (diffMinutes < 60) {
+                                    lastSyncDisplay.textContent = `${diffMinutes}m ago`;
+                                } else if (diffMinutes < 1440) {
+                                    lastSyncDisplay.textContent = `${Math.floor(diffMinutes / 60)}h ago`;
+                                } else {
+                                    lastSyncDisplay.textContent = `${Math.floor(diffMinutes / 1440)}d ago`;
+                                }
+                            }
+                        }
                     } else {
                         servicesSpan.textContent = 'None';
+                        const connectedCount = document.getElementById('connected-count');
+                        if (connectedCount) connectedCount.textContent = '0';
                     }
                 } else {
                     servicesSpan.textContent = 'Unable to load';
@@ -2855,6 +3035,32 @@
                 const accountTabText = document.getElementById('accountTabText');
                 if (accountTabText) {
                     accountTabText.textContent = userName || userEmail.split('@')[0];
+                }
+
+                // Populate new Account page UI elements
+                const userNameDisplay = document.getElementById('user-name-display');
+                const userEmailDisplay = document.getElementById('user-email-display');
+                const userIdDisplay = document.getElementById('user-id-display');
+                const userAvatarContainer = document.getElementById('user-avatar-container');
+
+                if (userNameDisplay) userNameDisplay.textContent = userName || userEmail.split('@')[0];
+                if (userEmailDisplay) userEmailDisplay.textContent = userEmail;
+                if (userIdDisplay) userIdDisplay.textContent = userId || 'N/A';
+
+                // Generate user initials for avatar
+                if (userAvatarContainer) {
+                    let initials = '';
+                    if (userName && userName !== 'Not set') {
+                        const nameParts = userName.trim().split(' ');
+                        if (nameParts.length >= 2) {
+                            initials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
+                        } else {
+                            initials = nameParts[0].substring(0, 2);
+                        }
+                    } else {
+                        initials = userEmail.substring(0, 2);
+                    }
+                    userAvatarContainer.textContent = initials.toUpperCase();
                 }
 
                 // Load connected services
@@ -3914,7 +4120,9 @@
                 stressPenalty: false,
                 bodyBatteryPenalty: false,
                 stressAdjustedHRV: false,
-                garminSleepConsistencyPenalty: false
+                garminSleepConsistencyPenalty: false,
+                hrvRhrRatioPenalty: false,
+                ambientStrain: false
             };
 
             // ===== HRV & RHR TRENDS =====
@@ -4005,6 +4213,8 @@
                 const delta = (rhrBaseline - rhrShortAvg) / rhrBaseline; // positive when current HR lower than baseline
                 rhrTrendScore = clamp(70 + delta * 220);
             }
+            // HRV/RHR ratio as extra fatigue signal
+            const hrvRhrRatio = hrvShortAvg && rhrShortAvg ? hrvShortAvg / rhrShortAvg : null;
 
             // ===== RECOVERY (DEVICE + PHYSIOLOGY) =====
             const whoopRecoveryScores = valuesSince(whoopRecovery, r => asDate(r.created_at || r.date), r => r.score?.recovery_score, last7);
@@ -4055,6 +4265,11 @@
             } else if (physioRecovery !== null) {
                 components.recovery = physioRecovery;
                 dataSources.recovery = 'HRV/RHR trend';
+            }
+            // HRV/RHR ratio penalty if both signals suggest sympathetic strain
+            if (components.recovery !== null && hrvRhrRatio !== null && hrvRhrRatio < 0.8 && rhrShortAvg && rhrBaseline && rhrShortAvg > rhrBaseline) {
+                components.recovery = clamp(components.recovery - 6);
+                modifiers.hrvRhrRatioPenalty = true;
             }
             // Sympathetic burden modifiers: high stress or low Body Battery
             const stressAvg = avg(garminStress.filter(v => v !== null && !Number.isNaN(v)));
@@ -4282,6 +4497,14 @@
                 const total = strainParts.reduce((s, p) => s + p.weight, 0);
                 components.strain = strainParts.reduce((s, p) => s + p.score * p.weight, 0) / total;
             }
+            // Ambient strain placeholder for stressful rest days
+            if (components.strain === null && components.recovery !== null) {
+                if ((stressAvg && stressAvg > 70) || (bodyBatteryLow !== null && bodyBatteryLow < 25)) {
+                    components.strain = 20;
+                    dataSources.strain = dataSources.strain === '--' ? 'Garmin' : dataSources.strain;
+                    modifiers.ambientStrain = true;
+                }
+            }
 
             // ===== OVERALL SCORE + CONFIDENCE =====
             let weightedScore = 0;
@@ -4319,11 +4542,11 @@
                 confidence
             });
 
-            return { score: athlytxScore, components, dataSources, weights, totalWeight: usedWeight, confidence, confidenceScore: confidencePercent };
+            return { score: athlytxScore, components, dataSources, weights, totalWeight: usedWeight, confidence, confidenceScore: confidencePercent, modifiers };
         }
 
         function updateAthlytxScore() {
-            const { score, components, dataSources, confidence } = calculateAthlytxScore();
+            const { score, components, dataSources, confidence, confidenceScore, modifiers } = calculateAthlytxScore();
 
             const scoreElement = document.getElementById('athlytxScore');
             const statusElement = document.getElementById('scoreStatus');
@@ -4331,9 +4554,11 @@
             const progressCircle = document.getElementById('scoreProgressCircle');
             const confidenceText = document.getElementById('confidenceText');
             const statusContainer = document.getElementById('scoreStatusContainer');
+            const accountReadiness = document.getElementById('account-readiness');
 
             if (score !== null) {
                 scoreElement.textContent = score;
+                if (accountReadiness) accountReadiness.textContent = score;
 
                 // Animate progress ring
                 if (progressCircle) {
@@ -4358,7 +4583,7 @@
 
                 // Update confidence badge
                 if (confidenceText) {
-                    confidenceText.textContent = confidence + ' confidence';
+                    confidenceText.textContent = confidence;
                 }
 
                 // Update status with emoji and brief text
@@ -4391,7 +4616,8 @@
                 // Update confidence badge
                 const confEl = document.getElementById('scoreConfidenceBadge');
                 if (confEl) {
-                    confEl.style.background = confidence === 'High' ? 'rgba(16,185,129,0.25)' : (confidence === 'Medium' ? 'rgba(245,158,11,0.25)' : 'rgba(220,38,38,0.25)');
+                    const label = confidence.startsWith('High') ? 'High' : (confidence.startsWith('Medium') ? 'Medium' : 'Low');
+                    confEl.style.background = label === 'High' ? 'rgba(16,185,129,0.25)' : (label === 'Medium' ? 'rgba(245,158,11,0.25)' : 'rgba(220,38,38,0.25)');
                 }
                 const sourcesEl = document.getElementById('scoreSources');
                 if (sourcesEl && dataSources) {
@@ -4434,6 +4660,22 @@
                         guidanceEl.innerHTML = 'Connect devices for analysis';
                     } else {
                         guidanceEl.innerHTML = `Data from: ${connected.join(' ')}`;
+                    }
+                }
+                // Debug overlay for QA: enable with ?debugAthlytx=1
+                const debugParam = new URLSearchParams(window.location.search).get('debugAthlytx');
+                if (debugParam === '1') {
+                    const dbg = document.getElementById('athlytxDebug');
+                    if (dbg) {
+                        dbg.style.display = 'block';
+                        dbg.innerHTML = `
+                            <div style="font-weight:700; margin-bottom:6px;">Debug: Athlytx Score</div>
+                            <div>Score: ${score}</div>
+                            <div>Components: ${JSON.stringify(components)}</div>
+                            <div>Data Sources: ${JSON.stringify(dataSources)}</div>
+                            <div>Confidence: ${confidence} (${confidenceScore}%)</div>
+                            <div>Modifiers: ${JSON.stringify(modifiers)}</div>
+                        `;
                     }
                 }
                 // Update Readiness Banner on Overview
@@ -6165,7 +6407,10 @@
                 console.error(' Failed to refresh Whoop token:', error);
                 showMessage('Whoop connection expired. Please reconnect.', 'warning');
                 localStorage.removeItem('whoop_token');
+                localStorage.removeItem('whoop_access_token');
                 localStorage.removeItem('whoop_expiry');
+                localStorage.removeItem('whoop_token_expires_at');
+                localStorage.removeItem('whoop_access_token_expires_at');
                 localStorage.removeItem('whoop_refresh_token');
             }
         }
@@ -6179,7 +6424,7 @@
                 button.innerHTML = '<span class="loading-spinner"></span> Loading...';
                 button.disabled = true;
 
-                const token = tokenParam || localStorage.getItem('whoop_token');
+                const token = tokenParam || await ensureWhoopToken();
                 console.log(' Using token:', token ? token.substring(0, 20) + '...' : 'none');
 
                 if (!token) {
@@ -8199,17 +8444,24 @@
         }
 
         async function ensureWhoopToken() {
-            const accessToken = localStorage.getItem('whoop_token');
+            const accessToken = localStorage.getItem('whoop_token') || localStorage.getItem('whoop_access_token');
             const refreshToken = localStorage.getItem('whoop_refresh_token');
-            const expiresAtRaw = localStorage.getItem('whoop_token_expires_at');
+            const expiresAtRaw = localStorage.getItem('whoop_token_expires_at') || localStorage.getItem('whoop_access_token_expires_at');
             const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
             const now = new Date();
 
             // If no token, return null so caller can skip
-            if (!accessToken) return null;
+            if (!accessToken && !refreshToken) return null;
+
+            // If we have a token but no expiry (older storage), set a short-lived expiry to trigger refresh soon
+            if (accessToken && !expiresAt && refreshToken) {
+                const softExp = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+                localStorage.setItem('whoop_token_expires_at', softExp.toISOString());
+                localStorage.setItem('whoop_access_token_expires_at', softExp.toISOString());
+            }
 
             // If we have expiry and it's still valid for 5 more minutes, just return it
-            if (expiresAt && expiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
+            if (accessToken && expiresAt && expiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
                 return accessToken;
             }
 
@@ -8231,10 +8483,12 @@
                     return null;
                 }
                 localStorage.setItem('whoop_token', data.access_token);
+                localStorage.setItem('whoop_access_token', data.access_token);
                 if (data.refresh_token) localStorage.setItem('whoop_refresh_token', data.refresh_token);
                 if (data.expires_in) {
                     const newExp = new Date(Date.now() + data.expires_in * 1000).toISOString();
                     localStorage.setItem('whoop_token_expires_at', newExp);
+                    localStorage.setItem('whoop_access_token_expires_at', newExp);
                 }
                 return data.access_token;
             } catch (e) {
