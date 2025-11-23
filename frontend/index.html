@@ -173,28 +173,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         /* Small provider badges pinned bottom-right */
-        /* Connection badges - now in header top right */
+        /* Connection badges - compact single row in top right */
         .connection-badges {
             position: fixed;
             top: 80px;
             right: 16px;
             z-index: 850;
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            max-width: 300px;
+            flex-wrap: nowrap;
+            gap: 4px;
         }
 
         .connection-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 8px;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
             border: 1px solid rgba(255,255,255,0.15);
             background: rgba(10,14,39,0.85);
             backdrop-filter: blur(12px);
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 600;
             color: #e5e7eb;
             white-space: nowrap;
@@ -203,57 +202,61 @@
         }
 
         .connection-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .connection-badge img {
-            height: 14px;
+            height: 12px;
             width: auto;
             opacity: 0.9;
         }
 
         .connection-badge.badge-connected {
-            background: rgba(34,197,94,0.15);
-            border-color: rgba(34,197,94,0.4);
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.35);
         }
 
         .connection-badge.badge-disconnected {
-            background: rgba(148,163,184,0.08);
-            border-color: rgba(148,163,184,0.25);
-            opacity: 0.7;
+            background: rgba(148,163,184,0.06);
+            border-color: rgba(148,163,184,0.2);
+            opacity: 0.6;
         }
 
         .connection-badge-status {
-            font-size: 10px;
+            font-size: 8px;
             font-weight: 700;
             color: #10b981;
         }
 
         .connection-badge.badge-disconnected .connection-badge-status {
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.4);
         }
 
         @media (max-width: 1023px) {
             .connection-badges {
                 top: 72px;
                 right: 12px;
-                max-width: 200px;
+                gap: 3px;
             }
 
             .connection-badge {
-                padding: 4px 8px;
-                font-size: 10px;
+                padding: 3px 6px;
+                font-size: 8px;
             }
 
             .connection-badge img {
-                height: 12px;
+                height: 10px;
+            }
+
+            .connection-badge-status {
+                font-size: 7px;
             }
         }
 
         @media (max-width: 640px) {
             .connection-badges {
-                display: none; /* Hide on very small screens to avoid clutter */
+                display: none;
             }
         }
 
