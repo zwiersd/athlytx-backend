@@ -1158,73 +1158,136 @@
     <!-- Main Dashboard -->
     <div id="dashboardScreen" style="display: none;">
         <!-- Header -->
-        <header class="main-header">
-            <div class="header-container">
-                <div class="header-left">
-                    <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="header-logo" crossorigin="anonymous">
-                </div>
-                <div class="header-center" style="display:none;">
-                    <button class="mobile-refresh-btn" onclick="mobileRefreshCoach()" aria-label="Refresh" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.24); color: #e5e7eb; padding: 6px 8px; border-radius: 999px; font-size: 12px;">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-                <div class="header-right">
-                    <!-- Elite-specific elements -->
-                    <div class="athlete-selector">
-                        <div class="athlete-dropdown">
-                            <div class="athlete-current" onclick="toggleAthleteMenu()">
-                                <div class="athlete-avatar" id="athleteAvatar">JD</div>
-                                <div class="athlete-info">
-                                    <div class="athlete-name" id="athleteName">Select Athlete</div>
-                                    <div class="athlete-status">
-                                        <span class="status-indicator status-optimal"></span>
-                                        <span id="athleteStatus">No athlete selected</span>
-                                    </div>
-                                </div>
-                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div class="athlete-menu" id="athleteMenu"></div>
-                        </div>
-                        <button class="btn btn-primary" onclick="inviteAthlete()">
-                            + Invite Athlete
+        <!-- App Layout Container -->
+        <div class="app-layout">
+
+            <!-- Vertical Sidebar Navigation -->
+            <aside class="sidebar" id="coachSidebar">
+                <div class="sidebar-content">
+                    <!-- Logo -->
+                    <div class="sidebar-logo">
+                        <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="sidebar-logo-img" crossorigin="anonymous">
+                    </div>
+
+                    <!-- Elite Badge -->
+                    <div style="text-align: center; margin: -8px 0 12px 0;">
+                        <span class="badge-elite" style="display: inline-block;">ELITE COACH</span>
+                    </div>
+
+                    <!-- Coach Info Display -->
+                    <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 16px;">
+                        <div style="color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Coach</div>
+                        <div id="coachNameDisplaySidebar" style="color: white; font-size: 14px; font-weight: 600;"></div>
+                    </div>
+
+                    <!-- Main Navigation -->
+                    <nav class="sidebar-nav">
+                        <button class="sidebar-link" onclick="scrollToSection('athlete-selector-section')">
+                            <span class="sidebar-link-icon"><i class="fas fa-users"></i></span>
+                            <span class="sidebar-link-text">Athletes</span>
                         </button>
-                        <span id="coachNameDisplay" style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;"></span>
-                        <button class="btn btn-ghost" onclick="window.location.href='/coach-settings.html'">
-                            ⚙️ Settings
+                        <button class="sidebar-link active" onclick="scrollToSection('metrics-section')">
+                            <span class="sidebar-link-icon"><i class="fas fa-chart-line"></i></span>
+                            <span class="sidebar-link-text">Performance</span>
                         </button>
-                        <button class="btn btn-ghost" onclick="exportCoachPDF('coachDashboardContainer')">
-                            ⬇️ Export PDF
+                        <button class="sidebar-link" onclick="scrollToSection('training-load-section')">
+                            <span class="sidebar-link-icon"><i class="fas fa-dumbbell"></i></span>
+                            <span class="sidebar-link-text">Training Load</span>
                         </button>
-                        <span id="garminCoachBadge" style="padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95);">Garmin: —</span>
-                        <button class="btn btn-ghost" onclick="logout()">
-                            Logout
+                        <button class="sidebar-link" onclick="scrollToSection('activities-section')">
+                            <span class="sidebar-link-icon"><i class="fas fa-running"></i></span>
+                            <span class="sidebar-link-text">Activities</span>
+                        </button>
+
+                        <!-- Actions Section -->
+                        <div class="sidebar-section-title">Actions</div>
+
+                        <button class="sidebar-link" onclick="inviteAthlete()">
+                            <span class="sidebar-link-icon"><i class="fas fa-user-plus"></i></span>
+                            <span class="sidebar-link-text">Invite Athlete</span>
+                        </button>
+                        <button class="sidebar-link" onclick="exportCoachPDF('coachDashboardContainer')">
+                            <span class="sidebar-link-icon"><i class="fas fa-download"></i></span>
+                            <span class="sidebar-link-text">Export PDF</span>
+                        </button>
+
+                        <!-- Settings Section -->
+                        <div class="sidebar-section-title">Settings</div>
+
+                        <a href="/coach-settings.html" class="sidebar-link">
+                            <span class="sidebar-link-icon"><i class="fas fa-cog"></i></span>
+                            <span class="sidebar-link-text">Settings</span>
+                        </a>
+                        <a href="/" class="sidebar-link">
+                            <span class="sidebar-link-icon"><i class="fas fa-arrow-left"></i></span>
+                            <span class="sidebar-link-text">Athlete View</span>
+                        </a>
+                    </nav>
+
+                    <!-- Sidebar Footer -->
+                    <div class="sidebar-footer">
+                        <a href="/about.html" class="sidebar-link sidebar-link-small">
+                            <span class="sidebar-link-icon"><i class="fas fa-book"></i></span>
+                            <span class="sidebar-link-text">About</span>
+                        </a>
+                        <a href="/privacy.html" class="sidebar-link sidebar-link-small">
+                            <span class="sidebar-link-icon"><i class="fas fa-lock"></i></span>
+                            <span class="sidebar-link-text">Privacy</span>
+                        </a>
+                        <button class="sidebar-link sidebar-link-small" onclick="logout()" style="background: transparent; border: none; width: 100%; cursor: pointer;">
+                            <span class="sidebar-link-icon"><i class="fas fa-sign-out-alt"></i></span>
+                            <span class="sidebar-link-text">Logout</span>
                         </button>
                     </div>
-                    <a href="/" class="nav-link">← Back to Dashboard</a>
-                    <a href="/about.html" class="nav-link">📖 About</a>
-                    <a href="/privacy.html" class="nav-link">🔒 Privacy</a>
                 </div>
-                <!-- Mobile hamburger (top-right) -->
-                <button class="hamburger-btn" id="coachHamburger" aria-label="Menu" aria-expanded="false" style="display:none; position:absolute; top:10px; right:10px; background:transparent; border:none;">
-                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
-                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
-                    <span class="hamburger-line" style="display:block; width:18px; height:2px; background:#e5e7eb; margin:3px 0; border-radius:2px;"></span>
-                </button>
-            </div>
-        </header>
+            </aside>
 
-        <!-- Mobile Drawer -->
-        <div class="drawer-overlay" id="coachDrawerOverlay" onclick="closeCoachDrawer()"></div>
-        <div class="drawer" id="coachDrawer">
-            <h3>Menu</h3>
-            <div class="item"><span>Invite Athlete</span><button onclick="inviteAthlete(); closeCoachDrawer()">Invite</button></div>
-            <div class="item"><span>Manage Athletes</span><button onclick="openManageAthletesDrawer()">Open</button></div>
-            <div id="coachDrawerAthletes" style="margin:8px 0 12px 0;"></div>
-            <div class="item"><span>Refresh</span><button onclick="mobileRefreshCoach(); closeCoachDrawer()">Refresh</button></div>
-            <div class="item"><span>Logout</span><button onclick="logout()">Logout</button></div>
-        </div>
+            <!-- Mobile Sidebar Overlay -->
+            <div class="sidebar-overlay" id="coachSidebarOverlay" onclick="closeCoachSidebar()"></div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+
+                <!-- Top Header -->
+                <header class="main-header">
+                    <div class="header-container">
+                        <!-- Hamburger Menu (Mobile) -->
+                        <button class="hamburger-btn" id="coachHamburger" aria-label="Toggle menu" aria-expanded="false" onclick="toggleCoachSidebar()">
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                        </button>
+
+                        <!-- Athlete Selector (Compact) -->
+                        <div class="athlete-selector" style="flex: 1;">
+                            <div class="athlete-dropdown">
+                                <div class="athlete-current" onclick="toggleAthleteMenu()">
+                                    <div class="athlete-avatar" id="athleteAvatar">JD</div>
+                                    <div class="athlete-info">
+                                        <div class="athlete-name" id="athleteName">Select Athlete</div>
+                                        <div class="athlete-status">
+                                            <span class="status-indicator status-optimal"></span>
+                                            <span id="athleteStatus">No athlete selected</span>
+                                        </div>
+                                    </div>
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="athlete-menu" id="athleteMenu"></div>
+                            </div>
+                        </div>
+
+                        <!-- Header Actions -->
+                        <div class="header-actions hide-mobile">
+                            <span id="garminCoachBadge" style="padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.35); color: rgba(241,245,249,0.95); white-space: nowrap;">Garmin: —</span>
+                            <button class="header-btn" onclick="mobileRefreshCoach()">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
 
         <div class="container" id="coachDashboardContainer">
             <!-- Garmin Admin Actions for Selected Athlete -->
@@ -2520,6 +2583,10 @@
         </div>
     </div>
 
+            </div> <!-- End main-content -->
+        </div> <!-- End app-layout -->
+    </div> <!-- End dashboardScreen -->
+
     <footer class="main-footer">
         <div class="footer-brands">
             <div class="footer-brands-label">Powered by Garmin, Strava, Whoop, and Oura</div>
@@ -2543,5 +2610,63 @@
             © 2025 Athlytx. Advanced fitness analytics platform.
         </div>
     </footer>
+
+    <script>
+        // Coach Sidebar Toggle Functions
+        function toggleCoachSidebar() {
+            const sidebar = document.getElementById('coachSidebar');
+            const overlay = document.getElementById('coachSidebarOverlay');
+            const hamburger = document.getElementById('coachHamburger');
+
+            if (!sidebar || !overlay) return;
+
+            const isOpen = sidebar.classList.contains('open');
+
+            if (isOpen) {
+                closeCoachSidebar();
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                if (hamburger) hamburger.classList.add('active');
+            }
+        }
+
+        function closeCoachSidebar() {
+            const sidebar = document.getElementById('coachSidebar');
+            const overlay = document.getElementById('coachSidebarOverlay');
+            const hamburger = document.getElementById('coachHamburger');
+
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            if (hamburger) hamburger.classList.remove('active');
+        }
+
+        // Smooth scroll to sections
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            // Close sidebar on mobile after navigation
+            if (window.innerWidth < 1024) {
+                closeCoachSidebar();
+            }
+        }
+
+        // Update coach name in sidebar when it changes
+        function updateCoachNameDisplay(name) {
+            const headerDisplay = document.getElementById('coachNameDisplay');
+            const sidebarDisplay = document.getElementById('coachNameDisplaySidebar');
+            if (headerDisplay) headerDisplay.textContent = name;
+            if (sidebarDisplay) sidebarDisplay.textContent = name;
+        }
+
+        // Close sidebar on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCoachSidebar();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -226,91 +226,122 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <!-- Fixed Header -->
-    <header class="main-header">
-        <div class="header-container">
-            <div class="header-left">
-                <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="header-logo" crossorigin="anonymous">
+    <!-- App Layout Container -->
+    <div class="app-layout">
+
+        <!-- Vertical Sidebar Navigation -->
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-content">
+                <!-- Logo -->
+                <div class="sidebar-logo">
+                    <img src="https://www.athlytx.com/src/images/AthlytxLogo.png" alt="Athlytx Logo" class="sidebar-logo-img" crossorigin="anonymous">
+                </div>
+
+                <!-- Main Navigation -->
+                <nav class="sidebar-nav" role="tablist" aria-label="Dashboard sections">
+                    <button class="sidebar-link account-tab" role="tab" aria-selected="false" aria-controls="account" data-tab="account" id="accountTabButton" onclick="switchTab('account', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-user"></i></span>
+                        <span class="sidebar-link-text" id="accountTabText">Account</span>
+                    </button>
+                    <button class="sidebar-link active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections" onclick="switchTab('connections', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-plug"></i></span>
+                        <span class="sidebar-link-text">Connections</span>
+                    </button>
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview" onclick="switchTab('overview', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-chart-line"></i></span>
+                        <span class="sidebar-link-text">Overview</span>
+                    </button>
+
+                    <!-- Provider Data Section -->
+                    <div class="sidebar-section-title">Data Sources</div>
+
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="garmin" data-tab="garmin" onclick="switchTab('garmin', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-running"></i></span>
+                        <span class="sidebar-link-text">Garmin</span>
+                    </button>
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="strava" data-tab="strava" onclick="switchTab('strava', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-bicycle"></i></span>
+                        <span class="sidebar-link-text">Strava</span>
+                    </button>
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="oura" data-tab="oura" onclick="switchTab('oura', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-ring"></i></span>
+                        <span class="sidebar-link-text">Oura</span>
+                    </button>
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="whoop" data-tab="whoop" onclick="switchTab('whoop', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-heartbeat"></i></span>
+                        <span class="sidebar-link-text">Whoop</span>
+                    </button>
+
+                    <!-- Analytics Section -->
+                    <div class="sidebar-section-title">Analytics</div>
+
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="running" data-tab="running" onclick="switchTab('running', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-shoe-prints"></i></span>
+                        <span class="sidebar-link-text">Running</span>
+                    </button>
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights" onclick="switchTab('insights', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-brain"></i></span>
+                        <span class="sidebar-link-text">AI Insights</span>
+                    </button>
+
+                    <!-- Support Section -->
+                    <div class="sidebar-section-title">Support</div>
+
+                    <button class="sidebar-link" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact" onclick="switchTab('contact', this)">
+                        <span class="sidebar-link-icon"><i class="fas fa-envelope"></i></span>
+                        <span class="sidebar-link-text">Contact</span>
+                    </button>
+                </nav>
+
+                <!-- Sidebar Footer Links -->
+                <div class="sidebar-footer">
+                    <a href="/about.html" class="sidebar-link sidebar-link-small">
+                        <span class="sidebar-link-icon"><i class="fas fa-book"></i></span>
+                        <span class="sidebar-link-text">About</span>
+                    </a>
+                    <a href="/privacy.html" class="sidebar-link sidebar-link-small">
+                        <span class="sidebar-link-icon"><i class="fas fa-lock"></i></span>
+                        <span class="sidebar-link-text">Privacy</span>
+                    </a>
+                </div>
             </div>
+        </aside>
 
-            <!-- Hamburger Menu Button (Mobile Only) -->
-            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-            </button>
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-            <div class="header-right" id="headerMenu">
-                <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
-                <button id="syncBtn" onclick="syncAllProviders()" class="refresh-btn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
-                <button onclick="refreshAllData()" class="refresh-btn">Refresh</button>
-                <button onclick="clearAllData()" class="refresh-btn"><i class="fas fa-trash-alt"></i> Clear</button>
-                <a href="/about.html" class="nav-link"><i class="fas fa-book"></i> About</a>
-                <a href="/privacy.html" class="nav-link"><i class="fas fa-lock"></i> Privacy</a>
-                <a href="/access" class="elite-btn">Elite Dashboard →</a>
-            </div>
-        </div>
-    </header>
+        <!-- Main Content Area -->
+        <div class="main-content">
 
-    <!-- Mobile Drawer -->
-    <div class="drawer-overlay" id="homeDrawerOverlay" onclick="closeHomeDrawer()"></div>
-    <div class="drawer" id="homeDrawer">
-        <h3>Menu</h3>
-        <div class="item"><span>Refresh</span><button onclick="refreshAllData(); closeHomeDrawer()">Refresh</button></div>
-        <div class="item"><span>Connections</span><button onclick="switchTab('connections'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Overview</span><button onclick="switchTab('overview'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Garmin</span><button onclick="switchTab('garmin'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Strava</span><button onclick="switchTab('strava'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Oura</span><button onclick="switchTab('oura'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Whoop</span><button onclick="switchTab('whoop'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Running</span><button onclick="switchTab('running'); closeHomeDrawer()">Open</button></div>
-        <div class="item"><span>Contact</span><button onclick="switchTab('contact'); closeHomeDrawer()">Open</button></div>
-    </div>
+            <!-- Top Header -->
+            <header class="main-header">
+                <div class="header-container">
+                    <!-- Hamburger Menu (Mobile) -->
+                    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false" onclick="toggleSidebar()">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
 
-    <!-- Tab Navigation (moved to top under header) -->
-    <div class="tab-nav-wrapper">
-        <div class="tab-scroll-indicator left" id="tabScrollLeft">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M12 4l-8 6 8 6V4z"/>
-            </svg>
-        </div>
-        <nav class="tab-nav" role="tablist" aria-label="Dashboard sections" id="tabNav">
-            <button class="tab-button account-tab" role="tab" aria-selected="false" aria-controls="account" data-tab="account" id="accountTabButton">
-                <i class="fas fa-user"></i> <span id="accountTabText">Account</span>
-            </button>
-            <button class="tab-button active" role="tab" aria-selected="true" aria-controls="connections" data-tab="connections">
-                Connections
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="overview" data-tab="overview">
-                Overview
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="garmin" data-tab="garmin">
-                Garmin Data
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="strava" data-tab="strava">
-                Strava Data
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="oura" data-tab="oura">
-                Oura Data
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="whoop" data-tab="whoop">
-                Whoop Data
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="running" data-tab="running">
-                Running
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="insights" data-tab="insights">
-                AI Insights
-            </button>
-            <button class="tab-button" role="tab" aria-selected="false" aria-controls="contact" data-tab="contact">
-                Contact
-            </button>
-        </nav>
-        <div class="tab-scroll-indicator right" id="tabScrollRight">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M8 4l8 6-8 6V4z"/>
-            </svg>
-        </div>
-    </div>
+                    <!-- Header Actions -->
+                    <div class="header-actions">
+                        <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
+                        <button id="syncBtn" onclick="syncAllProviders()" class="header-btn" title="Sync data from all connected providers">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            <span class="hide-mobile">Sync</span>
+                        </button>
+                        <button onclick="refreshAllData()" class="header-btn">
+                            <i class="fas fa-sync-alt"></i>
+                            <span class="hide-mobile">Refresh</span>
+                        </button>
+                    </div>
+
+                    <!-- User Account Menu -->
+                    <div class="header-user">
+                        <a href="/access" class="elite-btn">Elite Dashboard →</a>
+                    </div>
+                </div>
+            </header>
 
     <div id="dashboard" class="dashboard">
         <div class="container">
@@ -7330,9 +7361,10 @@
                 console.log('Hiding:', panel.id);
             });
 
-            // Deactivate all buttons
-            document.querySelectorAll('.tab-button').forEach(btn => {
+            // Deactivate all buttons (both old tab-button and new sidebar-link)
+            document.querySelectorAll('.tab-button, .sidebar-link').forEach(btn => {
                 btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
             });
 
             // Show/hide score hero section based on tab
@@ -7358,6 +7390,12 @@
                 // Activate button
                 if (clickedButton) {
                     clickedButton.classList.add('active');
+                    clickedButton.setAttribute('aria-selected', 'true');
+                }
+
+                // Close mobile sidebar after selection
+                if (window.innerWidth < 1024) {
+                    closeSidebar();
                 }
 
                 // Trigger updates
@@ -7436,6 +7474,50 @@
             overlay.style.display = 'none';
             drawer.classList.remove('open');
         }
+
+        // ---- Sidebar Toggle Functions (for new vertical layout) ----
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const hamburger = document.getElementById('hamburgerBtn');
+
+            if (!sidebar || !overlay) return;
+
+            const isOpen = sidebar.classList.contains('open');
+
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                if (hamburger) hamburger.classList.add('active');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const hamburger = document.getElementById('hamburgerBtn');
+
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            if (hamburger) hamburger.classList.remove('active');
+        }
+
+        // Close sidebar when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+
+            // Close sidebar on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSidebar();
+                }
+            });
+        });
 
         // ---- Export current tab to PDF (uses browser print-to-PDF) ----
         function exportTabToPDF(tabId, prefix = 'Export') {
@@ -7759,33 +7841,37 @@
     <script src="oauth-handler.js"></script>
     <script src="auth-handler.js"></script>
     <script src="micro-interactions.js"></script>
-    
-    <!-- Footer provider badges -->
-    <div class="footer-badges" id="footerBadges">
-        <div id="badge-strava" class="footer-badge badge-disconnected">
-            <div class="title"><img src="/src/images/strava.svg" alt="Strava"> Strava</div>
-            <div class="subtitle">Activities and performance data</div>
-            <div class="status" id="badge-strava-status">—</div>
-            <div class="actions"><button onclick="disconnectDevice('strava')">Disconnect</button></div>
-        </div>
-        <div id="badge-oura" class="footer-badge badge-disconnected">
-            <div class="title"><img src="/src/images/oura.png" alt="Oura"> Oura Ring</div>
-            <div class="subtitle">Readiness, activity, and sleep insights</div>
-            <div class="status" id="badge-oura-status">—</div>
-            <div class="actions"><button onclick="disconnectDevice('oura')">Disconnect</button></div>
-        </div>
-        <div id="badge-garmin" class="footer-badge badge-disconnected">
-            <div class="title"><img src="/src/images/Garmin.svg" alt="Garmin"> Garmin Connect™</div>
-            <div class="subtitle">Activities, body battery, and wellness</div>
-            <div class="status" id="badge-garmin-status">—</div>
-            <div class="actions"><button onclick="disconnectDevice('garmin')">Disconnect</button></div>
-        </div>
-        <div id="badge-whoop" class="footer-badge badge-disconnected">
-            <div class="title"><img src="/src/images/WHOOP.svg" alt="Whoop"> Whoop</div>
-            <div class="subtitle">Recovery, strain, and sleep data</div>
-            <div class="status" id="badge-whoop-status">—</div>
-            <div class="actions"><button onclick="disconnectDevice('whoop')">Disconnect</button></div>
-        </div>
-    </div>
+
+            <!-- Footer provider badges -->
+            <div class="footer-badges" id="footerBadges">
+                <div id="badge-strava" class="footer-badge badge-disconnected">
+                    <div class="title"><img src="/src/images/strava.svg" alt="Strava"> Strava</div>
+                    <div class="subtitle">Activities and performance data</div>
+                    <div class="status" id="badge-strava-status">—</div>
+                    <div class="actions"><button onclick="disconnectDevice('strava')">Disconnect</button></div>
+                </div>
+                <div id="badge-oura" class="footer-badge badge-disconnected">
+                    <div class="title"><img src="/src/images/oura.png" alt="Oura"> Oura Ring</div>
+                    <div class="subtitle">Readiness, activity, and sleep insights</div>
+                    <div class="status" id="badge-oura-status">—</div>
+                    <div class="actions"><button onclick="disconnectDevice('oura')">Disconnect</button></div>
+                </div>
+                <div id="badge-garmin" class="footer-badge badge-disconnected">
+                    <div class="title"><img src="/src/images/Garmin.svg" alt="Garmin"> Garmin Connect™</div>
+                    <div class="subtitle">Activities, body battery, and wellness</div>
+                    <div class="status" id="badge-garmin-status">—</div>
+                    <div class="actions"><button onclick="disconnectDevice('garmin')">Disconnect</button></div>
+                </div>
+                <div id="badge-whoop" class="footer-badge badge-disconnected">
+                    <div class="title"><img src="/src/images/WHOOP.svg" alt="Whoop"> Whoop</div>
+                    <div class="subtitle">Recovery, strain, and sleep data</div>
+                    <div class="status" id="badge-whoop-status">—</div>
+                    <div class="actions"><button onclick="disconnectDevice('whoop')">Disconnect</button></div>
+                </div>
+            </div>
+
+        </div> <!-- End main-content -->
+    </div> <!-- End app-layout -->
+
 </body>
 </html>
