@@ -6593,75 +6593,137 @@
         }
 
         // ===== RUNNING ANALYTICS =====
-        function updateRunningAnalytics() {
-            console.log('🏃 ===== UPDATE RUNNING ANALYTICS CALLED =====');
-            console.log('🏃 fitnessData.strava:', fitnessData.strava);
-            console.log('🏃 fitnessData.garmin:', fitnessData.garmin);
-            console.log('🏃 Strava activities count:', fitnessData.strava?.activities?.length || 0);
-            console.log('🏃 Garmin activities count:', fitnessData.garmin?.activities?.length || 0);
+        function normalizeRunActivities() {
+            const runs = [];
 
-            // Collect running activities from all sources
-            let allRunActivities = [];
+            const stravaActivities = Array.isArray(fitnessData.strava?.activities?.activities)
+                ? fitnessData.strava.activities.activities
+                : Array.isArray(fitnessData.strava?.activities)
+                    ? fitnessData.strava.activities
+                    : [];
 
-            // Get Strava running activities
-            if (fitnessData.strava && fitnessData.strava.activities) {
-                const stravaRuns = fitnessData.strava.activities.filter(a => {
-                    const t = (a.type || a.sport_type || '').toLowerCase();
-                    return t.includes('run');
+            const garminActivities = Array.isArray(fitnessData.garmin?.activities?.activities)
+                ? fitnessData.garmin.activities.activities
+                : Array.isArray(fitnessData.garmin?.activities)
+                    ? fitnessData.garmin.activities
+                    : [];
+
+            // Strava runs
+            for (const a of stravaActivities) {
+                const type = (a.type || a.sport_type || '').toLowerCase();
+                if (!type.includes('run')) continue;
+
+                const start = a.start_date || a.start_date_local;
+                const startTs = start ? new Date(start).getTime() : 0;
+
+                runs.push({
+                    ...a,
+                    source: 'strava',
+                    externalKey: a.external_id || a.id || a.upload_id,
+                    start_date: start,
+                    startTs,
+                    distance: a.distance || 0,
+                    moving_time: a.moving_time || a.elapsed_time || 0,
+                    total_elevation_gain: a.total_elevation_gain || 0,
+                    average_heartrate: a.average_heartrate || null,
+                    max_heartrate: a.max_heartrate || null
                 });
-                console.log('🏃 Found', stravaRuns.length, 'Strava running activities');
-                allRunActivities.push(...stravaRuns.map(a => ({...a, source: 'strava'})));
             }
 
-            // Get Garmin running activities
-            if (fitnessData.garmin && fitnessData.garmin.activities) {
-                const garminRuns = fitnessData.garmin.activities.filter(a => {
-                    const t = (a.activityType || a.type || a.sport_type || '').toLowerCase();
-                    return t.includes('run');
-                });
-                allRunActivities.push(...garminRuns.map(a => ({
+            // Garmin runs
+            for (const a of garminActivities) {
+                const type = (a.activityType || a.type || a.sport_type || '').toLowerCase();
+                if (!type.includes('run')) continue;
+
+                const startIso = a.startTimeInSeconds
+                    ? new Date(a.startTimeInSeconds * 1000).toISOString()
+                    : (a.startTimeLocal || a.startTime || a.start_date || null);
+                const startTs = startIso ? new Date(startIso).getTime() : 0;
+
+                runs.push({
                     ...a,
                     source: 'garmin',
-                    // Normalize Garmin fields to match Strava format
-                    start_date: a.startTimeInSeconds ? new Date(a.startTimeInSeconds * 1000).toISOString() : a.start_date,
-                    distance: a.distanceInMeters || a.distance,
-                    moving_time: a.durationInSeconds || a.moving_time,
-                    total_elevation_gain: a.elevationGain || a.total_elevation_gain,
-                    average_heartrate: a.averageHeartRateInBeatsPerMinute || a.average_heartrate,
-                    max_heartrate: a.maxHeartRateInBeatsPerMinute || a.max_heartrate
-                })));
+                    externalKey: a.activityId || a.summaryId || a.externalId || a.activityIdString || a.id,
+                    start_date: startIso,
+                    startTs,
+                    distance: a.distanceInMeters || a.distance || 0,
+                    moving_time: a.durationInSeconds || a.moving_time || a.elapsedTimeInSeconds || 0,
+                    total_elevation_gain: a.elevationGain || a.total_elevation_gain || a.elevationGainInMeters || 0,
+                    average_heartrate: a.averageHeartRateInBeatsPerMinute || a.average_heartrate || null,
+                    max_heartrate: a.maxHeartRateInBeatsPerMinute || a.max_heartrate || null
+                });
             }
 
-            // Deduplicate activities (same start time within 60 seconds and similar distance)
-            const runActivities = [];
-            const seen = new Set();
+            return runs;
+        }
 
-            allRunActivities.sort((a, b) => {
-                // Prefer Strava over Garmin if both exist (Strava has more detailed metrics)
-                if (a.source === 'strava' && b.source === 'garmin') return -1;
-                if (a.source === 'garmin' && b.source === 'strava') return 1;
-                return new Date(b.start_date) - new Date(a.start_date);
-            });
+        function mergeRuns(primary, secondary) {
+            // Prefer Strava data richness; otherwise fill gaps from the other source
+            return {
+                ...secondary,
+                ...primary,
+                distance: primary.distance || secondary.distance,
+                moving_time: primary.moving_time || secondary.moving_time,
+                total_elevation_gain: primary.total_elevation_gain || secondary.total_elevation_gain,
+                average_heartrate: primary.average_heartrate || secondary.average_heartrate,
+                max_heartrate: primary.max_heartrate || secondary.max_heartrate,
+                start_date: primary.start_date || secondary.start_date,
+                startTs: primary.startTs || secondary.startTs,
+                externalKey: primary.externalKey || secondary.externalKey,
+                source: primary.source === 'strava' ? 'strava' : secondary.source
+            };
+        }
 
-            for (const activity of allRunActivities) {
-                const startTime = new Date(activity.start_date).getTime();
-                const distance = activity.distance || 0;
+        function countRunMetrics(run) {
+            let score = 0;
+            if (run.distance) score++;
+            if (run.moving_time) score++;
+            if (run.total_elevation_gain) score++;
+            if (run.average_heartrate) score++;
+            if (run.max_heartrate) score++;
+            if (run.startTs) score++;
+            return score;
+        }
 
-                // Create a deduplication key based on start time (within 60 sec) and distance (within 100m)
-                let isDuplicate = false;
-                for (const key of seen) {
-                    const [keyTime, keyDist] = key.split('_').map(Number);
-                    if (Math.abs(startTime - keyTime) < 60000 && Math.abs(distance - keyDist) < 100) {
-                        isDuplicate = true;
-                        break;
-                    }
-                }
+        function dedupeRunActivities(runs) {
+            const deduped = [];
 
-                if (!isDuplicate) {
-                    runActivities.push(activity);
-                    seen.add(`${startTime}_${distance}`);
+            for (const run of runs) {
+                const matchIdx = deduped.findIndex(existing => {
+                    if (run.externalKey && existing.externalKey && run.externalKey === existing.externalKey) return true;
+                    const timeClose = Math.abs((run.startTs || 0) - (existing.startTs || 0)) <= 120000; // within 2 minutes
+                    const distClose = Math.abs((run.distance || 0) - (existing.distance || 0)) <= 200; // within 200m
+                    return timeClose && distClose;
+                });
+
+                if (matchIdx >= 0) {
+                    const existing = deduped[matchIdx];
+
+                    // Prefer Strava, otherwise the one with more metrics
+                    const primary = existing.source === 'strava'
+                        ? existing
+                        : run.source === 'strava'
+                            ? run
+                            : (countRunMetrics(run) > countRunMetrics(existing) ? run : existing);
+                    const secondary = primary === existing ? run : existing;
+
+                    deduped[matchIdx] = mergeRuns(primary, secondary);
+                } else {
+                    deduped.push(run);
                 }
             }
+
+            deduped.sort((a, b) => (b.startTs || 0) - (a.startTs || 0));
+            return deduped;
+        }
+
+        function updateRunningAnalytics() {
+            console.log('🏃 ===== UPDATE RUNNING ANALYTICS CALLED =====');
+
+            const normalizedRuns = normalizeRunActivities();
+            const runActivities = dedupeRunActivities(normalizedRuns);
+
+            console.log('🏃 Normalized runs:', normalizedRuns.length, 'Deduped runs:', runActivities.length);
 
             if (runActivities.length === 0) {
                 showEmptyRunningState();
@@ -7267,7 +7329,7 @@
             document.getElementById('runningDuration').textContent = '--';
             document.getElementById('runningElevation').textContent = '--';
             
-            const emptyMessage = '<div style="text-align: center; padding: 20px; color: #6B7280;">Connect Strava to see your running analytics</div>';
+            const emptyMessage = '<div style="text-align: center; padding: 20px; color: #6B7280;">Connect Strava or Garmin to see your running analytics</div>';
             
             document.getElementById('runningLoadInsight').innerHTML = emptyMessage;
             document.getElementById('runningPaceInsight').innerHTML = emptyMessage;
