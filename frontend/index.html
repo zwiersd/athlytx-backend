@@ -239,13 +239,6 @@
                 <span class="hamburger-line"></span>
             </button>
 
-            <!-- Mobile center refresh -->
-            <div class="header-center">
-                <button class="mobile-refresh-btn" onclick="refreshAllData()" aria-label="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-
             <div class="header-right" id="headerMenu">
                 <span id="readinessPill" class="readiness-pill"><i class="fas fa-flag-checkered"></i> Readiness: --</span>
                 <button id="syncBtn" onclick="syncAllProviders()" class="refresh-btn" title="Sync data from all connected providers"><i class="fas fa-cloud-download-alt"></i> Sync</button>
@@ -1083,6 +1076,11 @@
                 <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
                     <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
                     <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 60px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                </div>
+
+                <!-- Data availability note -->
+                <div style="background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; color: rgba(229,231,235,0.9); margin-bottom: 12px; font-size: 0.95rem;">
+                    Garmin pushes new wellness data forward when your device syncs. Historical Body Battery/HRV backfill is limited—keep your watch syncing to see fresh Body Battery, stress, and HRV here.
                 </div>
 
                 <!-- Hero Stats Grid - 4x2 even layout -->
