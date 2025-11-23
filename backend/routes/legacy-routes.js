@@ -796,10 +796,14 @@ app.post('/api/garmin/token', async (req, res) => {
 
         // Register user for PUSH notifications
         try {
-            // Use OAuth 1.0a signature with OAuth2 token (hybrid) per Garmin Health API
-            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS (OAUTH1-HYBRID) ===');
-            const { signAndFetch } = require('../utils/garmin-api');
-            const regResponse = await signAndFetch('/user/registration', 'POST', data.access_token, {});
+            console.log('\n📝 === REGISTERING USER FOR PUSH NOTIFICATIONS (OAUTH2 BEARER) ===');
+            const regResponse = await fetch('https://apis.garmin.com/wellness-api/rest/user/registration', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${data.access_token}`,
+                    Accept: 'application/json'
+                }
+            });
             const regText = await regResponse.text();
             console.log('📝 Push registration response:', {
                 status: regResponse.status,
@@ -815,8 +819,9 @@ app.post('/api/garmin/token', async (req, res) => {
 
             // Optional: verify permissions for debug
             try {
-                const { fetchWithBearer } = require('../utils/garmin-api-bearer');
-                const permResponse = await fetchWithBearer('/user/permissions', 'GET', data.access_token, {});
+                const permResponse = await fetch('https://apis.garmin.com/wellness-api/rest/user/permissions', {
+                    headers: { Authorization: `Bearer ${data.access_token}` }
+                });
                 const permText = await permResponse.text();
                 console.log('🔐 Permissions check:', { status: permResponse.status, body: permText.substring(0, 400) });
             } catch (permErr) {

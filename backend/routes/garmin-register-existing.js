@@ -34,7 +34,6 @@ router.post('/register-existing-users', async (req, res) => {
         }
 
         const results = [];
-        const GarminOAuth1Hybrid = require('../utils/garmin-oauth1-hybrid');
 
         for (const token of tokens) {
             console.log(`\nRegistering user ${token.userId} (Garmin ID: ${token.providerUserId || 'unknown'})...`);
@@ -60,18 +59,15 @@ router.post('/register-existing-users', async (req, res) => {
                 );
 
                 const pushRegUrl = 'https://apis.garmin.com/wellness-api/rest/user/registration';
-                const authHeader = signer.generateAuthHeader('POST', pushRegUrl, {}, accessToken);
 
                 console.log('  Calling:', pushRegUrl);
 
                 let response = await fetch(pushRegUrl, {
                     method: 'POST',
                     headers: {
-                        Authorization: authHeader,
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
+                        Authorization: `Bearer ${accessToken}`,
+                        Accept: 'application/json'
+                    }
                 });
 
                 let responseText = await response.text();
@@ -82,19 +78,17 @@ router.post('/register-existing-users', async (req, res) => {
                     try {
                         console.log('  🔄 Attempting token refresh for user', token.userId);
                         const refreshToken = decrypt(token.refreshTokenEncrypted);
-                        const credentials = Buffer.from(
-                            `${process.env.GARMIN_CONSUMER_KEY}:${process.env.GARMIN_CONSUMER_SECRET}`
-                        ).toString('base64');
 
                         const refreshResp = await fetch('https://diauth.garmin.com/di-oauth2-service/oauth/token', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'Authorization': `Basic ${credentials}`
+                                'Content-Type': 'application/x-www-form-urlencoded'
                             },
                             body: new URLSearchParams({
                                 grant_type: 'refresh_token',
-                                refresh_token: refreshToken
+                                refresh_token: refreshToken,
+                                client_id: process.env.GARMIN_CLIENT_ID,
+                                client_secret: process.env.GARMIN_CLIENT_SECRET
                             })
                         });
 
@@ -247,8 +241,13 @@ router.post('/register-user', async (req, res) => {
         }
 
         const accessToken = decrypt(token.accessTokenEncrypted);
-        const { signAndFetch } = require('../utils/garmin-api');
-        const response = await signAndFetch('/user/registration', 'POST', accessToken, {});
+        const response = await fetch('https://apis.garmin.com/wellness-api/rest/user/registration', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/json'
+            }
+        });
         const bodyText = await response.text();
 
         const payload = {
