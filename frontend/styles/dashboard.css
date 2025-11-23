@@ -3297,3 +3297,69 @@ body {
   padding-top: 0;
   min-height: auto;
 }
+
+/* ============================================
+   ACCOUNT PAGE LAYOUT
+   ============================================ */
+
+/* Make Account page full-width on desktop */
+#account {
+  max-width: 100%;
+  width: 100%;
+}
+
+#account .account-view {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Account page grid layout for desktop */
+@media (min-width: 768px) {
+  #account .account-profile-card {
+    max-width: 100%;
+  }
+
+  #account .account-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  #account .services-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Larger desktop - even more spacious */
+@media (min-width: 1200px) {
+  #account .account-stats-grid {
+    gap: 32px;
+  }
+
+  #account .services-grid {
+    gap: 24px;
+  }
+
+  #account .account-profile-card {
+    padding: 48px !important;
+  }
+
+  #account .account-details-card {
+    padding: 32px !important;
+  }
+}
+
+/* Mobile - keep stacked layout */
+@media (max-width: 767px) {
+  #account .account-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #account .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+}
