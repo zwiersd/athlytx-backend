@@ -173,22 +173,89 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         /* Small provider badges pinned bottom-right */
-        .footer-badges {
-            position: fixed; bottom: 12px; right: 12px; z-index: 9999;
-            display: flex; flex-wrap: nowrap; gap: 5px;
-            background: rgba(10,14,39,0.55); border: 1px solid rgba(255,255,255,0.12);
-            padding: 4px 6px; border-radius: 10px; backdrop-filter: blur(8px);
-            max-width: 85vw; overflow-x: auto; pointer-events: none;
+        /* Connection badges - now in header top right */
+        .connection-badges {
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            z-index: 850;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-width: 300px;
         }
-        .footer-badge { pointer-events: auto; font-size: 9px; line-height: 1.2; font-weight: 700; padding: 4px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.15); color: #e5e7eb; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; min-width: 110px; }
-        .footer-badge img { height: 11px; width: auto; opacity: 0.9; }
-        .badge-connected { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
-        .badge-disconnected { background: rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.28); }
-        .footer-badge .title { display:flex; align-items:center; gap:5px; font-size:10px; }
-        .footer-badge .subtitle { font-size:8px; font-weight:600; color: rgba(229,231,235,0.75); }
-        .footer-badge .status { font-size:8px; font-weight:800; color:#10b981; display:flex; align-items:center; gap:4px; }
-        .footer-badge .actions { margin-top:2px; }
-        .footer-badge .actions button { font-size:9px; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06); color:#e5e7eb; cursor:pointer; }
+
+        .connection-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(10,14,39,0.85);
+            backdrop-filter: blur(12px);
+            font-size: 11px;
+            font-weight: 600;
+            color: #e5e7eb;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .connection-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .connection-badge img {
+            height: 14px;
+            width: auto;
+            opacity: 0.9;
+        }
+
+        .connection-badge.badge-connected {
+            background: rgba(34,197,94,0.15);
+            border-color: rgba(34,197,94,0.4);
+        }
+
+        .connection-badge.badge-disconnected {
+            background: rgba(148,163,184,0.08);
+            border-color: rgba(148,163,184,0.25);
+            opacity: 0.7;
+        }
+
+        .connection-badge-status {
+            font-size: 10px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .connection-badge.badge-disconnected .connection-badge-status {
+            color: rgba(255,255,255,0.5);
+        }
+
+        @media (max-width: 1023px) {
+            .connection-badges {
+                top: 72px;
+                right: 12px;
+                max-width: 200px;
+            }
+
+            .connection-badge {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+
+            .connection-badge img {
+                height: 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .connection-badges {
+                display: none; /* Hide on very small screens to avoid clutter */
+            }
+        }
 
         /* Unified mobile drawer */
         .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
@@ -7842,31 +7909,23 @@
     <script src="auth-handler.js"></script>
     <script src="micro-interactions.js"></script>
 
-            <!-- Footer provider badges -->
-            <div class="footer-badges" id="footerBadges">
-                <div id="badge-strava" class="footer-badge badge-disconnected">
-                    <div class="title"><img src="/src/images/strava.svg" alt="Strava"> Strava</div>
-                    <div class="subtitle">Activities and performance data</div>
-                    <div class="status" id="badge-strava-status">—</div>
-                    <div class="actions"><button onclick="disconnectDevice('strava')">Disconnect</button></div>
+            <!-- Connection badges - top right below header -->
+            <div class="connection-badges" id="connectionBadges">
+                <div id="badge-strava" class="connection-badge badge-disconnected" title="Strava - Activities and performance data">
+                    <img src="/src/images/strava.svg" alt="Strava">
+                    <span class="connection-badge-status" id="badge-strava-status">—</span>
                 </div>
-                <div id="badge-oura" class="footer-badge badge-disconnected">
-                    <div class="title"><img src="/src/images/oura.png" alt="Oura"> Oura Ring</div>
-                    <div class="subtitle">Readiness, activity, and sleep insights</div>
-                    <div class="status" id="badge-oura-status">—</div>
-                    <div class="actions"><button onclick="disconnectDevice('oura')">Disconnect</button></div>
+                <div id="badge-oura" class="connection-badge badge-disconnected" title="Oura Ring - Readiness, activity, and sleep insights">
+                    <img src="/src/images/oura.png" alt="Oura">
+                    <span class="connection-badge-status" id="badge-oura-status">—</span>
                 </div>
-                <div id="badge-garmin" class="footer-badge badge-disconnected">
-                    <div class="title"><img src="/src/images/Garmin.svg" alt="Garmin"> Garmin Connect™</div>
-                    <div class="subtitle">Activities, body battery, and wellness</div>
-                    <div class="status" id="badge-garmin-status">—</div>
-                    <div class="actions"><button onclick="disconnectDevice('garmin')">Disconnect</button></div>
+                <div id="badge-garmin" class="connection-badge badge-disconnected" title="Garmin Connect - Activities, body battery, and wellness">
+                    <img src="/src/images/Garmin.svg" alt="Garmin">
+                    <span class="connection-badge-status" id="badge-garmin-status">—</span>
                 </div>
-                <div id="badge-whoop" class="footer-badge badge-disconnected">
-                    <div class="title"><img src="/src/images/WHOOP.svg" alt="Whoop"> Whoop</div>
-                    <div class="subtitle">Recovery, strain, and sleep data</div>
-                    <div class="status" id="badge-whoop-status">—</div>
-                    <div class="actions"><button onclick="disconnectDevice('whoop')">Disconnect</button></div>
+                <div id="badge-whoop" class="connection-badge badge-disconnected" title="Whoop - Recovery, strain, and sleep data">
+                    <img src="/src/images/WHOOP.svg" alt="Whoop">
+                    <span class="connection-badge-status" id="badge-whoop-status">—</span>
                 </div>
             </div>
 
