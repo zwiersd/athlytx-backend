@@ -172,16 +172,13 @@
     <link rel="stylesheet" href="/styles/dashboard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        /* Small provider badges pinned bottom-right */
-        /* Connection badges - compact single row in top right */
+        /* Connection badges - compact row inside header */
         .connection-badges {
-            position: fixed;
-            top: 80px;
-            right: 16px;
-            z-index: 850;
             display: flex;
             flex-wrap: nowrap;
             gap: 4px;
+            align-items: center;
+            justify-content: center;
         }
 
         .connection-badge {
@@ -233,13 +230,11 @@
             color: rgba(255,255,255,0.4);
         }
 
-        @media (max-width: 1023px) {
-            .connection-badges {
-                top: 72px;
-                right: 12px;
-                gap: 3px;
-            }
+        .header-container .connection-badges {
+            justify-self: center;
+        }
 
+        @media (max-width: 1023px) {
             .connection-badge {
                 padding: 3px 6px;
                 font-size: 8px;
@@ -404,6 +399,25 @@
                             <i class="fas fa-sync-alt"></i>
                             <span class="hide-mobile">Refresh</span>
                         </button>
+                    </div>
+
+                    <div class="connection-badges" id="connectionBadges" style="justify-self: center; gap: 8px;">
+                        <div id="badge-strava" class="connection-badge badge-disconnected" title="Strava - Activities and performance data">
+                            <img src="/src/images/strava.svg" alt="Strava">
+                            <span class="connection-badge-status" id="badge-strava-status">—</span>
+                        </div>
+                        <div id="badge-oura" class="connection-badge badge-disconnected" title="Oura Ring - Readiness, activity, and sleep insights">
+                            <img src="/src/images/oura.png" alt="Oura">
+                            <span class="connection-badge-status" id="badge-oura-status">—</span>
+                        </div>
+                        <div id="badge-garmin" class="connection-badge badge-disconnected" title="Garmin Connect - Activities, body battery, and wellness">
+                            <img src="/src/images/Garmin.svg" alt="Garmin">
+                            <span class="connection-badge-status" id="badge-garmin-status">—</span>
+                        </div>
+                        <div id="badge-whoop" class="connection-badge badge-disconnected" title="Whoop - Recovery, strain, and sleep data">
+                            <img src="/src/images/WHOOP.svg" alt="Whoop">
+                            <span class="connection-badge-status" id="badge-whoop-status">—</span>
+                        </div>
                     </div>
 
                     <!-- User Account Menu -->
@@ -1564,8 +1578,8 @@
                             <div id="runningCTL" style="font-size: 3rem; font-weight: 800; color: #10b981; margin-bottom: 8px;">--</div>
                             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">42-day training load average</div>
                         </div>
-                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-                            Higher fitness = better endurance capacity
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            Higher CTL = bigger endurance “engine” built from consistent training load.
                         </div>
                     </div>
 
@@ -1575,8 +1589,8 @@
                             <div id="runningATL" style="font-size: 3rem; font-weight: 800; color: #f59e0b; margin-bottom: 8px;">--</div>
                             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">7-day training load average</div>
                         </div>
-                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-                            Recent training stress accumulation
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            ATL shows how much hard work you did this week—higher means more fatigue.
                         </div>
                     </div>
 
@@ -1587,9 +1601,8 @@
                             <div id="runningFormStatus" style="font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 4px;">--</div>
                             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Fitness - Fatigue</div>
                         </div>
-                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-                            <div>Race ready: 0 to +25</div>
-                            <div>Training zone: -10 to -30</div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            TSB = CTL − ATL. Around 0 to +25 feels fresh (race-ready); -10 to -30 is productive training stress.
                         </div>
                     </div>
                 </div>
@@ -8584,26 +8597,6 @@
     <script src="oauth-handler.js"></script>
     <script src="auth-handler.js"></script>
     <script src="micro-interactions.js"></script>
-
-            <!-- Connection badges - top right below header -->
-            <div class="connection-badges" id="connectionBadges">
-                <div id="badge-strava" class="connection-badge badge-disconnected" title="Strava - Activities and performance data">
-                    <img src="/src/images/strava.svg" alt="Strava">
-                    <span class="connection-badge-status" id="badge-strava-status">—</span>
-                </div>
-                <div id="badge-oura" class="connection-badge badge-disconnected" title="Oura Ring - Readiness, activity, and sleep insights">
-                    <img src="/src/images/oura.png" alt="Oura">
-                    <span class="connection-badge-status" id="badge-oura-status">—</span>
-                </div>
-                <div id="badge-garmin" class="connection-badge badge-disconnected" title="Garmin Connect - Activities, body battery, and wellness">
-                    <img src="/src/images/Garmin.svg" alt="Garmin">
-                    <span class="connection-badge-status" id="badge-garmin-status">—</span>
-                </div>
-                <div id="badge-whoop" class="connection-badge badge-disconnected" title="Whoop - Recovery, strain, and sleep data">
-                    <img src="/src/images/WHOOP.svg" alt="Whoop">
-                    <span class="connection-badge-status" id="badge-whoop-status">—</span>
-                </div>
-            </div>
 
         </div> <!-- End main-content -->
     </div> <!-- End app-layout -->
