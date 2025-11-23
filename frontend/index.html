@@ -1484,11 +1484,25 @@
 
             <!-- Running Tab -->
             <div id="running" class="tab-panel" role="tabpanel" aria-labelledby="running-tab">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap;">
+                    <h3 style="margin: 0; font-size: 1.2rem;">🏃 Running Analytics</h3>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <label for="runningPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
+                        <select id="runningPeriodSelector" onchange="updateRunningPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
+                            <option value="7">Last 7 Days</option>
+                            <option value="14">Last 14 Days</option>
+                            <option value="28" selected>Last 28 Days</option>
+                            <option value="60">Last 60 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Hero Stats - Key Running Metrics -->
                 <div class="data-summary" style="margin-bottom: 30px;">
                     <div class="summary-card glass-card">
                         <span class="summary-value" id="runningDistance">--</span>
-                        <div class="summary-label">Total Distance (4w)</div>
+                        <div class="summary-label">Total Distance</div>
                         <span class="trend-arrow" id="runningDistanceTrend"></span>
                     </div>
                     <div class="summary-card glass-card">
@@ -1498,12 +1512,12 @@
                     </div>
                     <div class="summary-card glass-card">
                         <span class="summary-value" id="runningDuration">--</span>
-                        <div class="summary-label">Total Time (4w)</div>
+                        <div class="summary-label">Total Time</div>
                         <span class="trend-arrow" id="runningDurationTrend"></span>
                     </div>
                     <div class="summary-card glass-card">
                         <span class="summary-value" id="runningElevation">--</span>
-                        <div class="summary-label">Elevation Gain (4w)</div>
+                        <div class="summary-label">Elevation Gain</div>
                         <span class="trend-arrow" id="runningElevationTrend"></span>
                     </div>
                 </div>
@@ -6626,6 +6640,14 @@
         }
 
         // ===== RUNNING ANALYTICS =====
+        let runningPeriodDays = 28;
+
+        function updateRunningPeriod() {
+            const selector = document.getElementById('runningPeriodSelector');
+            runningPeriodDays = parseInt(selector?.value || '28', 10) || 28;
+            updateRunningAnalytics();
+        }
+
         function normalizeRunActivities() {
             const runs = [];
 
@@ -6763,18 +6785,19 @@
                 return;
             }
 
-            // Calculate date ranges
+            // Calculate date ranges based on selection
             const now = new Date();
-            const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
-            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            const eightWeeksAgo = new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000);
+            const periodDays = runningPeriodDays || 28;
+            const currentStart = new Date(now.getTime() - periodDays * 86400000);
+            const previousStart = new Date(now.getTime() - periodDays * 2 * 86400000);
+            const lastWeekStart = new Date(now.getTime() - Math.min(7, periodDays) * 86400000);
 
             // Filter runs by time periods
-            const recentRuns = runActivities.filter(a => new Date(a.start_date) >= fourWeeksAgo);
-            const lastWeekRuns = runActivities.filter(a => new Date(a.start_date) >= oneWeekAgo);
+            const recentRuns = runActivities.filter(a => new Date(a.start_date) >= currentStart);
+            const lastWeekRuns = runActivities.filter(a => new Date(a.start_date) >= lastWeekStart);
             const previousPeriodRuns = runActivities.filter(a => {
                 const date = new Date(a.start_date);
-                return date >= eightWeeksAgo && date < fourWeeksAgo;
+                return date >= previousStart && date < currentStart;
             });
 
             // Update running volume cards
@@ -6813,7 +6836,7 @@
             updateRunningHRZonesChart(recentRuns);
             updateRunningIntensityPyramid(recentRuns);
             updateRunningFitnessTrendChart(runActivities);
-            updateRunningVolumeChart(runActivities);
+            updateRunningVolumeChart(runActivities.filter(a => new Date(a.start_date) >= previousStart));
             updateRunningPaceProgressionChart(recentRuns);
         }
 
@@ -7284,16 +7307,262 @@
         }
 
         function updateRunningFitnessMetrics(allRuns){const r=allRuns.filter(a=>{const t=(a.type||a.sport_type||'').toLowerCase();return t.includes('run')});if(!r.length)return;const d={},t=new Date();for(let i=0;i<42;i++){const e=new Date(t);e.setDate(e.getDate()-i);d[e.toISOString().split('T')[0]]=0}r.forEach(a=>{if(!a.start_date)return;const k=a.start_date.split('T')[0];if(d[k]!==undefined)d[k]+=(a.suffer_score||0)});let c=0;const cd=1-1/42;Object.keys(d).sort().reverse().forEach(k=>c=c*cd+d[k]);let a=0;const ad=1-1/7;Object.keys(d).sort().reverse().slice(0,7).forEach(k=>a=a*ad+d[k]);const s=c-a;document.getElementById('runningCTL').textContent=c.toFixed(1);document.getElementById('runningATL').textContent=a.toFixed(1);document.getElementById('runningTSB').textContent=s>0?'+'+s.toFixed(1):s.toFixed(1);const st=s>25?'Fresh & Rested 🌟':s>=0?'Race Ready 💪':s>=-10?'Neutral ⚖️':s>=-30?'Training Zone 🔥':'High Fatigue ⚠️';const co=s>25?'#10b981':s>=0?'#3b82f6':s>=-10?'#f59e0b':s>=-30?'#ef4444':'#dc2626';const f=document.getElementById('runningFormStatus');f.textContent=st;f.style.color=co}
-        function updateRunningRecoveryMetrics(){let h='--',r='--',s='--',d='--';if(fitnessData.oura&&fitnessData.oura.sleep){const sl=fitnessData.oura.sleep.slice(0,7);const hv=sl.map(x=>x.hrv_average||(x.heart_rate?x.heart_rate.average_hrv:null)).filter(v=>v);const rv=sl.map(x=>x.resting_hr||(x.heart_rate?x.heart_rate.resting_hr:null)).filter(v=>v);const sv=sl.map(x=>x.score).filter(v=>v);if(hv.length>0)h=Math.round(hv.reduce((a,b)=>a+b)/hv.length);if(rv.length>0)r=Math.round(rv.reduce((a,b)=>a+b)/rv.length);if(sv.length>0)s=Math.round(sv.reduce((a,b)=>a+b)/sv.length);if(fitnessData.oura.readiness){const rs=fitnessData.oura.readiness.slice(0,7).map(x=>x.score).filter(v=>v);if(rs.length>0)d=Math.round(rs.reduce((a,b)=>a+b)/rs.length)}}document.getElementById('runningHRV').textContent=h;document.getElementById('runningRHR').textContent=r;document.getElementById('runningSleep').textContent=s;document.getElementById('runningReadiness').textContent=d}
+        function updateRunningRecoveryMetrics() {
+            let h = '--';
+            let r = '--';
+            let s = '--';
+            let d = '--';
+
+            // Primary: Oura data
+            if (fitnessData.oura && fitnessData.oura.sleep) {
+                const sl = fitnessData.oura.sleep.slice(-7); // most recent 7 entries
+                const hv = sl.map(x => x.hrv_average || (x.heart_rate ? x.heart_rate.average_hrv : null)).filter(v => v);
+                const rv = sl.map(x => x.resting_hr || (x.heart_rate ? x.heart_rate.resting_hr : null)).filter(v => v);
+                const sv = sl.map(x => x.score).filter(v => v);
+                if (hv.length > 0) h = Math.round(hv.reduce((a, b) => a + b) / hv.length);
+                if (rv.length > 0) r = Math.round(rv.reduce((a, b) => a + b) / rv.length);
+                if (sv.length > 0) s = Math.round(sv.reduce((a, b) => a + b) / sv.length);
+                if (fitnessData.oura.readiness) {
+                    const rs = fitnessData.oura.readiness.slice(-7).map(x => x.score).filter(v => v);
+                    if (rs.length > 0) d = Math.round(rs.reduce((a, b) => a + b) / rs.length);
+                }
+            }
+
+            // Fallback: Garmin daily summaries (when Oura/Whoop not connected)
+            if (h === '--' || r === '--' || s === '--' || d === '--') {
+                const raw = fitnessData.garmin?.dailySummary;
+                const dailies = Array.isArray(raw) ? raw : (raw?.dailies || []);
+                if (dailies.length > 0) {
+                    const recent = dailies.slice(0, 7);
+                    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+
+                    const hrvVals = recent.map(x => x.hrvAvg ?? x.averageHrv ?? x.hrvAverage ?? x.hrv).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
+                    const rhrVals = recent.map(x => x.restingHr ?? x.restingHeartRate ?? x.resting_heart_rate).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
+                    const sleepVals = recent.map(x => x.sleepHours ?? (x.sleepingSeconds !== undefined ? x.sleepingSeconds / 3600 : null)).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
+                    const readinessVals = recent.map(x => x.bodyBatteryHighestValue ?? x.bodyBatteryChargedValue ?? null).filter(v => v !== undefined && v !== null && !Number.isNaN(v));
+
+                    if (h === '--' && hrvVals.length) h = avg(hrvVals);
+                    if (r === '--' && rhrVals.length) r = avg(rhrVals);
+                    if (s === '--' && sleepVals.length) s = (sleepVals.reduce((a, b) => a + b, 0) / sleepVals.length).toFixed(1);
+                    if (d === '--' && readinessVals.length) d = avg(readinessVals);
+                }
+            }
+
+            document.getElementById('runningHRV').textContent = h;
+            document.getElementById('runningRHR').textContent = r;
+            document.getElementById('runningSleep').textContent = s;
+            document.getElementById('runningReadiness').textContent = d;
+        }
         function updateRunningPerformanceMetrics(runs){const p=runs.map(r=>r.distance>1000&&r.moving_time>0?(r.moving_time/60)/(r.distance/1000):null).filter(x=>x&&x<10&&x>2);if(p.length>0){const a=p.reduce((x,y)=>x+y)/p.length;const b=Math.min(...p);document.getElementById('runningAvgPace').textContent=Math.floor(a)+':'+Math.round((a%1)*60).toString().padStart(2,'0');document.getElementById('runningBestPace').textContent=Math.floor(b)+':'+Math.round((b%1)*60).toString().padStart(2,'0');const v=Math.round(-4.60+0.182258*(60/a)+0.000104*Math.pow(60/a,2));document.getElementById('runningVO2max').textContent=v>0?v:'--'}else{document.getElementById('runningAvgPace').textContent='--';document.getElementById('runningBestPace').textContent='--';document.getElementById('runningVO2max').textContent='--'}const h=runs.map(r=>r.average_heartrate).filter(x=>x>0);document.getElementById('runningAvgHR').textContent=h.length>0?Math.round(h.reduce((a,b)=>a+b)/h.length)+' bpm':'--'}
         function updateRunningFormMetrics(runs){const c=runs.map(r=>r.average_cadence).filter(x=>x).map(x=>x*2);const s=runs.map(r=>r.average_stride_length).filter(x=>x);document.getElementById('runningCadence').textContent=c.length>0?Math.round(c.reduce((a,b)=>a+b)/c.length):'--';document.getElementById('runningStrideLength').textContent=s.length>0?(s.reduce((a,b)=>a+b)/s.length).toFixed(2):'--';document.getElementById('runningGCT').textContent='--';document.getElementById('runningVertOsc').textContent='--'}
         function updateRunningWeeklyProgress(recent,prev,last){const o=new Date(Date.now()-7*86400000);const t=new Date(Date.now()-14*86400000);const tw=recent.filter(r=>new Date(r.start_date)>=o);const lw=recent.filter(r=>{const d=new Date(r.start_date);return d>=t&&d<o});const td=tw.reduce((s,r)=>s+(r.distance||0),0)/1000;const ld=lw.reduce((s,r)=>s+(r.distance||0),0)/1000;const dc=ld>0?((td-ld)/ld*100):0;document.getElementById('runningWeeklyDistChange').innerHTML='<span style="color:'+(dc>=0?'#10b981':'#ef4444')+'">'+(dc>=0?'+':'')+dc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyRunsChange').innerHTML='<span style="color:'+(tw.length>=lw.length?'#10b981':'#ef4444')+'">'+(tw.length>=lw.length?'+':'')+(tw.length-lw.length)+'</span>';const tl=tw.reduce((s,r)=>s+(r.suffer_score||0),0);const ll=lw.reduce((s,r)=>s+(r.suffer_score||0),0);const lc=ll>0?((tl-ll)/ll*100):0;document.getElementById('runningWeeklyLoadChange').innerHTML='<span style="color:'+(lc>=0?'#10b981':'#ef4444')+'">'+(lc>=0?'+':'')+lc.toFixed(1)+'%</span>';document.getElementById('runningWeeklyPaceChange').textContent='--';document.getElementById('runningWeeklyLongestChange').textContent='--'}
         function updateRunningPersonalRecords(all){const r=all.filter(a=>{const t=(a.type||a.sport_type||'').toLowerCase();return t.includes('run')});const f=(d)=>{const tol=d*0.05;const c=r.filter(x=>Math.abs(x.distance-d)<=tol&&x.moving_time>0);if(!c.length)return null;return c.reduce((b,c)=>(c.moving_time/c.distance)<(b.moving_time/b.distance)?c:b)};const ft=(s)=>{const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const se=Math.round(s%60);return h>0?h+':'+m.toString().padStart(2,'0')+':'+se.toString().padStart(2,'0'):m+':'+se.toString().padStart(2,'0')};const p5=f(5000);document.getElementById('runningPR5k').textContent=p5?ft(p5.moving_time):'--';const p10=f(10000);document.getElementById('runningPR10k').textContent=p10?ft(p10.moving_time):'--';const ph=f(21097);document.getElementById('runningPRHalf').textContent=ph?ft(ph.moving_time):'--';const pm=f(42195);document.getElementById('runningPRMarathon').textContent=pm?ft(pm.moving_time):'--';if(r.length>0){const l=r.reduce((m,x)=>x.distance>m.distance?x:m);document.getElementById('runningPRLongest').textContent=(l.distance/1000).toFixed(2)+' km';const e=r.reduce((m,x)=>(x.total_elevation_gain||0)>(m.total_elevation_gain||0)?x:m);document.getElementById('runningPRElevation').textContent=Math.round(e.total_elevation_gain||0)+' m'}}
-        function updateRunningHRZonesChart(r){}
-        function updateRunningIntensityPyramid(r){}
-        function updateRunningFitnessTrendChart(a){}
-        function updateRunningVolumeChart(a){}
-        function updateRunningPaceProgressionChart(r){}
+        function updateRunningHRZonesChart(runs) {
+            const canvas = document.getElementById('runningHRZonesChart');
+            if (!canvas) return;
+
+            const hrValues = runs.map(r => r.average_heartrate || r.max_heartrate).filter(v => v);
+            if (!hrValues.length) {
+                canvas.parentElement.innerHTML = '<div style="text-align:center; color:#9ca3af; padding:12px;">No heart rate data yet</div>';
+                return;
+            }
+
+            const maxHr = Math.max(...hrValues);
+            const buckets = [0, 0, 0, 0, 0]; // Z1- Z5
+
+            runs.forEach(run => {
+                const hr = run.average_heartrate || run.max_heartrate;
+                if (!hr || !run.moving_time) return;
+                const pct = hr / maxHr;
+                const idx = pct < 0.6 ? 0 : pct < 0.7 ? 1 : pct < 0.8 ? 2 : pct < 0.9 ? 3 : 4;
+                buckets[idx] += run.moving_time / 60; // minutes
+            });
+
+            if (!charts.runningHRZones) {
+                charts.runningHRZones = new Chart(canvas, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            charts.runningHRZones.data = {
+                labels: ['Z1', 'Z2', 'Z3', 'Z4', 'Z5'],
+                datasets: [{
+                    label: 'Minutes',
+                    data: buckets.map(v => Math.round(v)),
+                    backgroundColor: ['#22c55e','#a3e635','#facc15','#f97316','#ef4444']
+                }]
+            };
+            charts.runningHRZones.update();
+        }
+
+        function updateRunningIntensityPyramid(runs) {
+            const canvas = document.getElementById('runningIntensityPyramid');
+            if (!canvas) return;
+
+            const buckets = { easy: 0, moderate: 0, hard: 0 };
+
+            runs.forEach(run => {
+                const moveMin = (run.moving_time || 0) / 60;
+                const suffer = run.suffer_score || ((run.average_heartrate || 0) > 0 ? (run.average_heartrate / 200) * moveMin : 0);
+                if (moveMin <= 0) return;
+                const spm = suffer / moveMin;
+                if (spm < 0.5) buckets.easy += moveMin;
+                else if (spm < 1.0) buckets.moderate += moveMin;
+                else buckets.hard += moveMin;
+            });
+
+            const total = buckets.easy + buckets.moderate + buckets.hard;
+            if (total === 0) {
+                canvas.parentElement.innerHTML = '<div style="text-align:center; color:#9ca3af; padding:12px;">No intensity data yet</div>';
+                return;
+            }
+
+            if (!charts.runningIntensityPyramid) {
+                charts.runningIntensityPyramid = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            charts.runningIntensityPyramid.data = {
+                labels: ['Easy', 'Moderate', 'Hard'],
+                datasets: [{ data: [buckets.easy, buckets.moderate, buckets.hard], backgroundColor: ['#10b981','#f59e0b','#ef4444'] }]
+            };
+            charts.runningIntensityPyramid.update();
+        }
+
+        function updateRunningFitnessTrendChart(runs) {
+            const canvas = document.getElementById('runningFitnessTrend');
+            if (!canvas) return;
+
+            const today = new Date();
+            const start = new Date(today.getTime() - 42 * 86400000);
+            const daily = {};
+
+            runs.forEach(run => {
+                const d = new Date(run.start_date);
+                if (d < start) return;
+                const key = d.toISOString().split('T')[0];
+                const load = run.suffer_score || (run.distance ? run.distance / 1000 : 0);
+                daily[key] = (daily[key] || 0) + load;
+            });
+
+            const days = [];
+            for (let i = 0; i <= 42; i++) {
+                const d = new Date(start.getTime() + i * 86400000);
+                days.push(d.toISOString().split('T')[0]);
+            }
+
+            let ctl = 0; let atl = 0;
+            const ctlArr = []; const atlArr = []; const tsbArr = [];
+
+            days.forEach(day => {
+                const load = daily[day] || 0;
+                ctl = ctl * (1 - 1/42) + load; // 42-day decay
+                atl = atl * (1 - 1/7) + load;  // 7-day decay
+                ctlArr.push(ctl.toFixed(1));
+                atlArr.push(atl.toFixed(1));
+                tsbArr.push((ctl - atl).toFixed(1));
+            });
+
+            if (!charts.runningFitnessTrend) {
+                charts.runningFitnessTrend = new Chart(canvas, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+                });
+            }
+
+            charts.runningFitnessTrend.data = {
+                labels: days,
+                datasets: [
+                    { label: 'CTL', data: ctlArr, borderColor: '#10b981', backgroundColor: 'transparent', tension: 0.3 },
+                    { label: 'ATL', data: atlArr, borderColor: '#f59e0b', backgroundColor: 'transparent', tension: 0.3 },
+                    { label: 'TSB', data: tsbArr, borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.3 }
+                ]
+            };
+            charts.runningFitnessTrend.update();
+        }
+
+        function updateRunningVolumeChart(runs) {
+            const canvas = document.getElementById('runningVolumeChart');
+            if (!canvas) return;
+
+            const weeks = {};
+            runs.forEach(run => {
+                const week = getWeekStart(new Date(run.start_date)).toISOString().split('T')[0];
+                weeks[week] = (weeks[week] || 0) + (run.distance || 0);
+            });
+
+            const labels = Object.keys(weeks).sort();
+            const data = labels.map(k => (weeks[k] / 1000).toFixed(1));
+
+            if (!charts.runningVolume) {
+                charts.runningVolume = new Chart(canvas, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            charts.runningVolume.data = {
+                labels,
+                datasets: [{ label: 'Weekly km', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.2)', tension: 0.3, fill: true }]
+            };
+            charts.runningVolume.update();
+        }
+
+        function updateRunningPaceProgressionChart(runs) {
+            const canvas = document.getElementById('runningPaceProgression');
+            if (!canvas) return;
+
+            const targets = [5000, 10000, 21097, 42195];
+            const labels = ['5K', '10K', 'Half', 'Marathon'];
+            const paces = targets.map((dist, idx) => {
+                const tol = dist * 0.05;
+                const match = runs.filter(r => Math.abs((r.distance || 0) - dist) <= tol && r.moving_time > 0);
+                if (!match.length) return null;
+                const best = match.reduce((b, c) => (c.moving_time / (c.distance || 1)) < (b.moving_time / (b.distance || 1)) ? c : b);
+                const pace = (best.moving_time / 60) / ((best.distance || dist) / 1000);
+                return pace;
+            });
+
+            if (!charts.runningPaceProgression) {
+                charts.runningPaceProgression = new Chart(canvas, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                reverse: true,
+                                ticks: {
+                                    callback: (value) => {
+                                        const m = Math.floor(value);
+                                        const s = Math.round((value - m) * 60);
+                                        return `${m}:${s.toString().padStart(2, '0')}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            charts.runningPaceProgression.data = {
+                labels,
+                datasets: [{
+                    label: 'Best pace (min/km)',
+                    data: paces,
+                    backgroundColor: '#10b981'
+                }]
+            };
+            charts.runningPaceProgression.update();
+        }
 
         function formatPace(paceMinPerKm) {
             if (paceMinPerKm === 0) return '--';

@@ -1398,10 +1398,6 @@ body {
   line-height: var(--leading-relaxed);
 }
 
-#running {
-  padding-top: 16px;
-}
-
 /* Tab-specific insight card styling */
 #running .insight-card h4,
 #oura .insight-card h4,
@@ -3220,6 +3216,8 @@ button:focus-visible,
 /* Apply animations to tab panels */
 .tab-panel {
   animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 16px;
+  padding-bottom: 48px;
 }
 
 /* Staggered animations for cards */
