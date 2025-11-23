@@ -511,7 +511,7 @@
                     <div id="scoreConfidenceBadge" class="data-sources-badge" data-tooltip="Confidence reflects how much quality data we had (sleep, recovery, strain, HRV) over the last 7-30 days." style="margin-left: 10px; display: inline-flex; align-items: center; gap: 6px; cursor: help; position: relative;">
                         <span style="font-weight: 600;">Confidence:</span>
                         <span id="confidenceText">No data</span>
-                        <span style="background: rgba(255,255,255,0.12); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; cursor: help;" data-tooltip="We combine recovery (HRV/resting HR + device readiness), sleep quality, strain/load balance, and HRV trends. Confidence goes up when more of these signals are present and recent.">i</span>
+                        <span style="background: rgba(255,255,255,0.12); border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; cursor: help;">i</span>
                     </div>
                     <div id="confidenceTip" class="confidence-tip"></div>
                 </div>
@@ -1165,7 +1165,13 @@
 
             <!-- Oura Data Tab -->
             <div id="oura" class="tab-panel" role="tabpanel" aria-labelledby="oura-tab">
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                <!-- Oura Attribution Header -->
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
+                    <img src="src/images/ourawhite.png" alt="Oura" style="height: 45px; object-fit: contain;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
                     <label for="ouraPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
                     <select id="ouraPeriodSelector" onchange="updateOuraPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(180,92,243,0.15); border: 1px solid rgba(180,92,243,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
                         <option value="1" selected>Today</option>
@@ -1173,12 +1179,6 @@
                         <option value="14">Last 14 Days</option>
                         <option value="30">Last 30 Days</option>
                     </select>
-                </div>
-
-                <!-- Oura Attribution Header -->
-                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
-                    <img src="src/images/ourawhite.png" alt="Oura" style="height: 45px; object-fit: contain;">
                 </div>
 
                 <!-- User Info Card (populated dynamically) -->
@@ -1300,7 +1300,13 @@
 
             <!-- Garmin Data Tab -->
             <div id="garmin" class="tab-panel" role="tabpanel" aria-labelledby="garmin-tab">
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                <!-- Garmin Attribution Header -->
+                <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
+                    <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 60px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
                     <label for="garminPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
                     <select id="garminPeriodSelector" onchange="updateGarminPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(0,172,228,0.15); border: 1px solid rgba(0,172,228,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
                         <option value="1">Today</option>
@@ -1309,12 +1315,6 @@
                         <option value="30">Last 30 Days</option>
                         <option value="90">Last 90 Days</option>
                     </select>
-                </div>
-
-                <!-- Garmin Attribution Header -->
-                <div style="background: linear-gradient(135deg, rgba(0,112,192,0.15), rgba(0,172,228,0.15)); border-radius: 16px; padding: 28px; margin-bottom: 24px; text-align: center; border: 1px solid rgba(0,172,228,0.3); box-shadow: 0 8px 32px rgba(0,172,228,0.2);">
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Powered by</div>
-                    <img src="src/images/Garmin.svg" alt="Garmin Connect" style="height: 60px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
                 </div>
 
                 <!-- Data availability note -->
@@ -1549,7 +1549,13 @@
 
             <!-- Whoop Data Tab -->
             <div id="whoop" class="tab-panel" role="tabpanel" aria-labelledby="whoop-tab">
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                <!-- Whoop Attribution Header -->
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
+                    <img src="src/images/WHOOP.svg" alt="Whoop" style="height: 45px; object-fit: contain; filter: invert(1) brightness(2);">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
                     <label for="whoopPeriodSelector" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Period:</label>
                     <select id="whoopPeriodSelector" onchange="updateWhoopPeriod()" style="padding: 6px 12px; border-radius: 8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #e5e7eb; font-size: 0.9rem; cursor: pointer;">
                         <option value="1" selected>Today</option>
@@ -1557,23 +1563,6 @@
                         <option value="14">Last 14 Days</option>
                         <option value="30">Last 30 Days</option>
                     </select>
-                </div>
-
-                <!-- Whoop Attribution Header -->
-                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Powered by</div>
-                    <img src="src/images/WHOOP.svg" alt="Whoop" style="height: 45px; object-fit: contain; filter: invert(1) brightness(2);">
-                </div>
-
-                <!-- Whoop Actions -->
-                <div style="display:flex; gap:10px; align-items:center; margin: 12px 0 20px 0;">
-                    <button class="btn" onclick="refreshWhoopNow()" style="padding:8px 12px; border-radius:8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;">
-                        Refresh Whoop Data
-                    </button>
-                    <button class="btn" onclick="exportTabToPDF('whoop','Whoop')" style="padding:8px 12px; border-radius:8px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color:#e5e7eb;">
-                        Export Whoop PDF
-                    </button>
-                    <div id="whoopActionStatus" style="font-size:0.9rem; color: rgba(229,231,235,0.8);"></div>
                 </div>
 
                 <div class="analytics-card glass-card">
