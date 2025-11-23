@@ -601,6 +601,50 @@ body {
   .main-logo {
     height: 80px;
   }
+
+  /* Mobile tabs: make them horizontally scrollable, bigger touch targets */
+  .tab-nav-wrapper {
+    position: sticky;
+    top: 64px;
+    z-index: 900;
+    background: var(--glass-2);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .tab-nav {
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .tab-button {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    font-size: 14px;
+    scroll-snap-align: start;
+    border-radius: 10px;
+  }
+
+  .tab-scroll-indicator { display: none; }
+
+  /* Move Athlytx score higher and enlarge on mobile */
+  .score-hero-section {
+    margin-top: 8px;
+  }
+
+  .score-circle-wrapper {
+    transform: scale(1.1);
+  }
+
+  .score-number {
+    font-size: 56px;
+  }
+
+  .score-max {
+    font-size: 14px;
+  }
 }
 
 /* ============================================
@@ -3222,4 +3266,3 @@ body {
   padding-top: 0;
   min-height: auto;
 }
-

@@ -23,13 +23,42 @@ async function initAuth() {
     // Check for existing session
     sessionToken = localStorage.getItem('sessionToken');
 
+    // Use stored user info to keep user "signed in" in the UI between reloads
+    const storedUserEmail = localStorage.getItem('userEmail');
+    const storedUserName = localStorage.getItem('userName');
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserEmail) {
+        currentUser = {
+            email: storedUserEmail,
+            name: storedUserName,
+            id: storedUserId
+        };
+    }
+
     if (sessionToken) {
+        // Optimistically render as logged in while we re-verify in the background
+        if (currentUser) {
+            updateAuthUI(true);
+        }
+
         try {
             const response = await fetch('/api/authentication/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sessionToken })
             });
+
+            if (response.status === 401 || response.status === 403) {
+                clearSession();
+                updateAuthUI(false);
+                console.log('⚠️ Session invalid/expired, showing guest mode');
+                return;
+            }
+
+            if (!response.ok) {
+                console.warn('⚠️ Session verification failed (server error), keeping session token to retry later:', response.status);
+                return;
+            }
 
             const data = await response.json();
 
@@ -38,15 +67,14 @@ async function initAuth() {
                 updateAuthUI(true);
                 console.log('✅ Session valid, user logged in:', currentUser.email);
             } else {
-                // Session invalid/expired
+                // Only clear when the backend explicitly says the session is bad
                 clearSession();
                 updateAuthUI(false);
                 console.log('⚠️ Session invalid/expired, showing guest mode');
             }
         } catch (error) {
-            console.error('❌ Session verification error:', error);
-            clearSession();
-            updateAuthUI(false);
+            // Network/transient error: keep the session so the user isn't logged out unexpectedly
+            console.warn('❌ Session verification error (kept sessionToken):', error);
         }
     } else {
         // No session - guest mode
@@ -321,6 +349,9 @@ function clearSession() {
     currentUser = null;
     localStorage.removeItem('sessionToken');
     localStorage.removeItem('sessionExpiry');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
 }
 
 /**
