@@ -301,6 +301,14 @@ router.post('/verify', async (req, res) => {
             });
         }
 
+        // Refresh session expiry on each valid verification (sliding window)
+        const newExpiry = new Date();
+        newExpiry.setDate(newExpiry.getDate() + 30);
+        await user.update({
+            sessionExpiry: newExpiry,
+            lastLogin: new Date()
+        });
+
         res.json({
             success: true,
             user: {
@@ -308,7 +316,8 @@ router.post('/verify', async (req, res) => {
                 email: user.email,
                 name: user.name,
                 isGuest: user.isGuest
-            }
+            },
+            sessionExpiry: newExpiry
         });
 
     } catch (error) {

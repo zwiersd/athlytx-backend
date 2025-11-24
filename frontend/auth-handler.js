@@ -64,6 +64,9 @@ async function initAuth() {
 
             if (data.success && data.user) {
                 currentUser = data.user;
+                if (data.sessionExpiry) {
+                    localStorage.setItem('sessionExpiry', data.sessionExpiry);
+                }
                 updateAuthUI(true);
                 console.log('✅ Session valid, user logged in:', currentUser.email);
             } else {

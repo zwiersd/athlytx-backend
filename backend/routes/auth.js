@@ -769,6 +769,13 @@ router.post('/session', async (req, res) => {
 
         console.log('[SESSION-API] ✅ User found:', user.email);
 
+        // Refresh session expiry on each valid validation (sliding session)
+        const refreshedExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await User.update(
+            { sessionExpiry: refreshedExpiry, lastLogin: new Date() },
+            { where: { id: user.id } }
+        );
+
         // Get relationships
         let relationships = [];
         if (user.role === 'coach') {
@@ -807,6 +814,7 @@ router.post('/session', async (req, res) => {
                 role: user.role,
                 onboarded: user.onboarded || false
             },
+            sessionExpiry: refreshedExpiry,
             relationships: relationships.map(r => ({
                 id: user.role === 'coach' ? r.Athlete?.id : r.Coach?.id,
                 email: user.role === 'coach' ? r.Athlete?.email : r.Coach?.email,
