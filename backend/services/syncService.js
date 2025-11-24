@@ -303,6 +303,13 @@ async function fetchStravaActivityZones(userId, activityId, stravaActivityId, ac
         if (powerZones && powerZones.distribution_buckets) {
             await storeStravaPowerZones(userId, activityId, powerZones, stravaActivityId);
         }
+
+        // Look for heart rate zones in the response
+        const heartRateZones = zonesData.find(z => z.type === 'heartrate');
+
+        if (heartRateZones && heartRateZones.distribution_buckets) {
+            await storeStravaHeartRateZonesDetailed(userId, activityId, heartRateZones, stravaActivityId);
+        }
     } catch (error) {
         console.error(`  ❌ Failed to fetch zones for activity ${stravaActivityId}:`, error.message);
     }
@@ -429,6 +436,86 @@ async function storeStravaHeartRateZones(userId, activityId, stravaActivity) {
         maxHr: stravaActivity.max_heartrate,
         provider: 'strava'
     });
+}
+
+/**
+ * Store detailed heart rate zones from Strava zones API endpoint
+ * This uses ACTUAL second-by-second HR data instead of estimations
+ */
+async function storeStravaHeartRateZonesDetailed(userId, activityId, heartRateZones, stravaActivityId) {
+    try {
+        const activity = await Activity.findByPk(activityId);
+        if (!activity) return;
+
+        const buckets = heartRateZones.distribution_buckets;
+        if (!buckets || !Array.isArray(buckets)) {
+            console.log(`  ⚠️  No HR zone buckets for activity ${stravaActivityId}`);
+            return;
+        }
+
+        // Strava provides 5 HR zones in distribution_buckets
+        // Each bucket has: { min: HR, max: HR, time: seconds }
+        const zoneData = {
+            zone1Seconds: 0,
+            zone2Seconds: 0,
+            zone3Seconds: 0,
+            zone4Seconds: 0,
+            zone5Seconds: 0
+        };
+
+        // Map Strava buckets to our zone structure
+        buckets.forEach((bucket, index) => {
+            const time = bucket.time || 0;
+            const zoneNum = index + 1; // Strava zones are 0-indexed, ours are 1-indexed
+
+            if (zoneNum >= 1 && zoneNum <= 5) {
+                zoneData[`zone${zoneNum}Seconds`] = time;
+            }
+        });
+
+        const totalSeconds = Object.values(zoneData).reduce((sum, val) => sum + val, 0);
+
+        console.log(`  📊 Storing detailed HR zones for activity ${stravaActivityId}:`,
+            `Z1:${Math.round(zoneData.zone1Seconds/60)}m, ` +
+            `Z2:${Math.round(zoneData.zone2Seconds/60)}m, ` +
+            `Z3:${Math.round(zoneData.zone3Seconds/60)}m, ` +
+            `Z4:${Math.round(zoneData.zone4Seconds/60)}m, ` +
+            `Z5:${Math.round(zoneData.zone5Seconds/60)}m`
+        );
+
+        // Store in HeartRateZone table (will overwrite estimation if it exists)
+        await HeartRateZone.upsert({
+            userId,
+            activityId,
+            date: activity.startTime.toISOString().split('T')[0],
+            activityType: activity.activityType,
+            durationSeconds: totalSeconds,
+            ...zoneData,
+            avgHr: activity.avgHr,
+            maxHr: activity.maxHr,
+            provider: 'strava',
+            isDetailedData: true  // Flag to indicate this is from zones API, not estimation
+        });
+
+        // ALSO store in Activity.rawData for easy frontend access
+        const updatedRawData = {
+            ...(activity.rawData || {}),
+            time_in_heart_rate_zone: [
+                zoneData.zone1Seconds,
+                zoneData.zone2Seconds,
+                zoneData.zone3Seconds,
+                zoneData.zone4Seconds,
+                zoneData.zone5Seconds
+            ],
+            hr_zone_distribution: buckets  // Store original Strava data
+        };
+
+        await activity.update({ rawData: updatedRawData });
+
+        console.log(`  ✅ Stored detailed HR zones for activity ${stravaActivityId}`);
+    } catch (error) {
+        console.error(`  ❌ Failed to store HR zones for activity ${stravaActivityId}:`, error.message);
+    }
 }
 
 /**
