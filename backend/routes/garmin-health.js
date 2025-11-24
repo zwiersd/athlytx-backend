@@ -644,12 +644,16 @@ async function processGarminPushData(data) {
         // Process HRV payload (some pushes may come as { hrv: [...] } without userId)
         if (hrv && hrv.length > 0) {
             console.log(`💓 Processing ${hrv.length} HRV records`);
+            console.log('💓 HRV sample keys:', Object.keys(hrv[0] || {}));
             stored = 0;
             for (const item of hrv) {
                 try {
                     const date = item.calendarDate || item.summaryDate ||
                         (item.startTimeInSeconds ? new Date(item.startTimeInSeconds * 1000).toISOString().split('T')[0] : null);
                     const hrvValue = item.hrvValue || item.heartRateVariability || item.heartRateVariabilityAvg;
+                    if (hrvValue === undefined || hrvValue === null) {
+                        console.log('💓 HRV record missing value:', item);
+                    }
                     if (!date || hrvValue === undefined || hrvValue === null) continue;
                     await DailyMetric.upsert({
                         userId: ourUserId,
