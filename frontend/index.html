@@ -2817,11 +2817,41 @@
                 }
             });
         }
+        
+        // ===== USER ID HELPERS (GUEST MODE) =====
+        function ensureGuestUserId() {
+            let userId = localStorage.getItem('userId');
+            const sessionToken = localStorage.getItem('sessionToken');
+
+            if (userId) {
+                return userId;
+            }
+
+            // If we have a session token but no userId, something is off - force a reauth
+            if (sessionToken) {
+                console.warn('Session token present but userId missing - prompt user to re-authenticate');
+                return null;
+            }
+
+            // Guest path: generate a local guest userId so device connections keep working
+            userId = (crypto.randomUUID ? crypto.randomUUID() : generateLocalUUID());
+            localStorage.setItem('userId', userId);
+            console.log('🆕 Generated guest userId:', userId);
+            return userId;
+        }
+
+        function generateLocalUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
 
         // ===== DEVICE CONNECTION FUNCTIONS =====
         async function connectDevice(device) {
             const button = event.target;
-            const userId = localStorage.getItem('userId');
+            const userId = ensureGuestUserId();
 
             if (!userId) {
                 showMessage('Please log in first before connecting devices', 'error');
@@ -3012,6 +3042,9 @@
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userName');
             localStorage.removeItem('userId');
+
+            // Immediately create a new guest userId so connections continue to work
+            ensureGuestUserId();
 
             // Update UI to show guest view
             document.getElementById('guestView').style.display = 'block';
@@ -3271,6 +3304,12 @@
 
                 // Clean up URL completely
                 window.history.replaceState({}, document.title, '/');
+            }
+
+            // Always ensure we have a userId for guest mode flows
+            const ensuredUserId = ensureGuestUserId();
+            if (!ensuredUserId) {
+                console.warn('Unable to initialize userId - device connections will require login');
             }
 
             // Check if user is logged in and update Account tab
