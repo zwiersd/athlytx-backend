@@ -253,7 +253,7 @@ async function processGarminPushData(data) {
     console.log('🔄 Processing Garmin PUSH data asynchronously...');
 
     try {
-        const { Activity, HeartRateZone, DailyMetric } = require('../models');
+        const { Activity, HeartRateZone, DailyMetric, OAuthToken } = require('../models');
 
         // Extract userId from any array in the PUSH data
         // Garmin sends userId inside array elements (e.g., allDayRespiration[0].userId)
@@ -277,6 +277,19 @@ async function processGarminPushData(data) {
             }
         }
 
+        // Fallback if Garmin omitted userId: use the single Garmin token we have
+        if (!garminUserId) {
+            const garminTokens = await OAuthToken.findAll({ where: { provider: 'garmin' }, order: [['connectedAt', 'DESC']] });
+            if (garminTokens.length === 1) {
+                const token = garminTokens[0];
+                const scopesObj = typeof token.scopes === 'string' ? (() => { try { return JSON.parse(token.scopes); } catch { return {}; } })() : (token.scopes || {});
+                garminUserId = scopesObj.wellnessUserId || token.providerUserId;
+                if (garminUserId) {
+                    console.log(`🔗 Fallback Garmin userId resolved to ${garminUserId} via single token`);
+                }
+            }
+        }
+
         if (!garminUserId) {
             console.warn('⚠️  No userId found in PUSH data');
             console.warn('Data keys:', Object.keys(data));
@@ -286,7 +299,7 @@ async function processGarminPushData(data) {
         // Extract data arrays with backward compatibility
         const {
             summaries, activities, sleeps, stressDetails, userMetrics,
-            allDayRespiration, epochs, dailies, thirdPartyDailies
+            allDayRespiration, epochs, dailies, thirdPartyDailies, hrv
         } = data;
 
         // Find our internal userId from the Garmin GUID
@@ -607,7 +620,9 @@ async function processGarminPushData(data) {
 
             for (const resp of allDayRespiration) {
                 try {
-                    const date = resp.calendarDate;
+                    const date = resp.calendarDate || (resp.startTimeInSeconds
+                        ? new Date(resp.startTimeInSeconds * 1000).toISOString().split('T')[0]
+                        : null);
                     if (!date) continue;
 
                     await DailyMetric.upsert({
@@ -624,6 +639,30 @@ async function processGarminPushData(data) {
                 }
             }
             console.log(`✅ Stored respiration data for ${stored} days`);
+        }
+
+        // Process HRV payload (some pushes may come as { hrv: [...] } without userId)
+        if (hrv && hrv.length > 0) {
+            console.log(`💓 Processing ${hrv.length} HRV records`);
+            stored = 0;
+            for (const item of hrv) {
+                try {
+                    const date = item.calendarDate || item.summaryDate ||
+                        (item.startTimeInSeconds ? new Date(item.startTimeInSeconds * 1000).toISOString().split('T')[0] : null);
+                    const hrvValue = item.hrvValue || item.heartRateVariability || item.heartRateVariabilityAvg;
+                    if (!date || hrvValue === undefined || hrvValue === null) continue;
+                    await DailyMetric.upsert({
+                        userId: ourUserId,
+                        date,
+                        hrvAvg: hrvValue,
+                        restingHr: item.restingHeartRate || item.restingHeartRateInBeatsPerMinute || null
+                    });
+                    stored++;
+                } catch (err) {
+                    console.error('Error storing HRV record:', err.message);
+                }
+            }
+            console.log(`✅ Stored HRV data for ${stored} days`);
         }
 
         console.log('✅ Garmin Health API PUSH data processed successfully');
