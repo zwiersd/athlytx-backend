@@ -1,6 +1,137 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { OAuthToken } = require('../models');
+const { decrypt } = require('../utils/encryption');
+
+/**
+ * Generate OAuth 1.0a Authorization header for Garmin Health API
+ */
+function generateGarminOAuth1Header(method, url, consumerKey, consumerSecret, accessToken, tokenSecret) {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const nonce = crypto.randomBytes(16).toString('hex');
+
+    const params = {
+        oauth_consumer_key: consumerKey,
+        oauth_nonce: nonce,
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_timestamp: timestamp,
+        oauth_version: '1.0'
+    };
+
+    if (accessToken) {
+        params.oauth_token = accessToken;
+    }
+
+    // Sort parameters and create parameter string
+    const sortedParams = Object.keys(params)
+        .sort()
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&');
+
+    // Create signature base string (use base URL without query params)
+    const baseUrl = url.split('?')[0];
+    const signatureBaseString = [
+        method.toUpperCase(),
+        encodeURIComponent(baseUrl),
+        encodeURIComponent(sortedParams)
+    ].join('&');
+
+    // Create signing key
+    const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret || '')}`;
+
+    // Generate signature
+    const signature = crypto
+        .createHmac('sha1', signingKey)
+        .update(signatureBaseString)
+        .digest('base64');
+
+    params.oauth_signature = signature;
+
+    // Build Authorization header
+    return 'OAuth ' + Object.keys(params)
+        .sort()
+        .map(key => `${encodeURIComponent(key)}="${encodeURIComponent(params[key])}"`)
+        .join(', ');
+}
+
+/**
+ * Request backfill from Garmin Health API
+ * This makes the actual API call to Garmin to request historical data
+ */
+async function requestGarminBackfill(garminUserId, accessToken, tokenSecret, summaryStartTimeInSeconds, summaryEndTimeInSeconds) {
+    const GARMIN_CONSUMER_KEY = process.env.GARMIN_CONSUMER_KEY;
+    const GARMIN_CONSUMER_SECRET = process.env.GARMIN_CONSUMER_SECRET;
+
+    // Garmin Health API backfill endpoints - request each data type
+    const backfillTypes = [
+        'dailies',
+        'activities',
+        'activityDetails',
+        'epochs',
+        'sleeps',
+        'bodyComps',
+        'stress',
+        'userMetrics',
+        'moveiq',
+        'pulseOx',
+        'respiration'
+    ];
+
+    const results = [];
+
+    for (const dataType of backfillTypes) {
+        const url = `https://apis.garmin.com/wellness-api/rest/backfill/${dataType}?summaryStartTimeInSeconds=${summaryStartTimeInSeconds}&summaryEndTimeInSeconds=${summaryEndTimeInSeconds}`;
+
+        try {
+            const authHeader = generateGarminOAuth1Header(
+                'GET',
+                url,
+                GARMIN_CONSUMER_KEY,
+                GARMIN_CONSUMER_SECRET,
+                accessToken,
+                tokenSecret
+            );
+
+            console.log(`📤 Requesting backfill for ${dataType}...`);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': authHeader,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const status = response.status;
+            let responseText = '';
+            try {
+                responseText = await response.text();
+            } catch (e) {
+                responseText = 'Unable to read response';
+            }
+
+            if (status === 200 || status === 202) {
+                console.log(`✅ Backfill accepted for ${dataType}`);
+                results.push({ type: dataType, status: 'accepted', httpStatus: status });
+            } else if (status === 412) {
+                console.log(`⚠️ Backfill rejected for ${dataType}: User hasn't enabled historical data toggle`);
+                results.push({ type: dataType, status: 'permission_denied', httpStatus: status, message: 'Historical data toggle not enabled' });
+            } else {
+                console.log(`❌ Backfill failed for ${dataType}: ${status} - ${responseText}`);
+                results.push({ type: dataType, status: 'failed', httpStatus: status, error: responseText });
+            }
+        } catch (error) {
+            console.error(`❌ Error requesting backfill for ${dataType}:`, error.message);
+            results.push({ type: dataType, status: 'error', error: error.message });
+        }
+
+        // Small delay between requests to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    return results;
+}
 
 /**
  * GARMIN HEALTH API REQUIRED ENDPOINTS
@@ -236,8 +367,8 @@ router.post('/userPermission', async (req, res) => {
 });
 
 /**
- * Backfill Endpoint - Optional but recommended
- * Allows requesting historical data for a user
+ * Backfill Endpoint - Request historical data from Garmin
+ * This makes actual API calls to Garmin to request historical data
  * NOTE: As of Dec 2024, backfill returns HTTP 412 if user hasn't enabled historical data toggle
  *
  * POST /api/garmin/backfill
@@ -246,19 +377,47 @@ router.post('/backfill', async (req, res) => {
     console.log('⏪ Garmin backfill request');
 
     try {
-        const { userId, startDate, endDate } = req.body;
+        const { userId, daysBack: requestedDays, startDate, endDate } = req.body;
 
         if (!userId) {
             return res.status(400).json({
                 error: 'Missing userId',
-                message: 'userId is required for backfill'
+                message: 'userId (internal Athlytx user ID) is required for backfill'
             });
         }
 
-        console.log('Backfill requested:', { userId, startDate, endDate });
+        console.log('Backfill requested:', { userId, requestedDays, startDate, endDate });
 
-        // Calculate days back from date range
-        let daysBack = 90; // Default to 90 days (Garmin's data retention policy)
+        // Find the user's Garmin token
+        const garminToken = await OAuthToken.findOne({
+            where: { userId, provider: 'garmin' },
+            order: [['connectedAt', 'DESC']]
+        });
+
+        if (!garminToken) {
+            return res.status(404).json({
+                error: 'No Garmin connection',
+                message: 'User does not have a connected Garmin account'
+            });
+        }
+
+        // Get access token and token secret
+        const accessToken = garminToken.accessTokenEncrypted
+            ? decrypt(garminToken.accessTokenEncrypted)
+            : null;
+        const tokenSecret = garminToken.refreshTokenEncrypted
+            ? decrypt(garminToken.refreshTokenEncrypted)
+            : null;
+
+        if (!accessToken) {
+            return res.status(400).json({
+                error: 'Invalid token',
+                message: 'Garmin access token not found'
+            });
+        }
+
+        // Calculate time range
+        let daysBack = requestedDays || 90;
 
         if (startDate && endDate) {
             const start = new Date(startDate);
@@ -277,24 +436,46 @@ router.post('/backfill', async (req, res) => {
         // Cap at 90 days (Garmin's data retention policy)
         daysBack = Math.min(daysBack, 90);
 
-        // Acknowledge receipt immediately (required by Garmin)
+        // Calculate Unix timestamps for Garmin API
+        const endTime = Math.floor(Date.now() / 1000);
+        const startTime = endTime - (daysBack * 24 * 60 * 60);
+
+        console.log(`📅 Requesting backfill for ${daysBack} days`);
+        console.log(`⏰ Time range: ${new Date(startTime * 1000).toISOString()} to ${new Date(endTime * 1000).toISOString()}`);
+
+        // Make the actual Garmin API backfill requests
+        const backfillResults = await requestGarminBackfill(
+            garminToken.providerUserId,
+            accessToken,
+            tokenSecret,
+            startTime,
+            endTime
+        );
+
+        // Check results for permission issues
+        const permissionDenied = backfillResults.some(r => r.status === 'permission_denied');
+        const accepted = backfillResults.filter(r => r.status === 'accepted').length;
+        const failed = backfillResults.filter(r => r.status === 'failed' || r.status === 'error').length;
+
+        if (permissionDenied) {
+            return res.status(200).json({
+                status: 'partial',
+                message: 'Some backfill requests were denied - user may need to enable historical data toggle in Garmin Connect',
+                timestamp: new Date().toISOString(),
+                daysRequested: daysBack,
+                results: backfillResults,
+                summary: { accepted, permissionDenied: backfillResults.filter(r => r.status === 'permission_denied').length, failed }
+            });
+        }
+
         res.status(200).json({
             status: 'accepted',
-            message: 'Backfill request queued',
+            message: 'Backfill requests sent to Garmin. Data will arrive via PUSH webhook.',
             timestamp: new Date().toISOString(),
-            daysToSync: daysBack
+            daysRequested: daysBack,
+            results: backfillResults,
+            summary: { accepted, failed }
         });
-
-        // Process backfill asynchronously using syncService
-        const { syncUserData } = require('../services/syncService');
-
-        syncUserData(userId, daysBack)
-            .then(results => {
-                console.log('✅ Backfill completed:', results);
-            })
-            .catch(error => {
-                console.error('❌ Backfill processing failed:', error);
-            });
 
     } catch (error) {
         console.error('❌ Garmin backfill error:', error);
