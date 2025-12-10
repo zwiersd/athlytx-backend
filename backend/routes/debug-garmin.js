@@ -14,14 +14,25 @@ router.get('/debug/garmin/all-activities', async (req, res) => {
 
         const tokens = await OAuthToken.findAll({
             where: { provider: 'garmin' },
-            attributes: ['userId', 'providerUserId', 'connectedAt']
+            attributes: ['userId', 'providerUserId', 'connectedAt', 'accessTokenEncrypted', 'refreshTokenEncrypted', 'expiresAt']
         });
+
+        // Sanitize tokens for response (don't expose full encrypted values)
+        const sanitizedTokens = tokens.map(t => ({
+            userId: t.userId,
+            providerUserId: t.providerUserId,
+            connectedAt: t.connectedAt,
+            hasAccessToken: !!t.accessTokenEncrypted,
+            hasRefreshToken: !!t.refreshTokenEncrypted,
+            accessTokenLength: t.accessTokenEncrypted?.length || 0,
+            expiresAt: t.expiresAt
+        }));
 
         res.json({
             totalActivities: activities.length,
             totalTokens: tokens.length,
             activities: activities,
-            tokens: tokens
+            tokens: sanitizedTokens
         });
     } catch (error) {
         console.error('Error querying Garmin data:', error);
