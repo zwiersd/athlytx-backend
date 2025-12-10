@@ -574,37 +574,12 @@ async function processGarminPushData(data) {
                 }
 
                 if (!token) {
-                    console.warn(`⚠️  No user found for Garmin userId: ${garminUserId}`);
-                    // Fallback mapping: if there's exactly one distinct Garmin GUID in DB, assume it's the same user
-                    const distinctGuids = Array.from(new Set(allTokens.map(t => t.providerUserId).filter(Boolean)));
-
-                    if (allTokens.length >= 1 && distinctGuids.length === 1) {
-                        const assumed = allTokens[0]; // newest first due to order
-                        console.warn(`🔗 Assuming PUSH userId ${garminUserId} maps to Garmin GUID ${assumed.providerUserId} (user ${assumed.userId})`);
-
-                        // Persist mapping for future events using token.scopes JSON as storage
-                        try {
-                            let scopesObj;
-                            if (!assumed.scopes) scopesObj = {};
-                            else if (typeof assumed.scopes === 'string') {
-                                try { scopesObj = JSON.parse(assumed.scopes); } catch { scopesObj = {}; }
-                            } else scopesObj = assumed.scopes;
-
-                            if (scopesObj.wellnessUserId !== garminUserId) {
-                                scopesObj.wellnessUserId = garminUserId;
-                                assumed.scopes = scopesObj;
-                                await assumed.save();
-                                console.log(`📝 Stored wellnessUserId mapping on token for user ${assumed.userId}`);
-                            }
-                        } catch (mapErr) {
-                            console.warn('⚠️ Failed to persist wellnessUserId mapping:', mapErr.message);
-                        }
-
-                        token = assumed;
-                    } else {
-                        console.warn('⚠️  Multiple Garmin accounts present; cannot safely map PUSH userId. Skipping.');
-                        return;
-                    }
+                    // SECURITY FIX: Do NOT assume unknown Garmin userIds belong to existing users
+                    // This was causing data to be assigned to wrong users (data breach)
+                    console.error(`🚨 SECURITY: Unknown Garmin userId ${garminUserId} - cannot map to any user`);
+                    console.error(`🚨 Known Garmin providerUserIds:`, allTokens.map(t => t.providerUserId));
+                    console.warn('⚠️  Rejecting PUSH data - user must reconnect their Garmin account');
+                    return;
                 }
             } catch (mapError) {
                 console.warn('⚠️  Fallback mapping error:', mapError.message);
