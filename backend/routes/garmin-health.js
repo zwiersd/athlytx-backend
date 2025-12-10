@@ -177,8 +177,68 @@ router.get('/permissions', async (req, res) => {
 });
 
 /**
+ * User Permission Webhook - Required for Historical Data Toggle (Dec 2024)
+ * Garmin sends this when a user changes their historical data permission
+ *
+ * POST /api/garmin/userPermission
+ */
+router.post('/userPermission', async (req, res) => {
+    console.log('🔐 Garmin User Permission update received');
+
+    try {
+        const data = req.body;
+
+        // Log the permission change details
+        console.log('📋 Permission update payload:', JSON.stringify(data, null, 2));
+
+        // Extract user and permission info
+        // Payload format: { userId: "garmin_user_id", permissions: { historicalData: true/false } }
+        const { userId, userAccessToken, permissions } = data;
+
+        if (userId || userAccessToken) {
+            console.log(`👤 User: ${userId || 'token-based'}`);
+            console.log(`📊 Historical data access: ${permissions?.historicalData ? 'ENABLED' : 'DISABLED'}`);
+
+            // Store permission state on the token for future reference
+            if (userId) {
+                const token = await OAuthToken.findOne({
+                    where: { provider: 'garmin', providerUserId: userId },
+                    order: [['connectedAt', 'DESC']]
+                });
+
+                if (token) {
+                    let scopesObj = {};
+                    if (token.scopes) {
+                        scopesObj = typeof token.scopes === 'string'
+                            ? JSON.parse(token.scopes)
+                            : token.scopes;
+                    }
+                    scopesObj.historicalDataEnabled = permissions?.historicalData || false;
+                    scopesObj.permissionUpdatedAt = new Date().toISOString();
+                    token.scopes = scopesObj;
+                    await token.save();
+                    console.log(`✅ Stored permission state for user ${token.userId}`);
+                }
+            }
+        }
+
+        // Return 200 immediately (required by Garmin)
+        res.status(200).json({
+            status: 'received',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Garmin User Permission webhook error:', error);
+        // Still return 200 to acknowledge receipt
+        res.status(200).json({ status: 'error', message: error.message });
+    }
+});
+
+/**
  * Backfill Endpoint - Optional but recommended
  * Allows requesting historical data for a user
+ * NOTE: As of Dec 2024, backfill returns HTTP 412 if user hasn't enabled historical data toggle
  *
  * POST /api/garmin/backfill
  */
