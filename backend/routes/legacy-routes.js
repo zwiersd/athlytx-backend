@@ -1306,6 +1306,152 @@ app.delete('/api/debug/garmin/activity/:externalId', async (req, res) => {
     }
 });
 
+// EMERGENCY: Separate mixed user data by device model
+// This fixes data breach where two users' activities got merged under same userId
+app.post('/api/debug/garmin/separate-by-device', async (req, res) => {
+    try {
+        const { currentUserId, deviceToSeparate, newUserEmail } = req.body;
+        const { Activity, HeartRateZone, User } = require('../models');
+        const { v4: uuidv4 } = require('uuid');
+
+        if (!currentUserId || !deviceToSeparate) {
+            return res.status(400).json({
+                error: 'currentUserId and deviceToSeparate required'
+            });
+        }
+
+        console.log(`🔧 EMERGENCY: Separating device "${deviceToSeparate}" from user ${currentUserId}`);
+
+        // 1. Find all activities with this device
+        const activitiesToMove = await Activity.findAll({
+            where: {
+                userId: currentUserId,
+                provider: 'garmin'
+            }
+        });
+
+        // Filter by device in rawData
+        const matchingActivities = activitiesToMove.filter(a => {
+            const raw = a.rawData || {};
+            const device = raw.deviceName || raw.deviceModel || '';
+            return device.toLowerCase().includes(deviceToSeparate.toLowerCase());
+        });
+
+        console.log(`📊 Found ${matchingActivities.length} activities with device "${deviceToSeparate}"`);
+
+        if (matchingActivities.length === 0) {
+            return res.json({
+                success: false,
+                message: `No activities found with device "${deviceToSeparate}"`,
+                hint: 'Check device names in /api/debug/garmin/all'
+            });
+        }
+
+        // 2. Create new user for the separated data
+        const newUserId = uuidv4();
+        const email = newUserEmail || `separated-user-${newUserId.substring(0, 8)}@athlytx.com`;
+
+        await User.create({
+            id: newUserId,
+            email: email,
+            name: `User (${deviceToSeparate})`,
+            role: 'athlete',
+            isActive: true
+        });
+
+        console.log(`✅ Created new user: ${newUserId}`);
+
+        // 3. Move activities to new user
+        const activityIds = matchingActivities.map(a => a.id);
+        await Activity.update(
+            { userId: newUserId },
+            { where: { id: activityIds } }
+        );
+
+        console.log(`✅ Moved ${activityIds.length} activities to new user`);
+
+        // 4. Move related HR zones
+        const movedZones = await HeartRateZone.update(
+            { userId: newUserId },
+            { where: { activityId: activityIds } }
+        );
+
+        console.log(`✅ Moved ${movedZones[0]} HR zone records`);
+
+        res.json({
+            success: true,
+            message: `Successfully separated ${matchingActivities.length} activities`,
+            newUserId: newUserId,
+            newUserEmail: email,
+            movedActivities: activityIds.length,
+            movedHrZones: movedZones[0],
+            nextSteps: [
+                'The other user should clear localStorage and reconnect Garmin',
+                'You may need to reconnect your Garmin as well',
+                `New user can login with email: ${email}`
+            ]
+        });
+
+    } catch (error) {
+        console.error('Error separating users:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get activities grouped by device model
+app.get('/api/debug/garmin/by-device', async (req, res) => {
+    try {
+        const { userId } = req.query;
+        const { Activity } = require('../models');
+
+        const where = { provider: 'garmin' };
+        if (userId) where.userId = userId;
+
+        const activities = await Activity.findAll({
+            where,
+            order: [['startTime', 'DESC']],
+            limit: 200
+        });
+
+        // Group by device
+        const byDevice = {};
+        activities.forEach(a => {
+            const raw = a.rawData || {};
+            const device = raw.deviceName || raw.deviceModel || 'Unknown';
+            if (!byDevice[device]) {
+                byDevice[device] = {
+                    count: 0,
+                    activities: [],
+                    userIds: new Set()
+                };
+            }
+            byDevice[device].count++;
+            byDevice[device].userIds.add(a.userId);
+            byDevice[device].activities.push({
+                id: a.id,
+                name: a.activityName,
+                type: a.activityType,
+                date: a.startTime,
+                userId: a.userId
+            });
+        });
+
+        // Convert Sets to arrays for JSON
+        Object.keys(byDevice).forEach(device => {
+            byDevice[device].userIds = Array.from(byDevice[device].userIds);
+        });
+
+        res.json({
+            totalActivities: activities.length,
+            devices: byDevice
+        });
+
+    } catch (error) {
+        console.error('Error grouping by device:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // MIGRATE: Move Garmin activities from one userId to another
 app.post('/api/debug/garmin/migrate', async (req, res) => {
     try {
