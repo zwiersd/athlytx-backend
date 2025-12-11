@@ -1452,6 +1452,73 @@ app.get('/api/debug/garmin/by-device', async (req, res) => {
     }
 });
 
+// CLEANUP: Delete orphaned user and migrate their data to correct user
+// Used when duplicate tokens exist for same Garmin GUID
+app.post('/api/debug/garmin/cleanup-orphan', async (req, res) => {
+    try {
+        const { orphanUserId, correctUserId } = req.body;
+
+        if (!orphanUserId || !correctUserId) {
+            return res.status(400).json({ error: 'orphanUserId and correctUserId required' });
+        }
+
+        const { Activity, OAuthToken, DailyMetric, HeartRateZone, User } = require('../models');
+
+        console.log(`\n🧹 === CLEANUP ORPHAN USER ===`);
+        console.log(`   Orphan:  ${orphanUserId}`);
+        console.log(`   Correct: ${correctUserId}`);
+
+        // 1. Migrate activities from orphan to correct user
+        const migratedActivities = await Activity.update(
+            { userId: correctUserId },
+            { where: { userId: orphanUserId, provider: 'garmin' } }
+        );
+        console.log(`✅ Migrated ${migratedActivities[0]} activities`);
+
+        // 2. Migrate daily metrics from orphan to correct user
+        const migratedDailies = await DailyMetric.update(
+            { userId: correctUserId },
+            { where: { userId: orphanUserId } }
+        );
+        console.log(`✅ Migrated ${migratedDailies[0]} daily metrics`);
+
+        // 3. Migrate HR zones from orphan to correct user
+        const migratedZones = await HeartRateZone.update(
+            { userId: correctUserId },
+            { where: { userId: orphanUserId } }
+        );
+        console.log(`✅ Migrated ${migratedZones[0]} HR zones`);
+
+        // 4. Delete orphan's tokens (they're duplicates)
+        const deletedTokens = await OAuthToken.destroy({
+            where: { userId: orphanUserId }
+        });
+        console.log(`✅ Deleted ${deletedTokens} duplicate tokens`);
+
+        // 5. Delete orphan user account
+        const deletedUser = await User.destroy({
+            where: { id: orphanUserId }
+        });
+        console.log(`✅ Deleted orphan user account: ${deletedUser ? 'yes' : 'no'}`);
+
+        res.json({
+            success: true,
+            message: 'Orphan user cleaned up successfully',
+            orphanUserId,
+            correctUserId,
+            migratedActivities: migratedActivities[0],
+            migratedDailies: migratedDailies[0],
+            migratedZones: migratedZones[0],
+            deletedTokens,
+            deletedUser: !!deletedUser
+        });
+
+    } catch (error) {
+        console.error('❌ Error cleaning up orphan user:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // MIGRATE: Move Garmin activities from one userId to another
 app.post('/api/debug/garmin/migrate', async (req, res) => {
     try {
