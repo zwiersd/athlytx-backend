@@ -367,6 +367,69 @@ router.post('/userPermission', async (req, res) => {
 });
 
 /**
+ * Check user's Garmin permissions before backfill
+ * GET /api/garmin/permissions?userId=xxx
+ */
+router.get('/permissions', async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId required' });
+        }
+
+        const garminToken = await OAuthToken.findOne({
+            where: { userId, provider: 'garmin' },
+            order: [['connectedAt', 'DESC']]
+        });
+
+        if (!garminToken) {
+            return res.status(404).json({
+                error: 'No Garmin connection',
+                connected: false
+            });
+        }
+
+        // Parse stored permissions from scopes field
+        let permissions = {
+            historicalDataEnabled: false,
+            lastUpdated: null
+        };
+
+        try {
+            const scopes = garminToken.scopes;
+            if (scopes) {
+                const scopesObj = typeof scopes === 'string' ? JSON.parse(scopes) : scopes;
+                permissions.historicalDataEnabled = scopesObj.historicalDataEnabled === true;
+                permissions.lastUpdated = scopesObj.permissionsUpdatedAt || null;
+                permissions.wellnessUserId = scopesObj.wellnessUserId || null;
+            }
+        } catch (e) {
+            console.warn('⚠️ Could not parse scopes');
+        }
+
+        res.json({
+            connected: true,
+            userId: garminToken.userId,
+            providerUserId: garminToken.providerUserId,
+            connectedAt: garminToken.connectedAt,
+            permissions,
+            backfillInfo: {
+                maxDays: 365,
+                requiresHistoricalToggle: true,
+                howToEnable: permissions.historicalDataEnabled
+                    ? 'Historical data is already enabled!'
+                    : 'Go to Garmin Connect → Account → Third-Party Apps → Find Athlytx → Enable "Share Historical Data"'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error checking Garmin permissions:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * Backfill Endpoint - Request historical data from Garmin
  * This makes actual API calls to Garmin to request historical data
  * NOTE: As of Dec 2024, backfill returns HTTP 412 if user hasn't enabled historical data toggle
@@ -416,6 +479,19 @@ router.post('/backfill', async (req, res) => {
             });
         }
 
+        // Check if user has historical data permission enabled
+        // (stored when we receive User Permission webhook)
+        let historicalDataEnabled = false;
+        try {
+            const scopes = garminToken.scopes;
+            if (scopes) {
+                const scopesObj = typeof scopes === 'string' ? JSON.parse(scopes) : scopes;
+                historicalDataEnabled = scopesObj.historicalDataEnabled === true;
+            }
+        } catch (e) {
+            console.warn('⚠️ Could not parse scopes for historical data check');
+        }
+
         // Calculate time range
         let daysBack = requestedDays || 90;
 
@@ -433,8 +509,20 @@ router.post('/backfill', async (req, res) => {
             console.log(`Calculated ${daysBack} days from start date to now`);
         }
 
-        // Cap at 90 days (Garmin's data retention policy)
-        daysBack = Math.min(daysBack, 90);
+        // Extended limit: Allow up to 365 days (1 year) of historical data
+        // Note: Garmin may not retain data older than ~90 days for some data types
+        // but activities are typically available for longer
+        const MAX_BACKFILL_DAYS = 365;
+        if (daysBack > MAX_BACKFILL_DAYS) {
+            console.warn(`⚠️ Requested ${daysBack} days, capping at ${MAX_BACKFILL_DAYS} days`);
+            daysBack = MAX_BACKFILL_DAYS;
+        }
+
+        // Warn if requesting >90 days without confirmed historical permission
+        if (daysBack > 90 && !historicalDataEnabled) {
+            console.warn(`⚠️ Requesting ${daysBack} days but historical data permission not confirmed`);
+            console.warn('   User may need to enable "Share Historical Data" toggle in Garmin Connect');
+        }
 
         // Calculate Unix timestamps for Garmin API
         const endTime = Math.floor(Date.now() / 1000);
@@ -460,9 +548,11 @@ router.post('/backfill', async (req, res) => {
         if (permissionDenied) {
             return res.status(200).json({
                 status: 'partial',
-                message: 'Some backfill requests were denied - user may need to enable historical data toggle in Garmin Connect',
+                message: 'Some backfill requests were denied - user needs to enable "Share Historical Data" toggle in Garmin Connect settings',
+                howToEnable: 'Go to Garmin Connect → Account → Third-Party Apps → Find Athlytx → Enable "Share Historical Data"',
                 timestamp: new Date().toISOString(),
                 daysRequested: daysBack,
+                historicalDataEnabled,
                 results: backfillResults,
                 summary: { accepted, permissionDenied: backfillResults.filter(r => r.status === 'permission_denied').length, failed }
             });
@@ -473,6 +563,7 @@ router.post('/backfill', async (req, res) => {
             message: 'Backfill requests sent to Garmin. Data will arrive via PUSH webhook.',
             timestamp: new Date().toISOString(),
             daysRequested: daysBack,
+            historicalDataEnabled,
             results: backfillResults,
             summary: { accepted, failed }
         });
